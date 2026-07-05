@@ -1,6 +1,6 @@
 ﻿import { ExternalLink, GitBranch, Moon, Search, Sun } from 'lucide-react'
 import type { ReactElement, SVGProps } from 'react'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import BlurText from '~/components/BlurText'
 import { BorderGlow } from '~/components/react-bits/BorderGlow'
@@ -12,6 +12,8 @@ import type { Route } from './+types/home'
 
 type Locale = 'en' | 'zh'
 type Theme = 'light' | 'dark'
+
+const THEME_STORAGE_KEY = 'vmaker-theme'
 
 type ProjectGroup = {
   id: string
@@ -82,15 +84,15 @@ function JavaScriptBadge(props: SVGProps<SVGSVGElement>) {
 }
 
 function PythonBadge(props: SVGProps<SVGSVGElement>) {
-  return <svg aria-hidden='true' fill='none' viewBox='0 0 24 24' {...props}><rect width='24' height='24' rx='6' fill='#F3F4F6' /><path d='M12 4.5c-4 0-3.8 1.8-3.8 1.8v1.9H12v.6H6.8S4.3 8.6 4.3 12c0 3.4 2.2 3.3 2.2 3.3h1.3v-1.9s-.1-2.2 2.2-2.2h3.8s2.1 0 2.1-2V6.5s.3-2-4-2Zm-2.1 1.2a.8.8 0 1 1 0 1.6.8.8 0 0 1 0-1.6Z' fill='#3776AB' /><path d='M12 19.5c4 0 3.8-1.8 3.8-1.8v-1.9H12v-.6h5.2s2.5.2 2.5-3.2c0-3.4-2.2-3.3-2.2-3.3h-1.3v1.9s.1 2.2-2.2 2.2h-3.8s-2.1 0-2.1 2v2.7s-.3 2 4 2Zm2.1-1.2a.8.8 0 1 1 0-1.6.8.8 0 0 1 0 1.6Z' fill='#FFD43B' /></svg>
+  return <svg aria-hidden='true' fill='none' viewBox='0 0 24 24' {...props}><rect width='24' height='24' rx='6' fill='#F8FAFC' /><path d='M7 9.3c0-2.1 1.3-3.3 3.4-3.3h2.1c1.7 0 2.7.8 2.7 2.3 0 1.4-1 2.3-2.7 2.3H10c-.8 0-1.2.4-1.2 1.1v.7H7V9.3Zm4-1.6a.9.9 0 1 0 0 1.8.9.9 0 0 0 0-1.8Z' fill='#3776AB' /><path d='M17 14.7c0 2.1-1.3 3.3-3.4 3.3h-2.1c-1.7 0-2.7-.8-2.7-2.3 0-1.4 1-2.3 2.7-2.3H14c.8 0 1.2-.4 1.2-1.1v-.7H17v3.1Zm-4 1.6a.9.9 0 1 0 0-1.8.9.9 0 0 0 0 1.8Z' fill='#FFD43B' /><path d='M9.1 11.8c-.9.3-1.5 1-1.5 2v.3c-.6-.3-1.2-.9-1.5-1.6.2-1.5 1.3-2.7 3-3v2.3Zm5.8.4c.9-.3 1.5-1 1.5-2v-.3c.6.3 1.2.9 1.5 1.6-.2 1.5-1.3 2.7-3 3v-2.3Z' fill='#1E293B' fillOpacity='.18' /></svg>
 }
 
 function GoBadge(props: SVGProps<SVGSVGElement>) {
-  return <svg aria-hidden='true' fill='none' viewBox='0 0 24 24' {...props}><rect width='24' height='24' rx='6' fill='#00ADD8' /><path d='M7 12.1h5.4v1.4H7v-1.4Zm-.8-2.3h6.2v1.3H6.2V9.8Zm1 4.6h5.2v1.3H7.2v-1.3Zm10-4.1c1.6 0 2.9 1.2 2.9 2.8 0 1.6-1.3 2.9-2.9 2.9-1.6 0-2.9-1.3-2.9-2.9s1.3-2.8 2.9-2.8Zm0 1.3c-.8 0-1.5.7-1.5 1.5 0 .9.7 1.6 1.5 1.6.9 0 1.5-.7 1.5-1.6 0-.8-.6-1.5-1.5-1.5Zm-8.7-5.1h1.7L8.8 8.2H7.1l1.4-1.7Zm2.9 0h1.7l-1.4 1.7H10l1.4-1.7Z' fill='white' /></svg>
+  return <svg aria-hidden='true' fill='none' viewBox='0 0 24 24' {...props}><rect width='24' height='24' rx='6' fill='#E0F7FF' /><circle cx='8.8' cy='9' r='2.1' fill='#00ADD8' /><circle cx='15.2' cy='9' r='2.1' fill='#00ADD8' /><path d='M6.3 14.2c0-3.2 2.6-5.7 5.7-5.7s5.7 2.5 5.7 5.7c0 2.8-2.6 4.8-5.7 4.8s-5.7-2-5.7-4.8Z' fill='#00ADD8' /><circle cx='10' cy='13.2' r='1' fill='#0F172A' /><circle cx='14' cy='13.2' r='1' fill='#0F172A' /><ellipse cx='12' cy='15.1' rx='1.2' ry='.9' fill='#F8FAFC' /><path d='M10.6 16.3c.3.4.8.6 1.4.6.6 0 1.1-.2 1.4-.6' stroke='#0F172A' strokeWidth='1' strokeLinecap='round' /><path d='M9.2 11.2c.3-.4.8-.6 1.3-.6m3 0c.5 0 1 .2 1.3.6' stroke='#0F172A' strokeWidth='1' strokeLinecap='round' /></svg>
 }
 
 function RustBadge(props: SVGProps<SVGSVGElement>) {
-  return <svg aria-hidden='true' fill='none' viewBox='0 0 24 24' {...props}><rect width='24' height='24' rx='6' fill='#1F2937' /><path d='M12 5.2 13 6l1.3-.2.6 1.2 1.3.3v1.3l1 .9-.4 1.2.7 1.1-.7 1.1.4 1.2-1 .9v1.3l-1.3.3-.6 1.2-1.3-.2-1 .8-1-.8-1.3.2-.6-1.2-1.3-.3v-1.3l-1-.9.4-1.2-.7-1.1.7-1.1-.4-1.2 1-.9V7.3l1.3-.3.6-1.2L11 6l1-.8Z' fill='#F97316' /><path d='M9.2 8.7h3.7c1.8 0 3 .9 3 2.4 0 1.1-.7 1.9-1.7 2.2l1.9 2.1h-2.5L12 13.7h-.6v1.7H9.2V8.7Zm2.2 3.4h1.2c.7 0 1.1-.3 1.1-.9 0-.5-.4-.8-1.1-.8h-1.2v1.7Z' fill='white' /></svg>
+  return <svg aria-hidden='true' fill='none' viewBox='0 0 24 24' {...props}><rect width='24' height='24' rx='6' fill='#FFF7ED' /><path d='M7.2 13.3c0-2.7 2.2-4.9 4.8-4.9 1.9 0 3.5 1.1 4.3 2.6h.8c.9 0 1.7.8 1.7 1.7s-.8 1.7-1.7 1.7h-.6a4.9 4.9 0 0 1-4.5 3c-2.6 0-4.8-1.9-4.8-4.1Z' fill='#F97316' /><circle cx='10.5' cy='12.2' r='1' fill='#0F172A' /><circle cx='13.8' cy='12.2' r='1' fill='#0F172A' /><path d='M10.8 14.5c.4.3.9.5 1.4.5.6 0 1.1-.2 1.5-.5' stroke='#0F172A' strokeWidth='1' strokeLinecap='round' /><path d='M7 14.7 5.2 16m2.4-.4-1.5 1.8m9-2.7 1.8 1.3m-1.1-.1 1.6 1.7' stroke='#F97316' strokeWidth='1.2' strokeLinecap='round' /><path d='M7.7 10.4 6.1 9m1.1.1L5.8 7.5m10.9 2.9L18.3 9m-1 .1 1.4-1.6' stroke='#F97316' strokeWidth='1.2' strokeLinecap='round' /></svg>
 }
 
 function JavaBadge(props: SVGProps<SVGSVGElement>) {
@@ -225,6 +227,20 @@ export default function Home({ loaderData }: Route.ComponentProps) {
   const [query, setQuery] = useState('')
   const [theme, setTheme] = useState<Theme>('light')
   const t = copy[locale]
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    const storedTheme = window.localStorage.getItem(THEME_STORAGE_KEY)
+    if (storedTheme === 'light' || storedTheme === 'dark') {
+      setTheme(storedTheme)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    window.localStorage.setItem(THEME_STORAGE_KEY, theme)
+  }, [theme])
 
   function handleThemeToggle() {
     setTheme((currentTheme) => (currentTheme === 'light' ? 'dark' : 'light'))
