@@ -224,7 +224,16 @@ export async function getProjects(): Promise<ProjectPayload> {
     const repos = await githubFetch<GitHubRepo[]>(`/users/${GITHUB_USER}/repos?sort=pushed&per_page=100`)
     const visibleRepos = repos.filter((repo) => !repo.fork && !projectOverrides[repo.name]?.hidden)
 
-    const projects = visibleRepos.map((repo) => toProject(repo))
+    const projects = await Promise.all(
+      visibleRepos.map(async (repo) => {
+        const [languages, commits] = await Promise.all([
+          getRepoLanguages(repo.name),
+          getRepoCommits(repo.name),
+        ])
+
+        return toProject(repo, languages, commits)
+      }),
+    )
 
     const sortedProjects = sortProjects(projects)
     const payload = {

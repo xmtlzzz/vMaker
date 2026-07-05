@@ -1,10 +1,8 @@
-﻿import { ExternalLink, GitBranch, Moon, Search, Sun } from 'lucide-react'
-import type { ReactElement, SVGProps } from 'react'
-import { useEffect, useMemo, useState } from 'react'
+import { ExternalLink, GitBranch, Menu, Moon, Search, Sun, X } from 'lucide-react'
+import type { CSSProperties, ReactElement, RefObject, SVGProps } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
-import BlurText from '~/components/BlurText'
 import { BorderGlow } from '~/components/react-bits/BorderGlow'
-import { SpotlightCard } from '~/components/react-bits/SpotlightCard'
 import { Button } from '~/components/ui/button'
 import { formatDate, getProjects } from '~/lib/github/projects'
 import type { Project, ProjectPayload } from '~/lib/github/projects'
@@ -12,8 +10,6 @@ import type { Route } from './+types/home'
 
 type Locale = 'en' | 'zh'
 type Theme = 'light' | 'dark'
-
-const THEME_STORAGE_KEY = 'vmaker-theme'
 
 type ProjectGroup = {
   id: string
@@ -26,17 +22,64 @@ type LanguageIconConfig = {
   icon: (props: SVGProps<SVGSVGElement>) => ReactElement
 }
 
+type HeroSlide = {
+  accent: string
+  availability: string
+  description: string
+  label: string
+  videoUrl: string
+}
+
+type CommitTimelineItem = {
+  date: string
+  message: string
+  projectId: string
+  projectName: string
+  sha: string
+  url: string
+}
+
+const THEME_STORAGE_KEY = 'vmaker-theme'
+
+const HERO_SLIDES: HeroSlide[] = [
+  {
+    accent: '#F598F2',
+    availability: 'Available for the next build sprint',
+    description: 'A curated gateway to projects, websites, experiments, and the systems that hold them together.',
+    label: '01 / PROJECT INDEX',
+    videoUrl: 'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260629_030107_874273ea-684a-4e90-bb96-8fdfde48d53d.mp4',
+  },
+  {
+    accent: '#FFFFFF',
+    availability: 'Shipping websites, tools, and internal systems',
+    description: 'Structured around real repositories from GitHub, with language grouping, fast search, and direct project access.',
+    label: '02 / WEB SYSTEMS',
+    videoUrl: 'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260629_032424_3c9c2a9d-807b-4482-80e6-dd6d9dfd4545.mp4',
+  },
+  {
+    accent: '#FFFFFF',
+    availability: 'Open to creative dev collaborations',
+    description: 'Made for browsing the full spread of xmtlzzz work without flattening it into a static portfolio screenshot.',
+    label: '03 / CREATIVE DEV',
+    videoUrl: 'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260627_094019_4214ea73-b963-46a4-8327-61489192de99.mp4',
+  },
+]
+
 const copy = {
   en: {
     badge: 'Personal project gateway',
     browse: 'Browse projects',
     dataLeft: 'Source: GitHub public repositories from xmtlzzz',
-    dataRight: 'No Neon, no admin panel, no duplicate project database',
+    dataRight: 'No mirrored database, no admin layer, no duplicated project records',
     empty: 'No matching projects',
     github: 'Open GitHub',
-    hero: 'vMaker collects the projects I publish on GitHub.',
+    heroDescription: 'vMaker is a project index for the GitHub work published by xmtlzzz, designed to make browsing repositories, languages, and experiments direct and structured.',
+    heroEyebrow: 'Creative development archive',
+    heroTitle: 'vMaker.',
+    indexLead: 'Scroll from the hero into a live project index without losing context.',
     languageNav: 'Language navigation',
     latest: 'Latest',
+    menu: 'Menu',
     projectsUnavailable: 'Projects unavailable',
     repos: 'Repos',
     search: 'Search projects',
@@ -44,30 +87,38 @@ const copy = {
     subtitle: 'The home page stays focused on vMaker itself. Use the top navigation or the project index below to jump into individual xmtlzzz projects.',
     title: 'Jump to a project',
     tokenHelp: 'Add GITHUB_TOKEN in .env or Vercel environment variables, then restart the dev server.',
+    top: 'Top',
     tryAnother: 'Try another search term.',
     unavailable: 'GitHub projects could not be loaded',
     updated: 'Updated',
+    works: 'Projects',
   },
   zh: {
-    badge: '\u4e2a\u4eba\u9879\u76ee\u5165\u53e3',
-    browse: '\u6d4f\u89c8\u9879\u76ee',
-    dataLeft: '\u6570\u636e\u6e90\uff1axmtlzzz \u7684 GitHub \u516c\u5f00\u4ed3\u5e93',
-    dataRight: '\u4e0d\u4f7f\u7528 Neon\uff0c\u4e0d\u505a\u540e\u53f0\uff0c\u4e0d\u590d\u5236\u9879\u76ee\u6570\u636e\u5e93',
-    empty: '\u6ca1\u6709\u5339\u914d\u7684\u9879\u76ee',
-    github: '\u6253\u5f00 GitHub',
-    hero: 'vMaker \u6536\u96c6\u6211\u53d1\u5e03\u5728 GitHub \u4e0a\u7684\u9879\u76ee\u3002',
-    languageNav: '\u8bed\u8a00\u5bfc\u822a',
-    latest: '\u6700\u8fd1\u6d3b\u8dc3',
-    projectsUnavailable: '\u9879\u76ee\u6682\u4e0d\u53ef\u7528',
-    repos: '\u4ed3\u5e93\u6570',
-    search: '\u641c\u7d22\u9879\u76ee',
-    status: '\u7d22\u5f15\u72b6\u6001',
-    subtitle: '\u9996\u9875\u53ea\u805a\u7126 vMaker \u672c\u8eab\u3002\u4f60\u53ef\u4ee5\u901a\u8fc7\u9876\u90e8\u5bfc\u822a\u6216\u4e0b\u65b9\u9879\u76ee\u7d22\u5f15\uff0c\u5b9a\u4f4d\u5230\u4e0d\u540c\u7684 xmtlzzz \u9879\u76ee\u3002',
-    title: '\u5b9a\u4f4d\u5230\u9879\u76ee',
-    tokenHelp: '\u8bf7\u5728 .env \u6216 Vercel \u73af\u5883\u53d8\u91cf\u4e2d\u914d\u7f6e GITHUB_TOKEN\uff0c\u7136\u540e\u91cd\u542f\u670d\u52a1\u3002',
-    tryAnother: '\u6362\u4e00\u4e2a\u641c\u7d22\u8bcd\u8bd5\u8bd5\u3002',
-    unavailable: 'GitHub \u9879\u76ee\u52a0\u8f7d\u5931\u8d25',
-    updated: '\u66f4\u65b0\u4e8e',
+    badge: '个人项目入口',
+    browse: '浏览项目',
+    dataLeft: '数据源：xmtlzzz 的 GitHub 公开仓库',
+    dataRight: '不做镜像数据库，不加后台层，不复制项目记录',
+    empty: '没有匹配的项目',
+    github: '打开 GitHub',
+    heroDescription: 'vMaker 是一个面向 xmtlzzz GitHub 项目的索引页，用来更直接地浏览仓库、语言分布和不同类型的实验作品。',
+    heroEyebrow: '创意开发档案',
+    heroTitle: 'vMaker.',
+    indexLead: '从首屏自然滑入实时项目索引，而不是切到另一套界面。',
+    languageNav: '语言导航',
+    latest: '最近活跃',
+    menu: '菜单',
+    projectsUnavailable: '项目暂不可用',
+    repos: '仓库数',
+    search: '搜索项目',
+    status: '索引状态',
+    subtitle: '首页继续聚焦 vMaker 本身。你可以通过顶部导航或下方项目索引，定位到不同的 xmtlzzz 项目。',
+    title: '定位到项目',
+    tokenHelp: '请在 .env 或 Vercel 环境变量中配置 GITHUB_TOKEN，然后重启服务。',
+    top: '返回顶部',
+    tryAnother: '换一个搜索词试试。',
+    unavailable: 'GitHub 项目加载失败',
+    updated: '更新于',
+    works: '项目',
   },
 } satisfies Record<Locale, Record<string, string>>
 
@@ -134,57 +185,19 @@ function GenericCodeBadge(props: SVGProps<SVGSVGElement>) {
 function languageIconConfig(language: string): LanguageIconConfig {
   const normalized = language.trim().toLowerCase()
 
-  if (['typescript'].includes(normalized)) {
-    return { accentClassName: 'border-sky-500/30 bg-sky-500/12 text-sky-600 dark:text-sky-300', icon: TypeScriptBadge }
-  }
-
-  if (['javascript', 'jsx'].includes(normalized)) {
-    return { accentClassName: 'border-yellow-500/30 bg-yellow-500/12 text-yellow-700 dark:text-yellow-300', icon: JavaScriptBadge }
-  }
-
-  if (['python'].includes(normalized)) {
-    return { accentClassName: 'border-emerald-500/30 bg-emerald-500/12 text-emerald-700 dark:text-emerald-300', icon: PythonBadge }
-  }
-
-  if (['go', 'golang'].includes(normalized)) {
-    return { accentClassName: 'border-cyan-500/30 bg-cyan-500/12 text-cyan-700 dark:text-cyan-300', icon: GoBadge }
-  }
-
-  if (['rust'].includes(normalized)) {
-    return { accentClassName: 'border-orange-500/30 bg-orange-500/12 text-orange-700 dark:text-orange-300', icon: RustBadge }
-  }
-
-  if (['java', 'kotlin'].includes(normalized)) {
-    return { accentClassName: 'border-orange-500/30 bg-orange-500/12 text-orange-700 dark:text-orange-300', icon: JavaBadge }
-  }
-
-  if (['swift'].includes(normalized)) {
-    return { accentClassName: 'border-rose-500/30 bg-rose-500/12 text-rose-700 dark:text-rose-300', icon: SwiftBadge }
-  }
-
-  if (['html'].includes(normalized)) {
-    return { accentClassName: 'border-orange-500/30 bg-orange-500/12 text-orange-700 dark:text-orange-300', icon: HtmlBadge }
-  }
-
-  if (['css', 'scss'].includes(normalized)) {
-    return { accentClassName: 'border-blue-500/30 bg-blue-500/12 text-blue-700 dark:text-blue-300', icon: CssBadge }
-  }
-
-  if (['tsx', 'react'].includes(normalized)) {
-    return { accentClassName: 'border-sky-500/30 bg-sky-500/12 text-sky-700 dark:text-sky-300', icon: ReactBadge }
-  }
-
-  if (['vue'].includes(normalized)) {
-    return { accentClassName: 'border-emerald-500/30 bg-emerald-500/12 text-emerald-700 dark:text-emerald-300', icon: VueBadge }
-  }
-
-  if (['svelte'].includes(normalized)) {
-    return { accentClassName: 'border-orange-500/30 bg-orange-500/12 text-orange-700 dark:text-orange-300', icon: SvelteBadge }
-  }
-
-  if (['sql', 'postgresql', 'mysql'].includes(normalized)) {
-    return { accentClassName: 'border-violet-500/30 bg-violet-500/12 text-violet-700 dark:text-violet-300', icon: DatabaseBadge }
-  }
+  if (['typescript'].includes(normalized)) return { accentClassName: 'border-sky-500/30 bg-sky-500/12 text-sky-600 dark:text-sky-300', icon: TypeScriptBadge }
+  if (['javascript', 'jsx'].includes(normalized)) return { accentClassName: 'border-yellow-500/30 bg-yellow-500/12 text-yellow-700 dark:text-yellow-300', icon: JavaScriptBadge }
+  if (['python'].includes(normalized)) return { accentClassName: 'border-emerald-500/30 bg-emerald-500/12 text-emerald-700 dark:text-emerald-300', icon: PythonBadge }
+  if (['go', 'golang'].includes(normalized)) return { accentClassName: 'border-cyan-500/30 bg-cyan-500/12 text-cyan-700 dark:text-cyan-300', icon: GoBadge }
+  if (['rust'].includes(normalized)) return { accentClassName: 'border-orange-500/30 bg-orange-500/12 text-orange-700 dark:text-orange-300', icon: RustBadge }
+  if (['java', 'kotlin'].includes(normalized)) return { accentClassName: 'border-orange-500/30 bg-orange-500/12 text-orange-700 dark:text-orange-300', icon: JavaBadge }
+  if (['swift'].includes(normalized)) return { accentClassName: 'border-rose-500/30 bg-rose-500/12 text-rose-700 dark:text-rose-300', icon: SwiftBadge }
+  if (['html'].includes(normalized)) return { accentClassName: 'border-orange-500/30 bg-orange-500/12 text-orange-700 dark:text-orange-300', icon: HtmlBadge }
+  if (['css', 'scss'].includes(normalized)) return { accentClassName: 'border-blue-500/30 bg-blue-500/12 text-blue-700 dark:text-blue-300', icon: CssBadge }
+  if (['tsx', 'react'].includes(normalized)) return { accentClassName: 'border-sky-500/30 bg-sky-500/12 text-sky-700 dark:text-sky-300', icon: ReactBadge }
+  if (['vue'].includes(normalized)) return { accentClassName: 'border-emerald-500/30 bg-emerald-500/12 text-emerald-700 dark:text-emerald-300', icon: VueBadge }
+  if (['svelte'].includes(normalized)) return { accentClassName: 'border-orange-500/30 bg-orange-500/12 text-orange-700 dark:text-orange-300', icon: SvelteBadge }
+  if (['sql', 'postgresql', 'mysql'].includes(normalized)) return { accentClassName: 'border-violet-500/30 bg-violet-500/12 text-violet-700 dark:text-violet-300', icon: DatabaseBadge }
 
   return { accentClassName: 'border-border bg-muted text-muted-foreground', icon: GenericCodeBadge }
 }
@@ -210,10 +223,54 @@ function groupProjectsByLanguage(projects: Project[]): ProjectGroup[] {
     })
 }
 
+function getLatestCommitTimeline(projects: Project[]): CommitTimelineItem[] {
+  return projects
+    .map((project) => {
+      const latestCommit = project.commits[0]
+      if (!latestCommit?.date) return null
+
+      return {
+        date: latestCommit.date,
+        message: latestCommit.message,
+        projectId: project.name,
+        projectName: project.displayName,
+        sha: latestCommit.sha,
+        url: latestCommit.url,
+      }
+    })
+    .filter((item): item is CommitTimelineItem => item !== null)
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+}
+
+function useRevealOnView<T extends HTMLElement>(threshold = 0.35): [RefObject<T | null>, boolean] {
+  const ref = useRef<T | null>(null)
+  const [visible, setVisible] = useState(false)
+
+  useEffect(() => {
+    const node = ref.current
+    if (!node || visible) return
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisible(true)
+          observer.disconnect()
+        }
+      },
+      { threshold },
+    )
+
+    observer.observe(node)
+    return () => observer.disconnect()
+  }, [threshold, visible])
+
+  return [ref, visible]
+}
+
 export function meta() {
   return [
     { title: 'vMaker - Project Index' },
-    { name: 'description', content: 'A personal project index for xmtlzzz GitHub repositories.' },
+    { name: 'description', content: 'A cinematic project gateway for xmtlzzz GitHub repositories.' },
   ]
 }
 
@@ -226,26 +283,20 @@ export default function Home({ loaderData }: Route.ComponentProps) {
   const [locale, setLocale] = useState<Locale>('zh')
   const [query, setQuery] = useState('')
   const [theme, setTheme] = useState<Theme>('light')
+  const [activeIndex, setActiveIndex] = useState(0)
+  const [clock, setClock] = useState('')
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [videoSources, setVideoSources] = useState(HERO_SLIDES.map((slide) => slide.videoUrl))
+  const [hoveredProjectId, setHoveredProjectId] = useState<string | null>(null)
+  const [showBackToTop, setShowBackToTop] = useState(false)
+  const timelineContainerRef = useRef<HTMLDivElement | null>(null)
+  const timelineItemRefs = useRef(new Map<string, HTMLAnchorElement | null>())
+  const heroSectionRef = useRef<HTMLElement | null>(null)
+  const projectsSectionRef = useRef<HTMLElement | null>(null)
   const t = copy[locale]
 
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-
-    const storedTheme = window.localStorage.getItem(THEME_STORAGE_KEY)
-    if (storedTheme === 'light' || storedTheme === 'dark') {
-      setTheme(storedTheme)
-    }
-  }, [])
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-    window.localStorage.setItem(THEME_STORAGE_KEY, theme)
-  }, [theme])
-
-  function handleThemeToggle() {
-    setTheme((currentTheme) => (currentTheme === 'light' ? 'dark' : 'light'))
-  }
-
+  const activeSlide = HERO_SLIDES[activeIndex]
+  const isDark = theme === 'dark'
   const filteredProjects = useMemo(() => {
     const text = query.trim().toLowerCase()
     if (!text) return projects
@@ -258,157 +309,514 @@ export default function Home({ loaderData }: Route.ComponentProps) {
         .includes(text)
     })
   }, [projects, query])
-
   const projectGroups = useMemo(() => groupProjectsByLanguage(filteredProjects), [filteredProjects])
   const languageGroups = useMemo(() => groupProjectsByLanguage(projects), [projects])
+  const commitTimeline = useMemo(() => getLatestCommitTimeline(projects), [projects])
+  const [titleRef, titleVisible] = useRevealOnView<HTMLDivElement>()
+  const [copyRef, copyVisible] = useRevealOnView<HTMLDivElement>()
+  const [buttonRef, buttonVisible] = useRevealOnView<HTMLDivElement>()
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    const storedTheme = window.localStorage.getItem(THEME_STORAGE_KEY)
+    if (storedTheme === 'light' || storedTheme === 'dark') setTheme(storedTheme)
+  }, [])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    window.localStorage.setItem(THEME_STORAGE_KEY, theme)
+  }, [theme])
+
+  useEffect(() => {
+    const formatClock = () =>
+      `CUP ${new Intl.DateTimeFormat('en-GB', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false,
+      }).format(new Date())}`
+
+    setClock(formatClock())
+    const timer = window.setInterval(() => setClock(formatClock()), 1000)
+    return () => window.clearInterval(timer)
+  }, [])
+
+  useEffect(() => {
+    let cancelled = false
+    const objectUrls: string[] = []
+
+    async function preloadVideos() {
+      const loaded = await Promise.all(
+        HERO_SLIDES.map(async (slide) => {
+          try {
+            const response = await fetch(slide.videoUrl)
+            if (!response.ok) throw new Error('Failed to preload video')
+            const blob = await response.blob()
+            const objectUrl = URL.createObjectURL(blob)
+            objectUrls.push(objectUrl)
+            return objectUrl
+          } catch {
+            return slide.videoUrl
+          }
+        }),
+      )
+
+      if (!cancelled) setVideoSources(loaded)
+    }
+
+    preloadVideos()
+
+    return () => {
+      cancelled = true
+      objectUrls.forEach((url) => URL.revokeObjectURL(url))
+    }
+  }, [])
+
+  useEffect(() => {
+    setIsMenuOpen(false)
+  }, [activeIndex, locale])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    let timeoutId: number | null = null
+
+    const handleScroll = () => {
+      const heroSection = heroSectionRef.current
+      const projectsSection = projectsSectionRef.current
+      if (!heroSection || !projectsSection) return
+
+      const projectsTop = projectsSection.offsetTop
+      const heroHeight = heroSection.offsetHeight
+      const threshold = Math.min(heroHeight * 0.42, 360)
+      const currentY = window.scrollY
+
+      setShowBackToTop(currentY > Math.max(heroHeight * 0.4, 280))
+
+      if (timeoutId) window.clearTimeout(timeoutId)
+
+      timeoutId = window.setTimeout(() => {
+        if (currentY <= 0 || currentY >= projectsTop + threshold) return
+
+        const snapTarget = currentY < threshold ? 0 : projectsTop
+        window.scrollTo({
+          top: snapTarget,
+          behavior: 'smooth',
+        })
+      }, 110)
+    }
+
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    handleScroll()
+
+    return () => {
+      if (timeoutId) window.clearTimeout(timeoutId)
+      window.removeEventListener('scroll', handleScroll)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!hoveredProjectId) return
+
+    const container = timelineContainerRef.current
+    const item = timelineItemRefs.current.get(hoveredProjectId)
+    if (!container || !item) return
+
+    const containerTop = container.scrollTop
+    const containerBottom = containerTop + container.clientHeight
+    const itemTop = item.offsetTop
+    const itemBottom = itemTop + item.offsetHeight
+
+    if (itemTop < containerTop || itemBottom > containerBottom) {
+      const targetTop = itemTop - container.clientHeight * 0.26
+      container.scrollTo({
+        top: Math.max(targetTop, 0),
+        behavior: 'smooth',
+      })
+    }
+  }, [hoveredProjectId])
+
+  function handleThemeToggle() {
+    setTheme((currentTheme) => (currentTheme === 'light' ? 'dark' : 'light'))
+  }
 
   return (
-    <main className={`${theme === 'dark' ? 'dark' : ''} theme-shell min-h-svh bg-background text-foreground`}>
-      <Header groups={languageGroups} locale={locale} onThemeToggle={handleThemeToggle} setLocale={setLocale} t={t} theme={theme} />
-      <section className='mx-auto grid max-w-7xl gap-10 px-5 pb-16 pt-10 sm:px-8 lg:grid-cols-[1fr_0.75fr] lg:pb-24 lg:pt-20'>
-        <div>
-          <p className='mb-5 inline-flex rounded-full border border-border bg-card px-3 py-1 text-sm text-muted-foreground'>{t.badge}</p>
-          <BlurText key={locale} animateBy='words' className='max-w-3xl text-5xl font-semibold tracking-tight text-balance sm:text-6xl lg:text-7xl' delay={60} direction='bottom' text={t.hero} />
-          <p className='mt-6 max-w-2xl text-base leading-8 text-muted-foreground sm:text-lg'>{t.subtitle}</p>
-          <div className='mt-8 flex flex-wrap gap-3'>
-            <a href='#projects'><Button>{t.browse}</Button></a>
-            <a href='https://github.com/xmtlzzz' rel='noreferrer' target='_blank'><Button variant='secondary'>{t.github}</Button></a>
+    <main className={`${theme === 'dark' ? 'dark theme-dark' : 'theme-light'} theme-shell home-canvas min-h-svh bg-black text-white`}>
+      <section className='hero-shell relative min-h-svh overflow-hidden bg-black text-white' ref={heroSectionRef}>
+        <div className='absolute inset-0 z-0'>
+          {videoSources.map((src, index) => (
+            <video
+              autoPlay
+              className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-[1200ms] ease-in-out ${index === activeIndex ? 'opacity-100' : 'opacity-0'}`}
+              key={HERO_SLIDES[index].label}
+              loop
+              muted
+              playsInline
+              src={src}
+            />
+          ))}
+        </div>
+        <div className='absolute inset-0 z-[1] bg-black/10' />
+        <div className='hero-scrim absolute inset-0 z-[1]' />
+
+        <HeroNavbar
+          clock={clock}
+          isMenuOpen={isMenuOpen}
+          locale={locale}
+          onMenuToggle={() => setIsMenuOpen((open) => !open)}
+          onThemeToggle={handleThemeToggle}
+          setLocale={setLocale}
+          t={t}
+          theme={theme}
+        />
+
+        <div className='hero-layout relative z-[2] mx-auto flex min-h-svh w-full max-w-[1340px] flex-col justify-end gap-[116px] px-[15px] pt-[190px]'>
+          <div className='hero-top-row flex w-full items-start justify-between gap-10'>
+            <div className='flex-[4]'>
+              <p className='hero-eyebrow mb-6'>{t.heroEyebrow}</p>
+              <div className='flex flex-col gap-3'>
+                {HERO_SLIDES.map((slide, index) => (
+                  <button
+                    className={`hero-switcher role-link text-left text-xs font-medium uppercase tracking-[-0.12px] transition-opacity ${index === activeIndex ? 'opacity-100' : 'opacity-55 hover:opacity-75'}`}
+                    key={slide.label}
+                    onClick={() => setActiveIndex(index)}
+                    type='button'
+                  >
+                    {slide.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className='flex flex-1 justify-start md:justify-end'>
+              <div className='hero-availability'>
+                <span
+                  className='hero-availability-dot'
+                  style={{
+                    '--dot-color': activeSlide.accent,
+                    '--dot-glow': activeSlide.accent,
+                  } as CSSProperties}
+                />
+                <span>{activeSlide.availability}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className='hero-bottom-row flex w-full items-end justify-between gap-10 pb-[54px]'>
+            <div className='flex-[2]' ref={titleRef}>
+              <div className={`reveal-block ${titleVisible ? 'is-visible reveal-up' : ''}`}>
+                <h1 className='hero-title'>
+                  <span className='hero-title-word'>vMaker</span><span className='hero-title-dot' style={{ color: activeSlide.accent }}>.</span>
+                </h1>
+              </div>
+            </div>
+
+            <div className='hero-copy-column flex flex-1 flex-col pl-[50px]'>
+              <div className={`reveal-block ${copyVisible ? 'is-visible reveal-right' : ''}`} id='hero-copy' ref={copyRef}>
+                <p className='hero-description'>{t.heroDescription}</p>
+                <p className='hero-slide-copy'>{activeSlide.description}</p>
+              </div>
+              <div className={`reveal-block delay-1 ${buttonVisible ? 'is-visible reveal-right' : ''}`} ref={buttonRef}>
+                <a className='hero-cta' href='#projects'><span>{t.browse}</span></a>
+              </div>
+            </div>
           </div>
         </div>
 
-        <SpotlightCard className='p-5 shadow-sm'>
-          <p className='text-sm text-muted-foreground'>{t.status}</p>
-          <div className='mt-5 grid grid-cols-2 gap-3'>
-            <Metric label={t.repos} value={summary.totalProjects.toString()} />
-            <Metric label={t.latest} value={formatDate(summary.latestActivity)} />
+        <div className='hero-bridge relative z-[2] mx-auto flex w-full max-w-[1340px] flex-col gap-5 px-[15px] pb-0'>
+          <div className='hero-bridge-meta hero-bridge-meta-standalone' id='stack'>
+            <span>{t.indexLead}</span>
+            <span>{t.dataLeft}</span>
+            <span>{t.dataRight}</span>
           </div>
-          {error && <p className='mt-4 rounded-2xl bg-muted p-3 text-sm leading-6 text-muted-foreground'>{t.tokenHelp}</p>}
-        </SpotlightCard>
-      </section>
-
-      <section className='border-y border-border bg-muted/40'>
-        <div className='mx-auto flex max-w-7xl flex-col gap-3 px-5 py-5 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-8'>
-          <span>{t.dataLeft}</span>
-          <span>{t.dataRight}</span>
         </div>
       </section>
 
-      <section className='mx-auto max-w-7xl px-5 py-12 sm:px-8' id='projects'>
-        <div className='flex flex-col gap-5 md:flex-row md:items-end md:justify-between'>
-          <div>
-            <p className='text-sm font-medium text-muted-foreground'>{t.languageNav}</p>
-            <h2 className='mt-2 text-3xl font-semibold tracking-tight sm:text-4xl'>{t.title}</h2>
-          </div>
-          <label className='relative block md:w-80'>
-            <Search className='pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground' />
-            <input className='h-10 w-full rounded-full border border-border bg-card pl-9 pr-4 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-foreground/40' onChange={(event) => setQuery(event.target.value)} placeholder={t.search} value={query} />
-          </label>
-        </div>
+      <section className='projects-shell relative pb-16 pt-10' ref={projectsSectionRef}>
+        <div className='projects-shell-glow' />
+        <div className='relative mx-auto max-w-[1340px] px-[15px]' id='projects'>
+          <div className='grid gap-10 lg:grid-cols-[0.92fr_1.08fr]'>
+            <div className='projects-intro'>
+              <p className='projects-kicker'>{t.languageNav}</p>
+              <h2 className='projects-title'>{t.title}</h2>
+              <p className='projects-subtitle'>{t.subtitle}</p>
+              <div className='projects-side-card'>
+                <p className='project-meta-label'>{t.status}</p>
+                <div className='mt-5 grid grid-cols-2 gap-3'>
+                  <Metric isDark={isDark} label={t.repos} value={summary.totalProjects.toString()} />
+                  <Metric isDark={isDark} label={t.latest} value={formatDate(summary.latestActivity)} />
+                </div>
+                {error && <p className='project-error-note mt-4'>{t.tokenHelp}</p>}
+              </div>
+              <div className='project-timeline mt-8' ref={timelineContainerRef}>
+                {commitTimeline.length > 0 ? (
+                  commitTimeline.map((item) => (
+                    <a
+                      className={`project-timeline-item ${hoveredProjectId === item.projectId ? 'is-active' : ''}`}
+                      href={item.url}
+                      key={`${item.projectName}-${item.sha}`}
+                      onMouseEnter={() => setHoveredProjectId(item.projectId)}
+                      onMouseLeave={() => setHoveredProjectId(null)}
+                      ref={(node) => {
+                        timelineItemRefs.current.set(item.projectId, node)
+                      }}
+                      rel='noreferrer'
+                      target='_blank'
+                    >
+                      <span className='project-timeline-date'>{formatDate(item.date)}</span>
+                      <span className='project-timeline-copy'>
+                        <span className='project-timeline-title'>{item.projectName}({item.sha})</span>
+                        <span className='project-timeline-message'> - {item.message}</span>
+                      </span>
+                    </a>
+                  ))
+                ) : (
+                  <p className='project-empty-copy'>No commit activity available yet.</p>
+                )}
+              </div>
+            </div>
 
-        {projectGroups.length > 0 ? (
-          <div className='mt-10 space-y-12'>
-            {projectGroups.map((group) => <ProjectLanguageSection group={group} key={group.language} t={t} />)}
+            <div>
+              <div className='projects-toolbar'>
+                <div className='projects-nav-wrap'>
+                  {languageGroups.length > 0 ? (
+                    languageGroups.map((group) => (
+                      <a className='projects-anchor-chip' href={`#language-${group.id}`} key={group.language}>
+                        {group.language}
+                      </a>
+                    ))
+                  ) : (
+                    <span className='projects-anchor-chip opacity-60'>{t.projectsUnavailable}</span>
+                  )}
+                </div>
+                <label className='projects-search'>
+                  <Search className='pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-white/45' />
+                  <input onChange={(event) => setQuery(event.target.value)} placeholder={t.search} value={query} />
+                </label>
+              </div>
+
+              {projectGroups.length > 0 ? (
+                <div className='mt-12 space-y-12'>
+                  {projectGroups.map((group) => (
+                    <ProjectLanguageSection
+                      group={group}
+                      hoveredProjectId={hoveredProjectId}
+                      isDark={isDark}
+                      key={group.language}
+                      onProjectHover={setHoveredProjectId}
+                      t={t}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <EmptyProjects error={error} isDark={isDark} t={t} />
+              )}
+            </div>
           </div>
-        ) : (
-          <EmptyProjects error={error} t={t} />
-        )}
+        </div>
       </section>
+
+      {showBackToTop && (
+        <button
+          aria-label='Back to top'
+          className='back-to-top-button'
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          type='button'
+        >
+          <span>Top</span>
+        </button>
+      )}
     </main>
   )
 }
 
-type HeaderProps = {
-  groups: ProjectGroup[]
+type HeroNavbarProps = {
+  clock: string
+  isMenuOpen: boolean
   locale: Locale
+  onMenuToggle: () => void
   onThemeToggle: () => void
   setLocale: (locale: Locale) => void
   t: Record<string, string>
   theme: Theme
 }
 
-function Header({ groups, locale, onThemeToggle, setLocale, t, theme }: HeaderProps) {
+function HeroNavbar({ clock, isMenuOpen, locale, onMenuToggle, onThemeToggle, setLocale, t, theme }: HeroNavbarProps) {
+  const navItems = [
+    { href: '#projects', index: '01', label: t.works },
+  ]
+
   return (
-    <header className='sticky top-0 z-20 border-b border-border bg-background/90 backdrop-blur'>
-      <div className='mx-auto flex max-w-7xl items-center gap-4 px-5 py-4 sm:px-8'>
-        <a className='flex shrink-0 items-center gap-3 font-semibold' href='/'>
-          <span className='flex size-9 items-center justify-center rounded-full bg-foreground text-sm text-background'>v</span>
-          <span>vMaker</span>
-        </a>
-        <nav className='flex min-w-0 flex-1 gap-2 overflow-x-auto'>
-          {groups.length > 0 ? groups.map((group) => <a className='shrink-0 rounded-full px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground' href={`#language-${group.id}`} key={group.language}>{group.language}</a>) : <span className='shrink-0 rounded-full px-3 py-1.5 text-sm text-muted-foreground'>{t.projectsUnavailable}</span>}
-        </nav>
-        <button className='shrink-0 rounded-full border border-border px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground' onClick={() => setLocale(locale === 'en' ? 'zh' : 'en')} type='button'>
-          {locale === 'en' ? '\u4e2d' : 'EN'}
-        </button>
-        <button aria-label='Toggle theme' className='shrink-0 rounded-full border border-border p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground' onClick={onThemeToggle} type='button'>
-          {theme === 'light' ? <Moon className='size-4' /> : <Sun className='size-4' />}
-        </button>
-        <a className='rounded-full border border-border p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground' href='https://github.com/xmtlzzz' rel='noreferrer' target='_blank'><GitBranch className='size-4' /></a>
+    <header className='absolute left-0 top-0 z-10 w-full'>
+      <div className='hero-nav-shell mx-auto max-w-[1340px] px-[15px] py-9'>
+        <div className='flex items-center justify-between gap-6'>
+          <a className='text-sm font-semibold uppercase tracking-[0.18em] text-white' href='/'>vMaker</a>
+
+          <nav className='hero-desktop-nav flex items-center gap-6'>
+            {navItems.map((item) => (
+              <a
+                className='nav-link-underline group flex items-center gap-2 text-white/88'
+                href={item.href}
+                key={item.label}
+              >
+                <span className='text-[8px] font-medium uppercase leading-3 tracking-[-0.08px]'>{item.index}</span>
+                <span className='text-xs font-medium uppercase leading-4 tracking-[-0.12px]'>{item.label}</span>
+              </a>
+            ))}
+          </nav>
+
+          <div className='hero-desktop-meta flex items-center gap-3 text-right'>
+            <a className='text-xs font-medium uppercase tracking-[-0.12px] text-white/88' href='https://github.com/xmtlzzz' rel='noreferrer' target='_blank'>
+              GitHub / xmtlzzz
+            </a>
+            <span className='text-xs font-medium uppercase tracking-[-0.12px] text-white/58'>{clock}</span>
+            <button className='hero-icon-button' onClick={() => setLocale(locale === 'en' ? 'zh' : 'en')} type='button'>
+              {locale === 'en' ? '中' : 'EN'}
+            </button>
+            <button aria-label='Toggle theme' className='hero-icon-button' onClick={onThemeToggle} type='button'>
+              {theme === 'light' ? <Moon className='size-4' /> : <Sun className='size-4' />}
+            </button>
+          </div>
+
+          <div className='hero-mobile-actions'>
+            <button className='hero-icon-button' onClick={() => setLocale(locale === 'en' ? 'zh' : 'en')} type='button'>
+              {locale === 'en' ? '中' : 'EN'}
+            </button>
+            <button aria-label='Toggle theme' className='hero-icon-button' onClick={onThemeToggle} type='button'>
+              {theme === 'light' ? <Moon className='size-4' /> : <Sun className='size-4' />}
+            </button>
+            <button className='hero-menu-button' onClick={onMenuToggle} type='button'>
+              <span>{isMenuOpen ? 'Close' : t.menu}</span>
+              {isMenuOpen ? <X className='size-4' /> : <Menu className='size-4' />}
+            </button>
+          </div>
+        </div>
+
+        <div className={`hero-mobile-panel ${isMenuOpen ? 'open' : ''}`}>
+          <div className='hero-mobile-panel-inner'>
+            <div className='mt-6 flex flex-col gap-5'>
+              {navItems.map((item) => (
+                <a
+                  className='text-[28px] font-medium uppercase leading-8 tracking-[-0.84px] text-white'
+                  href={item.href}
+                  key={item.label}
+                >
+                  {item.label}
+                </a>
+              ))}
+            </div>
+            <div className='mt-8 flex flex-col gap-2 text-sm text-white/58'>
+              <span>GitHub / xmtlzzz</span>
+              <span>{clock}</span>
+            </div>
+          </div>
+        </div>
       </div>
     </header>
   )
 }
 
-function Metric({ label, value }: { label: string; value: string }) {
-  return <div className='rounded-2xl border border-border bg-background p-4'><p className='text-sm text-muted-foreground'>{label}</p><p className='mt-2 text-xl font-semibold tracking-tight'>{value}</p></div>
+function Metric({ isDark, label, value }: { isDark: boolean; label: string; value: string }) {
+  return (
+    <div className={`project-metric ${isDark ? 'project-metric-dark' : 'project-metric-light'}`}>
+      <p className='project-metric-label'>{label}</p>
+      <p className='project-metric-value'>{value}</p>
+    </div>
+  )
 }
 
-function EmptyProjects({ error, t }: { error?: string; t: Record<string, string> }) {
+function EmptyProjects({ error, isDark, t }: { error?: string; isDark: boolean; t: Record<string, string> }) {
   return (
-    <div className='mt-8 rounded-[1.25rem] border border-border bg-card p-8 text-center'>
+    <div className={`project-empty ${isDark ? 'project-empty-dark' : 'project-empty-light'}`}>
       <p className='text-lg font-semibold'>{error ? t.unavailable : t.empty}</p>
-      <p className='mx-auto mt-2 max-w-2xl text-sm leading-6 text-muted-foreground'>
+      <p className='project-empty-copy'>
         {error ? `${error}. ${t.tokenHelp}` : t.tryAnother}
       </p>
     </div>
   )
 }
 
-function ProjectLanguageSection({ group, t }: { group: ProjectGroup; t: Record<string, string> }) {
+function ProjectLanguageSection({
+  group,
+  hoveredProjectId,
+  isDark,
+  onProjectHover,
+  t,
+}: {
+  group: ProjectGroup
+  hoveredProjectId: string | null
+  isDark: boolean
+  onProjectHover: (projectId: string | null) => void
+  t: Record<string, string>
+}) {
   const { accentClassName, icon: LanguageIcon } = languageIconConfig(group.language)
 
   return (
     <section className='language-section scroll-mt-24 rounded-[1.25rem]' id={`language-${group.id}`}>
       <div className='mb-4 flex items-end justify-between gap-4'>
         <div>
-          <p className='text-sm text-muted-foreground'>{group.projects.length} projects</p>
+          <p className='project-group-count'>{group.projects.length} projects</p>
           <div className='mt-2 flex items-center gap-3'>
             <span className={`inline-flex size-10 items-center justify-center rounded-2xl border ${accentClassName}`}>
               <LanguageIcon className='size-5' />
             </span>
-            <BlurText animateBy='letters' className='language-section-title text-2xl font-semibold tracking-tight transition-colors duration-300' delay={24} direction='bottom' text={group.language} />
+            <h3 className='language-section-title project-group-title'>{group.language}</h3>
           </div>
         </div>
-        <a className='text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline' href='#projects'>Top</a>
+        <a className='project-back-link' href='#projects'>{t.top}</a>
       </div>
       <div className='grid gap-4 md:grid-cols-2 xl:grid-cols-3'>
-        {group.projects.map((project) => <ProjectPanel key={project.name} project={project} t={t} />)}
+        {group.projects.map((project) => (
+          <ProjectPanel
+            isActive={hoveredProjectId === project.name}
+            isDark={isDark}
+            key={project.name}
+            onHover={onProjectHover}
+            project={project}
+            t={t}
+          />
+        ))}
       </div>
     </section>
   )
 }
 
-function ProjectPanel({ project, t }: { project: Project; t: Record<string, string> }) {
+function ProjectPanel({
+  isActive,
+  isDark,
+  onHover,
+  project,
+  t,
+}: {
+  isActive: boolean
+  isDark: boolean
+  onHover: (projectId: string | null) => void
+  project: Project
+  t: Record<string, string>
+}) {
   return (
     <BorderGlow className='scroll-mt-24' id={project.name}>
-      <article className='h-full rounded-[calc(1.25rem-1px)] bg-card p-5'>
+      <article
+        className={`project-panel ${isDark ? 'project-panel-dark' : 'project-panel-light'} ${isActive ? 'project-panel-active' : ''}`}
+        onMouseEnter={() => onHover(project.name)}
+        onMouseLeave={() => onHover(null)}
+      >
         <div className='flex items-start justify-between gap-4'>
           <div>
-            <h3 className='text-2xl font-semibold tracking-tight'>{project.displayName}</h3>
+            <h3 className='project-panel-title'>{project.displayName}</h3>
           </div>
-          <a aria-label={`Open ${project.displayName}`} className='rounded-full border border-border p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground' href={project.homepage || project.url} rel='noreferrer' target='_blank'><ExternalLink className='size-4' /></a>
+          <a aria-label={`Open ${project.displayName}`} className='project-panel-link' href={project.homepage || project.url} rel='noreferrer' target='_blank'><ExternalLink className='size-4' /></a>
         </div>
-        <p className='mt-4 line-clamp-3 text-sm leading-6 text-muted-foreground'>{project.description}</p>
+        <p className='project-panel-description'>{project.description}</p>
         <div className='mt-5 flex flex-wrap gap-2'>
-          {project.topics.slice(0, 4).map((topic) => <span className='rounded-full bg-muted px-2.5 py-1 text-xs text-muted-foreground' key={topic}>{topic}</span>)}
+          {project.topics.slice(0, 4).map((topic) => <span className='project-topic' key={topic}>{topic}</span>)}
         </div>
         <div className='mt-6 flex flex-wrap gap-4 text-sm'>
-          <a className='font-medium underline-offset-4 hover:underline' href={project.url} rel='noreferrer' target='_blank'>Repository</a>
-          {project.homepage && <a className='font-medium underline-offset-4 hover:underline' href={project.homepage} rel='noreferrer' target='_blank'>Demo</a>}
-          <span className='text-muted-foreground'>{t.updated} {formatDate(project.pushedAt ?? project.updatedAt)}</span>
+          <a className='project-action' href={project.url} rel='noreferrer' target='_blank'>Repository</a>
+          {project.homepage && <a className='project-action' href={project.homepage} rel='noreferrer' target='_blank'>Demo</a>}
+          <span className='project-updated'>{t.updated} {formatDate(project.pushedAt ?? project.updatedAt)}</span>
         </div>
       </article>
     </BorderGlow>
   )
 }
-
