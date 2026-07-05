@@ -3,6 +3,7 @@ import type { CSSProperties, ReactElement, RefObject, SVGProps } from 'react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { BorderGlow } from '~/components/react-bits/BorderGlow'
+import { VariableProximity } from '~/components/react-bits/VariableProximity'
 import { Button } from '~/components/ui/button'
 import { formatDate, getProjects } from '~/lib/github/projects'
 import type { Project, ProjectPayload } from '~/lib/github/projects'
@@ -286,7 +287,6 @@ export default function Home({ loaderData }: Route.ComponentProps) {
   const [activeIndex, setActiveIndex] = useState(0)
   const [clock, setClock] = useState('')
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [videoSources, setVideoSources] = useState(HERO_SLIDES.map((slide) => slide.videoUrl))
   const [hoveredProjectId, setHoveredProjectId] = useState<string | null>(null)
   const [showBackToTop, setShowBackToTop] = useState(false)
   const timelineContainerRef = useRef<HTMLDivElement | null>(null)
@@ -340,37 +340,6 @@ export default function Home({ loaderData }: Route.ComponentProps) {
     setClock(formatClock())
     const timer = window.setInterval(() => setClock(formatClock()), 1000)
     return () => window.clearInterval(timer)
-  }, [])
-
-  useEffect(() => {
-    let cancelled = false
-    const objectUrls: string[] = []
-
-    async function preloadVideos() {
-      const loaded = await Promise.all(
-        HERO_SLIDES.map(async (slide) => {
-          try {
-            const response = await fetch(slide.videoUrl)
-            if (!response.ok) throw new Error('Failed to preload video')
-            const blob = await response.blob()
-            const objectUrl = URL.createObjectURL(blob)
-            objectUrls.push(objectUrl)
-            return objectUrl
-          } catch {
-            return slide.videoUrl
-          }
-        }),
-      )
-
-      if (!cancelled) setVideoSources(loaded)
-    }
-
-    preloadVideos()
-
-    return () => {
-      cancelled = true
-      objectUrls.forEach((url) => URL.revokeObjectURL(url))
-    }
   }, [])
 
   useEffect(() => {
@@ -445,7 +414,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
     <main className={`${theme === 'dark' ? 'dark theme-dark' : 'theme-light'} theme-shell home-canvas min-h-svh bg-black text-white`}>
       <section className='hero-shell relative min-h-svh overflow-hidden bg-black text-white' ref={heroSectionRef}>
         <div className='absolute inset-0 z-0'>
-          {videoSources.map((src, index) => (
+          {HERO_SLIDES.map((slide, index) => (
             <video
               autoPlay
               className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-[1200ms] ease-in-out ${index === activeIndex ? 'opacity-100' : 'opacity-0'}`}
@@ -453,7 +422,8 @@ export default function Home({ loaderData }: Route.ComponentProps) {
               loop
               muted
               playsInline
-              src={src}
+              preload={index === activeIndex ? 'auto' : 'metadata'}
+              src={slide.videoUrl}
             />
           ))}
         </div>
@@ -506,7 +476,8 @@ export default function Home({ loaderData }: Route.ComponentProps) {
             <div className='flex-[2]' ref={titleRef}>
               <div className={`reveal-block ${titleVisible ? 'is-visible reveal-up' : ''}`}>
                 <h1 className='hero-title'>
-                  <span className='hero-title-word'>vMaker</span><span className='hero-title-dot' style={{ color: activeSlide.accent }}>.</span>
+                  <VariableProximity className='hero-title-word' labelClassName='hero-title-char' text='vMaker' />
+                  <span className='hero-title-dot' style={{ color: activeSlide.accent }}>.</span>
                 </h1>
               </div>
             </div>
