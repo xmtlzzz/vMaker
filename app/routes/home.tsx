@@ -1,4 +1,5 @@
 ﻿import { ExternalLink, GitBranch, Moon, Search, Sun } from 'lucide-react'
+import type { ReactElement, SVGProps } from 'react'
 import { useMemo, useState } from 'react'
 
 import BlurText from '~/components/BlurText'
@@ -16,6 +17,11 @@ type ProjectGroup = {
   id: string
   language: string
   projects: Project[]
+}
+
+type LanguageIconConfig = {
+  accentClassName: string
+  icon: (props: SVGProps<SVGSVGElement>) => ReactElement
 }
 
 const copy = {
@@ -65,6 +71,120 @@ const copy = {
 
 function languageName(project: Project) {
   return project.primaryLanguage || 'Other'
+}
+
+function TypeScriptBadge(props: SVGProps<SVGSVGElement>) {
+  return <svg aria-hidden='true' fill='none' viewBox='0 0 24 24' {...props}><rect width='24' height='24' rx='6' fill='#3178C6' /><path d='M6.6 7.5h10.8v2.2h-4.1V17h-2.6V9.7H6.6V7.5Zm8.3 6.4h2.4c0 .7.5 1.1 1.4 1.1.8 0 1.3-.3 1.3-.8 0-.5-.4-.7-1.6-1l-.6-.1c-1.8-.4-2.7-1.2-2.7-2.7 0-1.7 1.4-2.9 3.6-2.9 2.1 0 3.4 1.1 3.5 2.8h-2.4c-.1-.7-.4-1-1.2-1-.7 0-1.1.3-1.1.7 0 .4.4.7 1.4.9l.6.1c2 .4 2.9 1.2 2.9 2.8 0 1.8-1.5 3-3.9 3-2.4 0-3.7-1.1-3.8-2.9Z' fill='white' /></svg>
+}
+
+function JavaScriptBadge(props: SVGProps<SVGSVGElement>) {
+  return <svg aria-hidden='true' fill='none' viewBox='0 0 24 24' {...props}><rect width='24' height='24' rx='6' fill='#F7DF1E' /><path d='M12.8 16.6 14.6 15.5c.4.8.8 1.4 1.8 1.4.9 0 1.5-.4 1.5-1.8V9.4h2.8V15c0 2.9-1.7 4.2-4.2 4.2-2.2 0-3.4-1.1-4.1-2.6Zm-5.4-.3 1.8-1.1c.3.6.6 1.2 1.4 1.2.7 0 1.2-.3 1.2-1.6V9.4h2.8v5.5c0 2.8-1.6 4.1-4 4.1-2.1 0-3.2-1.1-3.8-2.7Z' fill='#111827' /></svg>
+}
+
+function PythonBadge(props: SVGProps<SVGSVGElement>) {
+  return <svg aria-hidden='true' fill='none' viewBox='0 0 24 24' {...props}><rect width='24' height='24' rx='6' fill='#F3F4F6' /><path d='M12 4.5c-4 0-3.8 1.8-3.8 1.8v1.9H12v.6H6.8S4.3 8.6 4.3 12c0 3.4 2.2 3.3 2.2 3.3h1.3v-1.9s-.1-2.2 2.2-2.2h3.8s2.1 0 2.1-2V6.5s.3-2-4-2Zm-2.1 1.2a.8.8 0 1 1 0 1.6.8.8 0 0 1 0-1.6Z' fill='#3776AB' /><path d='M12 19.5c4 0 3.8-1.8 3.8-1.8v-1.9H12v-.6h5.2s2.5.2 2.5-3.2c0-3.4-2.2-3.3-2.2-3.3h-1.3v1.9s.1 2.2-2.2 2.2h-3.8s-2.1 0-2.1 2v2.7s-.3 2 4 2Zm2.1-1.2a.8.8 0 1 1 0-1.6.8.8 0 0 1 0 1.6Z' fill='#FFD43B' /></svg>
+}
+
+function GoBadge(props: SVGProps<SVGSVGElement>) {
+  return <svg aria-hidden='true' fill='none' viewBox='0 0 24 24' {...props}><rect width='24' height='24' rx='6' fill='#00ADD8' /><path d='M7 12.1h5.4v1.4H7v-1.4Zm-.8-2.3h6.2v1.3H6.2V9.8Zm1 4.6h5.2v1.3H7.2v-1.3Zm10-4.1c1.6 0 2.9 1.2 2.9 2.8 0 1.6-1.3 2.9-2.9 2.9-1.6 0-2.9-1.3-2.9-2.9s1.3-2.8 2.9-2.8Zm0 1.3c-.8 0-1.5.7-1.5 1.5 0 .9.7 1.6 1.5 1.6.9 0 1.5-.7 1.5-1.6 0-.8-.6-1.5-1.5-1.5Zm-8.7-5.1h1.7L8.8 8.2H7.1l1.4-1.7Zm2.9 0h1.7l-1.4 1.7H10l1.4-1.7Z' fill='white' /></svg>
+}
+
+function RustBadge(props: SVGProps<SVGSVGElement>) {
+  return <svg aria-hidden='true' fill='none' viewBox='0 0 24 24' {...props}><rect width='24' height='24' rx='6' fill='#1F2937' /><path d='M12 5.2 13 6l1.3-.2.6 1.2 1.3.3v1.3l1 .9-.4 1.2.7 1.1-.7 1.1.4 1.2-1 .9v1.3l-1.3.3-.6 1.2-1.3-.2-1 .8-1-.8-1.3.2-.6-1.2-1.3-.3v-1.3l-1-.9.4-1.2-.7-1.1.7-1.1-.4-1.2 1-.9V7.3l1.3-.3.6-1.2L11 6l1-.8Z' fill='#F97316' /><path d='M9.2 8.7h3.7c1.8 0 3 .9 3 2.4 0 1.1-.7 1.9-1.7 2.2l1.9 2.1h-2.5L12 13.7h-.6v1.7H9.2V8.7Zm2.2 3.4h1.2c.7 0 1.1-.3 1.1-.9 0-.5-.4-.8-1.1-.8h-1.2v1.7Z' fill='white' /></svg>
+}
+
+function JavaBadge(props: SVGProps<SVGSVGElement>) {
+  return <svg aria-hidden='true' fill='none' viewBox='0 0 24 24' {...props}><rect width='24' height='24' rx='6' fill='#F5F5F5' /><path d='M13.8 17.3c0 1-1.3 1.5-3.9 1.5-2.3 0-3.7-.5-3.7-1.3 0-.5.6-1 1.8-1.3-.4.3-.6.6-.6.9 0 .6 1 .9 2.9.9 2 0 3.1-.3 3.5-.7Zm2.9-1.4c.8.3 1.2.7 1.2 1.2 0 1.1-2.1 1.9-5 1.9-2.4 0-4.3-.5-4.9-1.3.8.5 2.2.8 4.1.8 2.6 0 4.6-.5 4.6-1.4 0-.4-.2-.8-.8-1.2h.8ZM11.8 6c1.1 1.1-1 2.4-1 3.4 0 .6.5 1 .8 1.2-.7-.1-1.9-.8-1.9-1.8 0-1.2 1.8-1.9 2.1-2.8Zm1.6 3.1c1.4 1 0 2-1.1 2.8-1 .7-1.4 1.3-.1 2.1-.7-.1-1.1-.4-1.3-.8-.5-1 .4-1.8 1.1-2.4.7-.6.9-.9 1.4-1.7Zm-1.7 6.8c2.2 0 3.6-.4 3.6-1 0-.6-1.4-1-3.6-1s-3.6.4-3.6 1c0 .6 1.4 1 3.6 1Z' fill='#EA580C' /></svg>
+}
+
+function SwiftBadge(props: SVGProps<SVGSVGElement>) {
+  return <svg aria-hidden='true' fill='none' viewBox='0 0 24 24' {...props}><rect width='24' height='24' rx='6' fill='#F05138' /><path d='M17.8 17.2c-.7.4-1.9.7-3 .3-1-.3-1.9-1-2.8-1-1.2 0-1.7 1-3 .9 1-.5 1.6-1.4 1.9-2.3-2-.9-3.8-2.8-5.1-5 1.6 1.5 3.5 2.8 4.7 3.5-1.1-1.2-2.5-3.3-3.2-5 1.5 1.7 3.6 3.8 5.2 4.8-.8-1.1-1.8-2.9-2.2-4.5 1.4 1.9 3.4 4 5.5 5.1.8-1.9.4-3.7-.2-5 .9.8 1.8 2.5 1.8 4.5 0 1.2-.3 2.2-.8 3 .9.7 1.3 1.5 1.2 2.7Z' fill='white' /></svg>
+}
+
+function HtmlBadge(props: SVGProps<SVGSVGElement>) {
+  return <svg aria-hidden='true' fill='none' viewBox='0 0 24 24' {...props}><rect width='24' height='24' rx='6' fill='#E34F26' /><path d='m6.1 5.4 1.1 12.8 4.8 1.4 4.8-1.4L17.9 5.4H6.1Zm8.6 3H9.5l.1 1.5h5l-.4 4.7-2.2.6-2.2-.6-.1-1.4h2l.1.6.2.1.2-.1.1-1.3H9.1L8.7 8.4h6Z' fill='white' /></svg>
+}
+
+function CssBadge(props: SVGProps<SVGSVGElement>) {
+  return <svg aria-hidden='true' fill='none' viewBox='0 0 24 24' {...props}><rect width='24' height='24' rx='6' fill='#1572B6' /><path d='m6.1 5.4 1.1 12.8 4.8 1.4 4.8-1.4L17.9 5.4H6.1Zm8.1 3-.1 1.5h-4l.1 1.4H14l-.4 4.7-2.2.6-2.2-.6-.1-1.8h2l.1.6.2.1.2-.1.1-1.3H8.6l-.4-5.1h6.1Z' fill='white' /></svg>
+}
+
+function ReactBadge(props: SVGProps<SVGSVGElement>) {
+  return <svg aria-hidden='true' fill='none' viewBox='0 0 24 24' {...props}><rect width='24' height='24' rx='6' fill='#0F172A' /><circle cx='12' cy='12' r='1.7' fill='#61DAFB' /><ellipse cx='12' cy='12' rx='7' ry='2.8' stroke='#61DAFB' strokeWidth='1.2' /><ellipse cx='12' cy='12' rx='7' ry='2.8' stroke='#61DAFB' strokeWidth='1.2' transform='rotate(60 12 12)' /><ellipse cx='12' cy='12' rx='7' ry='2.8' stroke='#61DAFB' strokeWidth='1.2' transform='rotate(120 12 12)' /></svg>
+}
+
+function VueBadge(props: SVGProps<SVGSVGElement>) {
+  return <svg aria-hidden='true' fill='none' viewBox='0 0 24 24' {...props}><rect width='24' height='24' rx='6' fill='#0F172A' /><path d='M5 6h3.1L12 12.5 15.9 6H19l-7 12L5 6Z' fill='#41B883' /><path d='M8.4 6H11l1 1.7L13 6h2.6L12 12 8.4 6Z' fill='#35495E' /></svg>
+}
+
+function SvelteBadge(props: SVGProps<SVGSVGElement>) {
+  return <svg aria-hidden='true' fill='none' viewBox='0 0 24 24' {...props}><rect width='24' height='24' rx='6' fill='#FF3E00' /><path d='M15.2 7.8c0-1.1-1-1.8-2.5-1.8-1.8 0-3 1-3 2.5 0 3 4.1 2 4.1 3.9 0 .7-.6 1.1-1.5 1.1-.9 0-1.5-.4-1.6-1.2H8.4c.1 2 1.7 3.1 4 3.1 2.3 0 3.9-1.2 3.9-3.1 0-3-4.1-2.2-4.1-4 0-.6.5-1 1.3-1 .8 0 1.3.4 1.4 1.1h2.3Z' fill='white' /></svg>
+}
+
+function DatabaseBadge(props: SVGProps<SVGSVGElement>) {
+  return <svg aria-hidden='true' fill='none' viewBox='0 0 24 24' {...props}><rect width='24' height='24' rx='6' fill='#7C3AED' /><ellipse cx='12' cy='8' rx='5.5' ry='2.5' fill='white' /><path d='M6.5 8v3.2C6.5 12.6 9 14 12 14s5.5-1.4 5.5-2.8V8' stroke='white' strokeWidth='1.5' strokeLinecap='round' /><path d='M6.5 12.3v3C6.5 16.7 9 18 12 18s5.5-1.3 5.5-2.7v-3' stroke='white' strokeWidth='1.5' strokeLinecap='round' /></svg>
+}
+
+function GenericCodeBadge(props: SVGProps<SVGSVGElement>) {
+  return <svg aria-hidden='true' fill='none' viewBox='0 0 24 24' {...props}><rect width='24' height='24' rx='6' fill='currentColor' fillOpacity='.16' /><path d='m10 8-4 4 4 4M14 8l4 4-4 4' stroke='currentColor' strokeWidth='1.8' strokeLinecap='round' strokeLinejoin='round' /></svg>
+}
+
+function languageIconConfig(language: string): LanguageIconConfig {
+  const normalized = language.trim().toLowerCase()
+
+  if (['typescript'].includes(normalized)) {
+    return { accentClassName: 'border-sky-500/30 bg-sky-500/12 text-sky-600 dark:text-sky-300', icon: TypeScriptBadge }
+  }
+
+  if (['javascript', 'jsx'].includes(normalized)) {
+    return { accentClassName: 'border-yellow-500/30 bg-yellow-500/12 text-yellow-700 dark:text-yellow-300', icon: JavaScriptBadge }
+  }
+
+  if (['python'].includes(normalized)) {
+    return { accentClassName: 'border-emerald-500/30 bg-emerald-500/12 text-emerald-700 dark:text-emerald-300', icon: PythonBadge }
+  }
+
+  if (['go', 'golang'].includes(normalized)) {
+    return { accentClassName: 'border-cyan-500/30 bg-cyan-500/12 text-cyan-700 dark:text-cyan-300', icon: GoBadge }
+  }
+
+  if (['rust'].includes(normalized)) {
+    return { accentClassName: 'border-orange-500/30 bg-orange-500/12 text-orange-700 dark:text-orange-300', icon: RustBadge }
+  }
+
+  if (['java', 'kotlin'].includes(normalized)) {
+    return { accentClassName: 'border-orange-500/30 bg-orange-500/12 text-orange-700 dark:text-orange-300', icon: JavaBadge }
+  }
+
+  if (['swift'].includes(normalized)) {
+    return { accentClassName: 'border-rose-500/30 bg-rose-500/12 text-rose-700 dark:text-rose-300', icon: SwiftBadge }
+  }
+
+  if (['html'].includes(normalized)) {
+    return { accentClassName: 'border-orange-500/30 bg-orange-500/12 text-orange-700 dark:text-orange-300', icon: HtmlBadge }
+  }
+
+  if (['css', 'scss'].includes(normalized)) {
+    return { accentClassName: 'border-blue-500/30 bg-blue-500/12 text-blue-700 dark:text-blue-300', icon: CssBadge }
+  }
+
+  if (['tsx', 'react'].includes(normalized)) {
+    return { accentClassName: 'border-sky-500/30 bg-sky-500/12 text-sky-700 dark:text-sky-300', icon: ReactBadge }
+  }
+
+  if (['vue'].includes(normalized)) {
+    return { accentClassName: 'border-emerald-500/30 bg-emerald-500/12 text-emerald-700 dark:text-emerald-300', icon: VueBadge }
+  }
+
+  if (['svelte'].includes(normalized)) {
+    return { accentClassName: 'border-orange-500/30 bg-orange-500/12 text-orange-700 dark:text-orange-300', icon: SvelteBadge }
+  }
+
+  if (['sql', 'postgresql', 'mysql'].includes(normalized)) {
+    return { accentClassName: 'border-violet-500/30 bg-violet-500/12 text-violet-700 dark:text-violet-300', icon: DatabaseBadge }
+  }
+
+  return { accentClassName: 'border-border bg-muted text-muted-foreground', icon: GenericCodeBadge }
 }
 
 function languageId(language: string) {
@@ -229,12 +349,19 @@ function EmptyProjects({ error, t }: { error?: string; t: Record<string, string>
 }
 
 function ProjectLanguageSection({ group, t }: { group: ProjectGroup; t: Record<string, string> }) {
+  const { accentClassName, icon: LanguageIcon } = languageIconConfig(group.language)
+
   return (
     <section className='language-section scroll-mt-24 rounded-[1.25rem]' id={`language-${group.id}`}>
       <div className='mb-4 flex items-end justify-between gap-4'>
         <div>
           <p className='text-sm text-muted-foreground'>{group.projects.length} projects</p>
-          <BlurText animateBy='letters' className='language-section-title text-2xl font-semibold tracking-tight transition-colors duration-300' delay={24} direction='bottom' text={group.language} />
+          <div className='mt-2 flex items-center gap-3'>
+            <span className={`inline-flex size-10 items-center justify-center rounded-2xl border ${accentClassName}`}>
+              <LanguageIcon className='size-5' />
+            </span>
+            <BlurText animateBy='letters' className='language-section-title text-2xl font-semibold tracking-tight transition-colors duration-300' delay={24} direction='bottom' text={group.language} />
+          </div>
         </div>
         <a className='text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline' href='#projects'>Top</a>
       </div>
@@ -251,8 +378,7 @@ function ProjectPanel({ project, t }: { project: Project; t: Record<string, stri
       <article className='h-full rounded-[calc(1.25rem-1px)] bg-card p-5'>
         <div className='flex items-start justify-between gap-4'>
           <div>
-            <p className='text-sm text-muted-foreground'>{project.primaryLanguage ?? 'Repository'}</p>
-            <h3 className='mt-2 text-2xl font-semibold tracking-tight'>{project.displayName}</h3>
+            <h3 className='text-2xl font-semibold tracking-tight'>{project.displayName}</h3>
           </div>
           <a aria-label={`Open ${project.displayName}`} className='rounded-full border border-border p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground' href={project.homepage || project.url} rel='noreferrer' target='_blank'><ExternalLink className='size-4' /></a>
         </div>
