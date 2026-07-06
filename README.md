@@ -4,6 +4,8 @@
 
 It is not an admin panel and it does not maintain a separate project database. The site reads repository data from GitHub, adds a small amount of local presentation overrides, and turns that into a searchable, language-grouped index.
 
+If GitHub is unavailable during a cold start, the homepage falls back to a small static project payload derived from local overrides instead of rendering an empty index.
+
 ## What It Does
 
 - Full-screen homepage hero with looping video backgrounds
@@ -54,6 +56,8 @@ The homepage uses GitHub as the source of truth for:
 - update timestamps
 - recent commits
 
+Repository language and commit detail requests are capped with a small concurrency limit to avoid creating a burst of GitHub API requests on cold cache fills.
+
 Local overrides in `app/data/project-overrides.ts` can adjust:
 
 - display name
@@ -93,6 +97,7 @@ Useful commands:
 
 ```bash
 npm run dev
+npm test
 npm run build
 npm run start
 npm run typecheck

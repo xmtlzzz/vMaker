@@ -1,0 +1,608 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      @font-face {
+        font-family: "Figtree";
+        src: local("Figtree");
+      }
+      @font-face {
+        font-family: "JetBrains Mono";
+        src: local("JetBrains Mono");
+      }
+      html,
+      body {
+        margin: 0;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: #000;
+      }
+      body {
+        font-family: "Figtree", sans-serif;
+        color: #f8f7fa;
+      }
+      code,
+      pre,
+      .mono {
+        font-family: "JetBrains Mono", monospace;
+      }
+      .composition {
+        position: relative;
+        overflow: hidden;
+        background:
+          radial-gradient(circle at 17% 18%, rgba(245, 152, 242, 0.22), rgba(245, 152, 242, 0) 28%),
+          radial-gradient(circle at 82% 16%, rgba(88, 213, 255, 0.12), rgba(88, 213, 255, 0) 24%),
+          linear-gradient(180deg, #000000 0%, #050505 52%, #080808 100%);
+      }
+      .scene {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        padding: 84px 104px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        opacity: 0;
+        overflow: hidden;
+      }
+      .scene.is-live {
+        opacity: 1;
+      }
+      .topline {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        color: rgba(248, 247, 250, 0.56);
+        font-size: 24px;
+        line-height: 1;
+      }
+      .brand-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 999px;
+        background: #f598f2;
+        box-shadow: 0 0 32px rgba(245, 152, 242, 0.78);
+        display: inline-block;
+        margin-right: 16px;
+      }
+      .hero-title {
+        max-width: 1220px;
+        font-size: 184px;
+        line-height: 0.86;
+        font-weight: 520;
+        color: #ffffff;
+      }
+      .accent {
+        color: #f598f2;
+      }
+      .hero-copy {
+        max-width: 700px;
+        font-size: 34px;
+        line-height: 1.36;
+        color: rgba(248, 247, 250, 0.72);
+      }
+      .layout-row {
+        display: grid;
+        grid-template-columns: 0.9fr 1.1fr;
+        gap: 56px;
+        align-items: stretch;
+      }
+      .kicker {
+        color: rgba(248, 247, 250, 0.54);
+        font-size: 22px;
+        font-weight: 650;
+        text-transform: uppercase;
+      }
+      .headline {
+        margin-top: 26px;
+        font-size: 86px;
+        line-height: 0.98;
+        font-weight: 560;
+        color: #ffffff;
+        max-width: 880px;
+      }
+      .body {
+        margin-top: 30px;
+        font-size: 31px;
+        line-height: 1.42;
+        color: rgba(248, 247, 250, 0.7);
+        max-width: 760px;
+      }
+      .panel {
+        position: relative;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 24px;
+        background: rgba(255, 255, 255, 0.045);
+        box-shadow: 0 34px 100px -62px rgba(245, 152, 242, 0.38);
+        backdrop-filter: blur(14px);
+        overflow: hidden;
+      }
+      .panel::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at var(--spot-x, 50%) var(--spot-y, 40%), rgba(245, 152, 242, 0.18), rgba(245, 152, 242, 0) 42%);
+        pointer-events: none;
+      }
+      .panel-inner {
+        position: relative;
+        z-index: 1;
+        padding: 34px;
+      }
+      .pipeline {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 18px;
+      }
+      .node {
+        display: grid;
+        grid-template-columns: 76px 1fr auto;
+        align-items: center;
+        gap: 22px;
+        min-height: 112px;
+        padding: 24px 26px;
+        border-radius: 22px;
+        background: rgba(5, 5, 5, 0.52);
+        border: 1px solid rgba(255, 255, 255, 0.09);
+      }
+      .node-index {
+        display: grid;
+        place-items: center;
+        width: 58px;
+        height: 58px;
+        border-radius: 18px;
+        color: #050505;
+        background: #f598f2;
+        font-size: 22px;
+        font-weight: 800;
+      }
+      .node-title {
+        font-size: 30px;
+        font-weight: 650;
+        color: #ffffff;
+      }
+      .node-copy {
+        margin-top: 8px;
+        font-size: 21px;
+        line-height: 1.35;
+        color: rgba(248, 247, 250, 0.6);
+      }
+      .node-tag {
+        color: #a3e635;
+        font-size: 18px;
+      }
+      .repo-map {
+        height: 690px;
+        display: grid;
+        grid-template-rows: auto 1fr;
+      }
+      .searchbar {
+        height: 70px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.13);
+        background: rgba(255, 255, 255, 0.04);
+        display: flex;
+        align-items: center;
+        padding: 0 28px;
+        color: rgba(248, 247, 250, 0.58);
+        font-size: 23px;
+      }
+      .language-grid {
+        margin-top: 28px;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 18px;
+      }
+      .language-card {
+        min-height: 156px;
+        padding: 24px;
+        border-radius: 22px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.044);
+      }
+      .language-card strong {
+        display: block;
+        font-size: 29px;
+        color: #ffffff;
+        font-weight: 650;
+      }
+      .language-card span {
+        display: block;
+        margin-top: 16px;
+        font-size: 20px;
+        line-height: 1.36;
+        color: rgba(248, 247, 250, 0.58);
+      }
+      .timeline {
+        height: 670px;
+        padding-left: 36px;
+        border-left: 1px solid rgba(255, 255, 255, 0.13);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 32px;
+      }
+      .timeline-item {
+        position: relative;
+      }
+      .timeline-item::before {
+        content: "";
+        position: absolute;
+        left: -43px;
+        top: 8px;
+        width: 13px;
+        height: 13px;
+        border-radius: 999px;
+        background: #f598f2;
+        box-shadow: 0 0 22px rgba(245, 152, 242, 0.68);
+      }
+      .timeline-date {
+        color: rgba(248, 247, 250, 0.45);
+        font-size: 18px;
+      }
+      .timeline-title {
+        margin-top: 9px;
+        color: #ffffff;
+        font-size: 29px;
+        font-weight: 650;
+      }
+      .timeline-message {
+        margin-top: 8px;
+        color: rgba(248, 247, 250, 0.62);
+        font-size: 22px;
+        line-height: 1.38;
+      }
+      .metric-row {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+      }
+      .metric {
+        padding: 28px;
+        min-height: 150px;
+      }
+      .metric-label {
+        color: rgba(248, 247, 250, 0.5);
+        font-size: 20px;
+      }
+      .metric-value {
+        margin-top: 18px;
+        color: #ffffff;
+        font-size: 44px;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+      }
+      .device {
+        height: 700px;
+        padding: 22px;
+        border-radius: 34px;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        background: rgba(248, 247, 250, 0.06);
+      }
+      .device-screen {
+        height: 100%;
+        border-radius: 24px;
+        background:
+          radial-gradient(circle at 22% 20%, rgba(245, 152, 242, 0.24), rgba(245, 152, 242, 0) 30%),
+          linear-gradient(180deg, #030303, #101014);
+        overflow: hidden;
+        padding: 36px;
+      }
+      .device-title {
+        font-size: 72px;
+        line-height: 0.92;
+        font-weight: 540;
+        max-width: 560px;
+      }
+      .device-pill-row {
+        margin-top: 42px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+      .pill {
+        border-radius: 999px;
+        padding: 13px 18px;
+        color: rgba(248, 247, 250, 0.72);
+        background: rgba(255, 255, 255, 0.07);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        font-size: 20px;
+      }
+      .closing {
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        gap: 34px;
+      }
+      .closing-title {
+        width: 1320px;
+        font-size: 126px;
+        line-height: 0.98;
+        font-weight: 560;
+      }
+      .closing-copy {
+        width: 900px;
+        font-size: 34px;
+        line-height: 1.42;
+        color: rgba(248, 247, 250, 0.7);
+      }
+      .orb {
+        position: absolute;
+        border-radius: 999px;
+        pointer-events: none;
+        filter: blur(2px);
+        opacity: 0.65;
+      }
+      .orb-a {
+        width: 420px;
+        height: 420px;
+        right: -140px;
+        top: 140px;
+        background: radial-gradient(circle, rgba(245, 152, 242, 0.23), rgba(245, 152, 242, 0));
+      }
+      .orb-b {
+        width: 360px;
+        height: 360px;
+        left: 90px;
+        bottom: -110px;
+        background: radial-gradient(circle, rgba(88, 213, 255, 0.12), rgba(88, 213, 255, 0));
+      }
+      .scanline {
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: 1px;
+        top: 18%;
+        background: linear-gradient(90deg, rgba(245, 152, 242, 0), rgba(245, 152, 242, 0.72), rgba(245, 152, 242, 0));
+        opacity: 0.34;
+      }
+      .wipe {
+        position: absolute;
+        inset: 0;
+        z-index: 20;
+        background:
+          linear-gradient(90deg, rgba(245, 152, 242, 0.96), rgba(248, 247, 250, 0.96) 56%, rgba(88, 213, 255, 0.9));
+      }
+      .soft-frame {
+        position: absolute;
+        inset: 42px;
+        border: 1px solid rgba(255, 255, 255, 0.065);
+        border-radius: 34px;
+        pointer-events: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      class="composition"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="18"
+      data-width="1920"
+      data-height="1080"
+    >
+      <div class="orb orb-a" data-layout-ignore></div>
+      <div class="orb orb-b" data-layout-ignore></div>
+      <div class="scanline" data-layout-ignore></div>
+      <div class="soft-frame" data-layout-ignore></div>
+
+      <section class="scene scene-1 is-live">
+        <div class="topline scene-1-line">
+          <div><span class="brand-dot"></span>创意开发档案</div>
+          <div class="mono">01 / PROJECT GATEWAY</div>
+        </div>
+        <div>
+          <h1 class="hero-title scene-1-title">vMaker<span class="accent">.</span></h1>
+          <p class="hero-copy scene-1-copy">把 xmtlzzz 的 GitHub 公开项目，整理成一个可搜索、可浏览、可持续更新的入口。</p>
+        </div>
+        <div class="metric-row scene-1-metrics">
+          <div class="panel metric">
+            <div class="metric-label">数据源</div>
+            <div class="metric-value">GitHub</div>
+          </div>
+          <div class="panel metric">
+            <div class="metric-label">界面层</div>
+            <div class="metric-value">React Router</div>
+          </div>
+          <div class="panel metric">
+            <div class="metric-label">体验目标</div>
+            <div class="metric-value">Direct Browse</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="scene scene-2">
+        <div class="topline scene-2-line">
+          <div><span class="brand-dot"></span>CodeGraph 读到的核心结构</div>
+          <div class="mono">02 / ARCHITECTURE</div>
+        </div>
+        <div class="layout-row">
+          <div>
+            <div class="kicker scene-2-kicker">单一数据源</div>
+            <h2 class="headline scene-2-title">不是后台面板，也不是静态作品集。</h2>
+            <p class="body scene-2-copy">项目从 GitHub 拉取仓库、语言、topic、stars、forks 和最近 commit，再叠加少量本地展示规则。</p>
+          </div>
+          <div class="panel panel-inner pipeline scene-2-panel">
+            <div class="node">
+              <div class="node-index mono">01</div>
+              <div>
+                <div class="node-title">GitHub API</div>
+                <div class="node-copy">读取公开仓库、语言统计和最近提交。</div>
+              </div>
+              <div class="node-tag mono">source</div>
+            </div>
+            <div class="node">
+              <div class="node-index mono">02</div>
+              <div>
+                <div class="node-title">project-overrides</div>
+                <div class="node-copy">只做名称、摘要、顺序、精选和隐藏控制。</div>
+              </div>
+              <div class="node-tag mono">local</div>
+            </div>
+            <div class="node">
+              <div class="node-index mono">03</div>
+              <div>
+                <div class="node-title">React Router Home</div>
+                <div class="node-copy">把数据变成 hero、搜索、语言分组和时间线。</div>
+              </div>
+              <div class="node-tag mono">view</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="scene scene-3">
+        <div class="topline scene-3-line">
+          <div><span class="brand-dot"></span>首页体验</div>
+          <div class="mono">03 / LIVE INDEX</div>
+        </div>
+        <div class="layout-row">
+          <div class="panel panel-inner repo-map scene-3-map">
+            <div class="searchbar">Search projects: name, description, language, topics</div>
+            <div class="language-grid">
+              <div class="language-card"><strong>TypeScript</strong><span>React、Vite、UI 系统和前端实验。</span></div>
+              <div class="language-card"><strong>Python</strong><span>脚本、自动化和数据处理项目。</span></div>
+              <div class="language-card"><strong>Rust</strong><span>工具链、桌面应用和性能探索。</span></div>
+              <div class="language-card"><strong>Other</strong><span>按 GitHub 实时语言结果自然归类。</span></div>
+            </div>
+          </div>
+          <div>
+            <div class="kicker scene-3-kicker">从首屏滑入项目索引</div>
+            <h2 class="headline scene-3-title">浏览不需要离开上下文。</h2>
+            <p class="body scene-3-copy">vMaker 保留 cinematic hero，同时把下面的项目索引做成主体验。语言导航、搜索框和卡片链接都指向真实仓库。</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="scene scene-4">
+        <div class="topline scene-4-line">
+          <div><span class="brand-dot"></span>持续更新的活动流</div>
+          <div class="mono">04 / COMMIT TIMELINE</div>
+        </div>
+        <div class="layout-row">
+          <div>
+            <div class="kicker scene-4-kicker">最近活跃</div>
+            <h2 class="headline scene-4-title">项目列表不是静态截图。</h2>
+            <p class="body scene-4-copy">每个项目取最近 commit，overview 栏保留一条活动时间线。项目越多，左侧索引越像一张实时地图。</p>
+          </div>
+          <div class="panel panel-inner timeline scene-4-timeline">
+            <div class="timeline-item">
+              <div class="timeline-date mono">Latest</div>
+              <div class="timeline-title">vMaker</div>
+              <div class="timeline-message">用于集中展示个人项目的现代化作品集网站。</div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-date mono">Grouped</div>
+              <div class="timeline-title">Language sections</div>
+              <div class="timeline-message">按 primary language 组织，Other 自动后置。</div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-date mono">Cached</div>
+              <div class="timeline-title">10 minute payload</div>
+              <div class="timeline-message">降低 API 压力，失败时优先返回缓存数据。</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="scene scene-5 closing">
+        <div class="topline scene-5-line" style="width: 100%;">
+          <div><span class="brand-dot"></span>vMaker</div>
+          <div class="mono">05 / SUMMARY</div>
+        </div>
+        <h2 class="closing-title scene-5-title">一个面向真实仓库的项目入口。</h2>
+        <p class="closing-copy scene-5-copy">没有镜像数据库，没有额外后台层。GitHub 是事实来源，React Router 是浏览界面，vMaker 是把实验作品变得可见的索引。</p>
+        <div class="device scene-5-device">
+          <div class="device-screen">
+            <div class="device-title">Browse the work without flattening it.</div>
+            <div class="device-pill-row">
+              <div class="pill">GitHub public repos</div>
+              <div class="pill">Language grouping</div>
+              <div class="pill">Search</div>
+              <div class="pill">Commit timeline</div>
+              <div class="pill">Direct project access</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="wipe" data-layout-ignore></div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const DURATION = 18;
+      const repeatCount = Math.ceil(DURATION / 6) - 1;
+      const tl = gsap.timeline({ paused: true });
+
+      tl.to(".orb-a", { x: -80, y: 24, scale: 1.08, duration: 6, repeat: repeatCount, yoyo: true, ease: "sine.inOut" }, 0);
+      tl.to(".orb-b", { x: 70, y: -30, scale: 1.12, duration: 7, repeat: repeatCount, yoyo: true, ease: "power1.inOut" }, 0);
+      tl.to(".scanline", { y: 680, duration: 5.4, repeat: repeatCount, ease: "sine.inOut" }, 0);
+
+      function revealScene(scene, at) {
+        tl.set(scene, { opacity: 1 }, at);
+      }
+
+      function transition(fromScene, toScene, at) {
+        tl.fromTo(".wipe", { scaleX: 0, transformOrigin: "left center" }, { scaleX: 1, duration: 0.34, ease: "power3.inOut" }, at);
+        tl.set(toScene, { opacity: 1 }, at + 0.18);
+        tl.set(fromScene, { opacity: 0 }, at + 0.2);
+        tl.fromTo(".wipe", { scaleX: 1, transformOrigin: "right center" }, { scaleX: 0, duration: 0.4, ease: "power2.inOut" }, at + 0.34);
+      }
+
+      tl.from(".scene-1-line", { y: -28, opacity: 0, duration: 0.46, ease: "power3.out" }, 0.18);
+      tl.from(".scene-1-title", { x: -72, opacity: 0, duration: 0.7, ease: "expo.out" }, 0.34);
+      tl.from(".scene-1-copy", { y: 42, opacity: 0, duration: 0.58, ease: "back.out(1.35)" }, 0.78);
+      tl.from(".scene-1-metrics .metric", { y: 56, opacity: 0, scale: 0.96, duration: 0.54, stagger: 0.12, ease: "power2.out" }, 1.06);
+
+      transition(".scene-1", ".scene-2", 3.25);
+      revealScene(".scene-2", 3.43);
+      tl.from(".scene-2-line", { y: -28, opacity: 0, duration: 0.42, ease: "power4.out" }, 3.82);
+      tl.from(".scene-2-kicker", { x: -40, opacity: 0, duration: 0.34, ease: "sine.out" }, 3.94);
+      tl.from(".scene-2-title", { y: 54, opacity: 0, duration: 0.58, ease: "expo.out" }, 4.08);
+      tl.from(".scene-2-copy", { x: 40, opacity: 0, duration: 0.48, ease: "power2.out" }, 4.4);
+      tl.from(".scene-2-panel", { x: 76, opacity: 0, scale: 0.98, duration: 0.62, ease: "back.out(1.2)" }, 4.12);
+      tl.from(".scene-2-panel .node", { x: 46, opacity: 0, duration: 0.44, stagger: 0.14, ease: "power3.out" }, 4.42);
+
+      transition(".scene-2", ".scene-3", 6.72);
+      revealScene(".scene-3", 6.9);
+      tl.from(".scene-3-line", { y: -26, opacity: 0, duration: 0.4, ease: "power2.out" }, 7.25);
+      tl.from(".scene-3-map", { x: -72, opacity: 0, scale: 0.985, duration: 0.64, ease: "expo.out" }, 7.34);
+      tl.from(".scene-3-map .searchbar", { y: -24, opacity: 0, duration: 0.38, ease: "back.out(1.4)" }, 7.68);
+      tl.from(".scene-3-map .language-card", { y: 48, opacity: 0, scale: 0.96, duration: 0.46, stagger: 0.09, ease: "power4.out" }, 7.86);
+      tl.from(".scene-3-kicker", { x: 36, opacity: 0, duration: 0.36, ease: "sine.out" }, 7.48);
+      tl.from(".scene-3-title", { y: 58, opacity: 0, duration: 0.58, ease: "expo.out" }, 7.66);
+      tl.from(".scene-3-copy", { y: 36, opacity: 0, duration: 0.48, ease: "power2.out" }, 8.04);
+
+      transition(".scene-3", ".scene-4", 10.12);
+      revealScene(".scene-4", 10.3);
+      tl.from(".scene-4-line", { y: -26, opacity: 0, duration: 0.4, ease: "power3.out" }, 10.65);
+      tl.from(".scene-4-kicker", { x: -34, opacity: 0, duration: 0.34, ease: "sine.out" }, 10.78);
+      tl.from(".scene-4-title", { y: 52, opacity: 0, duration: 0.6, ease: "expo.out" }, 10.94);
+      tl.from(".scene-4-copy", { y: 34, opacity: 0, duration: 0.46, ease: "power2.out" }, 11.3);
+      tl.from(".scene-4-timeline", { x: 72, opacity: 0, scale: 0.98, duration: 0.62, ease: "back.out(1.15)" }, 10.98);
+      tl.from(".scene-4-timeline .timeline-item", { x: 44, opacity: 0, duration: 0.44, stagger: 0.16, ease: "power4.out" }, 11.42);
+
+      transition(".scene-4", ".scene-5", 13.55);
+      revealScene(".scene-5", 13.73);
+      tl.from(".scene-5-line", { y: -26, opacity: 0, duration: 0.42, ease: "power3.out" }, 14.0);
+      tl.from(".scene-5-title", { y: 58, opacity: 0, duration: 0.68, ease: "expo.out" }, 14.18);
+      tl.from(".scene-5-copy", { y: 36, opacity: 0, duration: 0.5, ease: "sine.out" }, 14.66);
+      tl.from(".scene-5-device", { y: 80, opacity: 0, scale: 0.96, duration: 0.7, ease: "back.out(1.18)" }, 14.94);
+      tl.from(".scene-5-device .pill", { y: 28, opacity: 0, duration: 0.34, stagger: 0.07, ease: "power3.out" }, 15.34);
+      tl.to(".scene-5", { opacity: 0, duration: 0.7, ease: "sine.in" }, 17.1);
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

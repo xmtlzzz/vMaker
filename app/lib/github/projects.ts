@@ -2,6 +2,7 @@ import { projectOverrides } from '~/data/project-overrides'
 
 const GITHUB_USER = 'xmtlzzz'
 const GITHUB_API = 'https://api.github.com'
+const DETAIL_FETCH_CONCURRENCY = 5
 
 type GitHubRepo = {
   archived: boolean
@@ -75,24 +76,26 @@ export type ProjectPayload = {
   summary: ProjectSummary
 }
 
-const EMPTY_SUMMARY: ProjectSummary = {
-  latestActivity: null,
-  primaryLanguages: [],
-  totalCodeSize: 0,
-  totalProjects: 0,
+type RepoDetails = {
+  commits: CommitSummary[]
+  languages: Record<string, number>
 }
+
+type RepoDetailMap = Record<string, Partial<RepoDetails> | undefined>
 
 const CACHE_TTL = 1000 * 60 * 10
 let cachedPayload: { payload: ProjectPayload; timestamp: number } | null = null
 
-function githubHeaders() {
+export function githubHeaders() {
   const headers: Record<string, string> = {
     Accept: 'application/vnd.github+json',
     'X-GitHub-Api-Version': '2022-11-28',
   }
 
-  if (process.env.GITHUB_TOKEN) {
-    headers.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`
+  const token = process.env.GITHUB_TOKEN?.trim()
+
+  if (token && token !== 'your_github_token') {
+    headers.Authorization = `Bearer ${token}`
   }
 
   return headers
@@ -133,6 +136,33 @@ async function getRepoCommits(repo: string) {
     sha: item.sha.slice(0, 7),
     url: item.html_url,
   }))
+}
+
+export async function mapWithConcurrency<T, R>(
+  items: T[],
+  concurrency: number,
+  mapper: (item: T, index: number) => Promise<R>,
+) {
+  if (!Number.isInteger(concurrency) || concurrency < 1) {
+    throw new Error('Concurrency must be a positive integer')
+  }
+
+  const results = new Array<R>(items.length)
+  let nextIndex = 0
+
+  async function worker() {
+    while (nextIndex < items.length) {
+      const index = nextIndex
+      nextIndex += 1
+      results[index] = await mapper(items[index], index)
+    }
+  }
+
+  await Promise.all(
+    Array.from({ length: Math.min(concurrency, items.length) }, () => worker()),
+  )
+
+  return results
 }
 
 function getLanguageShares(languages: Record<string, number>) {
@@ -187,7 +217,7 @@ function sortProjects(projects: Project[]) {
       return aOrder - bOrder
     }
 
-    return new Date(b.pushedAt ?? b.updatedAt).getTime() - new Date(a.pushedAt ?? a.updatedAt).getTime()
+    return new Date(b.pushedAt || b.updatedAt || 0).getTime() - new Date(a.pushedAt || a.updatedAt || 0).getTime()
   })
 }
 
@@ -206,10 +236,59 @@ function summarize(projects: Project[]): ProjectSummary {
     .map(([language]) => language)
 
   return {
-    latestActivity: projects[0]?.pushedAt ?? projects[0]?.updatedAt ?? null,
+    latestActivity: projects[0]?.pushedAt || projects[0]?.updatedAt || null,
     primaryLanguages,
     totalCodeSize: projects.reduce((sum, project) => sum + project.codeSize, 0),
     totalProjects: projects.length,
+  }
+}
+
+export function buildProjectPayload(repos: GitHubRepo[], detailsByRepo: RepoDetailMap = {}): ProjectPayload {
+  const visibleRepos = repos.filter((repo) => !repo.fork && !projectOverrides[repo.name]?.hidden)
+  const projects = visibleRepos.map((repo) => {
+    const details = detailsByRepo[repo.name]
+
+    return toProject(repo, details?.languages ?? {}, details?.commits ?? [])
+  })
+  const sortedProjects = sortProjects(projects)
+
+  return {
+    projects: sortedProjects,
+    summary: summarize(sortedProjects),
+  }
+}
+
+function fallbackRepo(name: string): GitHubRepo {
+  const override = projectOverrides[name] ?? {}
+
+  return {
+    archived: false,
+    created_at: '',
+    description: override.summary ?? null,
+    fork: false,
+    forks_count: 0,
+    full_name: `${GITHUB_USER}/${name}`,
+    homepage: null,
+    html_url: `https://github.com/${GITHUB_USER}/${name}`,
+    language: null,
+    name,
+    pushed_at: null,
+    stargazers_count: 0,
+    topics: [],
+    updated_at: '',
+  }
+}
+
+export function createFallbackPayload(error?: string): ProjectPayload {
+  const fallbackRepos = Object.entries(projectOverrides)
+    .filter(([, override]) => !override.hidden)
+    .map(([name]) => fallbackRepo(name))
+
+  const payload = buildProjectPayload(fallbackRepos)
+
+  return {
+    ...payload,
+    error,
   }
 }
 
@@ -224,22 +303,20 @@ export async function getProjects(): Promise<ProjectPayload> {
     const repos = await githubFetch<GitHubRepo[]>(`/users/${GITHUB_USER}/repos?sort=pushed&per_page=100`)
     const visibleRepos = repos.filter((repo) => !repo.fork && !projectOverrides[repo.name]?.hidden)
 
-    const projects = await Promise.all(
-      visibleRepos.map(async (repo) => {
+    const detailsEntries = await mapWithConcurrency(
+      visibleRepos,
+      DETAIL_FETCH_CONCURRENCY,
+      async (repo) => {
         const [languages, commits] = await Promise.all([
           getRepoLanguages(repo.name),
           getRepoCommits(repo.name),
         ])
 
-        return toProject(repo, languages, commits)
-      }),
+        return [repo.name, { commits, languages }] as const
+      },
     )
 
-    const sortedProjects = sortProjects(projects)
-    const payload = {
-      projects: sortedProjects,
-      summary: summarize(sortedProjects),
-    }
+    const payload = buildProjectPayload(repos, Object.fromEntries(detailsEntries))
 
     cachedPayload = { payload, timestamp: now }
     return payload
@@ -253,11 +330,7 @@ export async function getProjects(): Promise<ProjectPayload> {
       }
     }
 
-    return {
-      error: message,
-      projects: [],
-      summary: EMPTY_SUMMARY,
-    }
+    return createFallbackPayload(message)
   }
 }
 
