@@ -1,8 +1,10 @@
-import { ExternalLink, GitBranch, Menu, Moon, Search, Sun, X } from 'lucide-react'
+import { Atom, Boxes, ChevronDown, ExternalLink, Gauge, GitBranch, Menu, Moon, Palette, Search, Server, Sparkles, Sun, Wind, X } from 'lucide-react'
 import type { CSSProperties, ReactElement, RefObject, SVGProps } from 'react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { BorderGlow } from '~/components/react-bits/BorderGlow'
+import { LogoLoop } from '~/components/react-bits/LogoLoop'
+import { ShapeBlur } from '~/components/react-bits/ShapeBlur'
 import { VariableProximity } from '~/components/react-bits/VariableProximity'
 import { Button } from '~/components/ui/button'
 import { formatDate, getProjects } from '~/lib/github/projects'
@@ -11,6 +13,13 @@ import type { Route } from './+types/home'
 
 type Locale = 'en' | 'zh'
 type Theme = 'light' | 'dark'
+
+type AccentPreset = {
+  color: string
+  id: string
+  label: string
+  rgb: string
+}
 
 type ProjectGroup = {
   id: string
@@ -41,6 +50,26 @@ type CommitTimelineItem = {
 }
 
 const THEME_STORAGE_KEY = 'vmaker-theme'
+const ACCENT_STORAGE_KEY = 'vmaker-accent'
+
+const ACCENT_PRESETS: AccentPreset[] = [
+  { id: 'pink', label: 'Pink', color: '#F598F2', rgb: '245 152 242' },
+  { id: 'cyan', label: 'Cyan', color: '#58D5FF', rgb: '88 213 255' },
+  { id: 'lime', label: 'Lime', color: '#A3E635', rgb: '163 230 53' },
+  { id: 'amber', label: 'Amber', color: '#FBBF24', rgb: '251 191 36' },
+  { id: 'coral', label: 'Coral', color: '#FB7185', rgb: '251 113 133' },
+]
+
+const STACK_LOGOS = [
+  { label: 'React', color: '#61DAFB', icon: <Atom className='size-4' /> },
+  { label: 'TypeScript', color: '#3178C6', icon: <Boxes className='size-4' /> },
+  { label: 'Tailwind', color: '#38BDF8', icon: <Wind className='size-4' /> },
+  { label: 'Node', color: '#8CC84B', icon: <Server className='size-4' /> },
+  { label: 'Rust', color: '#F97316', icon: <Sparkles className='size-4' /> },
+  { label: 'Tauri', color: '#24C8DB', icon: <ExternalLink className='size-4' /> },
+  { label: 'Vite', color: '#A78BFA', icon: <Gauge className='size-4' /> },
+  { label: 'Motion', color: '#F472B6', icon: <GitBranch className='size-4' /> },
+]
 
 const HERO_SLIDES: HeroSlide[] = [
   {
@@ -207,6 +236,25 @@ function languageId(language: string) {
   return language.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'other'
 }
 
+function languageNavLabel(language: string) {
+  const normalized = language.trim().toLowerCase()
+  const abbreviations: Record<string, string> = {
+    javascript: 'JS',
+    typescript: 'TS',
+  }
+
+  if (abbreviations[normalized]) return abbreviations[normalized]
+  if (language.length <= 6) return language
+
+  return language
+    .split(/[^a-zA-Z0-9]+/)
+    .filter(Boolean)
+    .map((part) => part[0])
+    .join('')
+    .slice(0, 3)
+    .toUpperCase() || language.slice(0, 3).toUpperCase()
+}
+
 function groupProjectsByLanguage(projects: Project[]): ProjectGroup[] {
   const groups = new Map<string, Project[]>()
 
@@ -284,19 +332,24 @@ export default function Home({ loaderData }: Route.ComponentProps) {
   const [locale, setLocale] = useState<Locale>('zh')
   const [query, setQuery] = useState('')
   const [theme, setTheme] = useState<Theme>('light')
+  const [accentId, setAccentId] = useState<AccentPreset['id']>(ACCENT_PRESETS[0].id)
   const [activeIndex, setActiveIndex] = useState(0)
   const [clock, setClock] = useState('')
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isAccentMenuOpen, setIsAccentMenuOpen] = useState(false)
+  const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false)
   const [hoveredProjectId, setHoveredProjectId] = useState<string | null>(null)
   const [showBackToTop, setShowBackToTop] = useState(false)
   const timelineContainerRef = useRef<HTMLDivElement | null>(null)
   const timelineItemRefs = useRef(new Map<string, HTMLAnchorElement | null>())
   const heroSectionRef = useRef<HTMLElement | null>(null)
   const projectsSectionRef = useRef<HTMLElement | null>(null)
+  const moreMenuRef = useRef<HTMLDivElement | null>(null)
   const t = copy[locale]
 
   const activeSlide = HERO_SLIDES[activeIndex]
   const isDark = theme === 'dark'
+  const activeAccent = ACCENT_PRESETS.find((preset) => preset.id === accentId) ?? ACCENT_PRESETS[0]
   const filteredProjects = useMemo(() => {
     const text = query.trim().toLowerCase()
     if (!text) return projects
@@ -311,6 +364,23 @@ export default function Home({ loaderData }: Route.ComponentProps) {
   }, [projects, query])
   const projectGroups = useMemo(() => groupProjectsByLanguage(filteredProjects), [filteredProjects])
   const languageGroups = useMemo(() => groupProjectsByLanguage(projects), [projects])
+  const languageNavGroups = useMemo(
+    () => {
+      const visibleGroups = languageGroups.filter((group) => group.language !== 'Other')
+      const otherGroups = languageGroups.filter((group) => group.language === 'Other')
+
+      return [
+        ...visibleGroups.sort((a, b) => b.projects.length - a.projects.length || a.language.localeCompare(b.language)),
+        ...otherGroups,
+      ]
+    },
+    [languageGroups],
+  )
+  const topLanguageGroups = useMemo(() => languageNavGroups.filter((group) => group.language !== 'Other').slice(0, 3), [languageNavGroups])
+  const moreLanguageGroups = useMemo(() => {
+    const visibleTopIds = new Set(topLanguageGroups.map((group) => group.id))
+    return languageNavGroups.filter((group) => !visibleTopIds.has(group.id))
+  }, [languageNavGroups, topLanguageGroups])
   const commitTimeline = useMemo(() => getLatestCommitTimeline(projects), [projects])
   const [titleRef, titleVisible] = useRevealOnView<HTMLDivElement>()
   const [copyRef, copyVisible] = useRevealOnView<HTMLDivElement>()
@@ -321,12 +391,22 @@ export default function Home({ loaderData }: Route.ComponentProps) {
 
     const storedTheme = window.localStorage.getItem(THEME_STORAGE_KEY)
     if (storedTheme === 'light' || storedTheme === 'dark') setTheme(storedTheme)
+
+    const storedAccent = window.localStorage.getItem(ACCENT_STORAGE_KEY)
+    if (ACCENT_PRESETS.some((preset) => preset.id === storedAccent)) {
+      setAccentId(storedAccent as AccentPreset['id'])
+    }
   }, [])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
     window.localStorage.setItem(THEME_STORAGE_KEY, theme)
   }, [theme])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    window.localStorage.setItem(ACCENT_STORAGE_KEY, accentId)
+  }, [accentId])
 
   useEffect(() => {
     const formatClock = () =>
@@ -344,7 +424,30 @@ export default function Home({ loaderData }: Route.ComponentProps) {
 
   useEffect(() => {
     setIsMenuOpen(false)
+    setIsAccentMenuOpen(false)
+    setIsMoreMenuOpen(false)
   }, [activeIndex, locale])
+
+  useEffect(() => {
+    if (!isMoreMenuOpen || typeof window === 'undefined') return
+
+    const handlePointerDown = (event: PointerEvent) => {
+      const menu = moreMenuRef.current
+      if (!menu || menu.contains(event.target as Node)) return
+      setIsMoreMenuOpen(false)
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setIsMoreMenuOpen(false)
+    }
+
+    window.addEventListener('pointerdown', handlePointerDown)
+    window.addEventListener('keydown', handleKeyDown)
+    return () => {
+      window.removeEventListener('pointerdown', handlePointerDown)
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [isMoreMenuOpen])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -411,7 +514,15 @@ export default function Home({ loaderData }: Route.ComponentProps) {
   }
 
   return (
-    <main className={`${theme === 'dark' ? 'dark theme-dark' : 'theme-light'} theme-shell home-canvas min-h-svh bg-black text-white`}>
+    <main
+      className={`${theme === 'dark' ? 'dark theme-dark' : 'theme-light'} theme-shell home-canvas min-h-svh bg-black text-white`}
+      style={
+        {
+          '--vmaker-accent': activeAccent.color,
+          '--vmaker-accent-rgb': activeAccent.rgb,
+        } as CSSProperties
+      }
+    >
       <section className='hero-shell relative min-h-svh overflow-hidden bg-black text-white' ref={heroSectionRef}>
         <div className='absolute inset-0 z-0'>
           {HERO_SLIDES.map((slide, index) => (
@@ -431,9 +542,14 @@ export default function Home({ loaderData }: Route.ComponentProps) {
         <div className='hero-scrim absolute inset-0 z-[1]' />
 
         <HeroNavbar
+          accentId={accentId}
+          accentPresets={ACCENT_PRESETS}
           clock={clock}
+          isAccentMenuOpen={isAccentMenuOpen}
           isMenuOpen={isMenuOpen}
           locale={locale}
+          onAccentChange={(nextAccentId) => setAccentId(nextAccentId)}
+          onAccentMenuToggle={() => setIsAccentMenuOpen((open) => !open)}
           onMenuToggle={() => setIsMenuOpen((open) => !open)}
           onThemeToggle={handleThemeToggle}
           setLocale={setLocale}
@@ -477,7 +593,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
               <div className={`reveal-block ${titleVisible ? 'is-visible reveal-up' : ''}`}>
                 <h1 className='hero-title'>
                   <VariableProximity className='hero-title-word' labelClassName='hero-title-char' text='vMaker' />
-                  <span className='hero-title-dot' style={{ color: activeSlide.accent }}>.</span>
+                  <span className='hero-title-dot'>.</span>
                 </h1>
               </div>
             </div>
@@ -545,20 +661,57 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                   <p className='project-empty-copy'>No commit activity available yet.</p>
                 )}
               </div>
+              <div className='project-stack-loop-wrap'>
+                <LogoLoop items={STACK_LOGOS} />
+              </div>
             </div>
 
             <div>
               <div className='projects-toolbar'>
                 <div className='projects-nav-wrap'>
-                  {languageGroups.length > 0 ? (
-                    languageGroups.map((group) => (
-                      <a className='projects-anchor-chip' href={`#language-${group.id}`} key={group.language}>
-                        {group.language}
-                      </a>
-                    ))
-                  ) : (
-                    <span className='projects-anchor-chip opacity-60'>{t.projectsUnavailable}</span>
-                  )}
+                  <div className='projects-anchor-list'>
+                    {topLanguageGroups.length > 0 ? (
+                      topLanguageGroups.map((group) => (
+                        <a className='projects-anchor-chip' href={`#language-${group.id}`} key={group.language} title={group.language}>
+                          {languageNavLabel(group.language)}
+                        </a>
+                      ))
+                    ) : (
+                      <span className='projects-anchor-chip opacity-60'>{t.projectsUnavailable}</span>
+                    )}
+                  </div>
+                  <div className='projects-anchor-more' ref={moreMenuRef}>
+                    <div className={`projects-anchor-dropdown ${isMoreMenuOpen ? 'is-open' : ''}`}>
+                      <button
+                        aria-expanded={isMoreMenuOpen}
+                        aria-haspopup='menu'
+                        className='projects-anchor-chip projects-anchor-summary'
+                        onClick={() => setIsMoreMenuOpen((open) => !open)}
+                        type='button'
+                      >
+                        <span>More</span>
+                        <ChevronDown className='size-3.5' />
+                      </button>
+                      {isMoreMenuOpen && <div className='projects-anchor-dropdown-menu' role='menu'>
+                        {moreLanguageGroups.length > 0 ? (
+                          moreLanguageGroups.map((group) => (
+                            <a
+                              className='projects-anchor-dropdown-item'
+                              href={`#language-${group.id}`}
+                              key={group.language}
+                              onClick={() => setIsMoreMenuOpen(false)}
+                              role='menuitem'
+                            >
+                              <span>{group.language}</span>
+                              <span>{group.projects.length}</span>
+                            </a>
+                          ))
+                        ) : (
+                          <span className='projects-anchor-dropdown-empty'>{t.projectsUnavailable}</span>
+                        )}
+                      </div>}
+                    </div>
+                  </div>
                 </div>
                 <label className='projects-search'>
                   <Search className='pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-white/45' />
@@ -602,9 +755,14 @@ export default function Home({ loaderData }: Route.ComponentProps) {
 }
 
 type HeroNavbarProps = {
+  accentId: AccentPreset['id']
+  accentPresets: AccentPreset[]
   clock: string
+  isAccentMenuOpen: boolean
   isMenuOpen: boolean
   locale: Locale
+  onAccentChange: (accentId: AccentPreset['id']) => void
+  onAccentMenuToggle: () => void
   onMenuToggle: () => void
   onThemeToggle: () => void
   setLocale: (locale: Locale) => void
@@ -612,7 +770,21 @@ type HeroNavbarProps = {
   theme: Theme
 }
 
-function HeroNavbar({ clock, isMenuOpen, locale, onMenuToggle, onThemeToggle, setLocale, t, theme }: HeroNavbarProps) {
+function HeroNavbar({
+  accentId,
+  accentPresets,
+  clock,
+  isAccentMenuOpen,
+  isMenuOpen,
+  locale,
+  onAccentChange,
+  onAccentMenuToggle,
+  onMenuToggle,
+  onThemeToggle,
+  setLocale,
+  t,
+  theme,
+}: HeroNavbarProps) {
   const navItems = [
     { href: '#projects', index: '01', label: t.works },
   ]
@@ -647,6 +819,23 @@ function HeroNavbar({ clock, isMenuOpen, locale, onMenuToggle, onThemeToggle, se
             <button aria-label='Toggle theme' className='hero-icon-button' onClick={onThemeToggle} type='button'>
               {theme === 'light' ? <Moon className='size-4' /> : <Sun className='size-4' />}
             </button>
+            <div className='hero-accent-picker'>
+              <button aria-label='Change accent color' className='hero-icon-button' onClick={onAccentMenuToggle} type='button'>
+                <Palette className='size-4' />
+              </button>
+              <div className={`hero-accent-menu ${isAccentMenuOpen ? 'open' : ''}`}>
+                {accentPresets.map((preset) => (
+                  <button
+                    aria-label={preset.label}
+                    className={`hero-accent-swatch ${accentId === preset.id ? 'is-active' : ''}`}
+                    key={preset.id}
+                    onClick={() => onAccentChange(preset.id)}
+                    style={{ '--swatch-color': preset.color } as CSSProperties}
+                    type='button'
+                  />
+                ))}
+              </div>
+            </div>
           </div>
 
           <div className='hero-mobile-actions'>
@@ -656,6 +845,23 @@ function HeroNavbar({ clock, isMenuOpen, locale, onMenuToggle, onThemeToggle, se
             <button aria-label='Toggle theme' className='hero-icon-button' onClick={onThemeToggle} type='button'>
               {theme === 'light' ? <Moon className='size-4' /> : <Sun className='size-4' />}
             </button>
+            <div className='hero-accent-picker'>
+              <button aria-label='Change accent color' className='hero-icon-button' onClick={onAccentMenuToggle} type='button'>
+                <Palette className='size-4' />
+              </button>
+              <div className={`hero-accent-menu ${isAccentMenuOpen ? 'open' : ''}`}>
+                {accentPresets.map((preset) => (
+                  <button
+                    aria-label={preset.label}
+                    className={`hero-accent-swatch ${accentId === preset.id ? 'is-active' : ''}`}
+                    key={preset.id}
+                    onClick={() => onAccentChange(preset.id)}
+                    style={{ '--swatch-color': preset.color } as CSSProperties}
+                    type='button'
+                  />
+                ))}
+              </div>
+            </div>
             <button className='hero-menu-button' onClick={onMenuToggle} type='button'>
               <span>{isMenuOpen ? 'Close' : t.menu}</span>
               {isMenuOpen ? <X className='size-4' /> : <Menu className='size-4' />}
@@ -690,6 +896,16 @@ function HeroNavbar({ clock, isMenuOpen, locale, onMenuToggle, onThemeToggle, se
 function Metric({ isDark, label, value }: { isDark: boolean; label: string; value: string }) {
   return (
     <div className={`project-metric ${isDark ? 'project-metric-dark' : 'project-metric-light'}`}>
+      <ShapeBlur
+        borderSize={0.05}
+        circleEdge={1}
+        circleSize={0.22}
+        className='project-metric-blur'
+        pixelRatioProp={typeof window === 'undefined' ? 1 : window.devicePixelRatio || 1}
+        roundness={0.5}
+        shapeSize={0.78}
+        variation={0}
+      />
       <p className='project-metric-label'>{label}</p>
       <p className='project-metric-value'>{value}</p>
     </div>
