@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" role="img" aria-label="Abstract deer in a forest">
+  <rect width="1600" height="1000" fill="#252039"/>
+  <circle cx="330" cy="235" r="120" fill="#d9b87b" opacity=".92"/>
+  <g stroke="#4b4564" stroke-width="42" stroke-linecap="round"><path d="M130 0v660"/><path d="M340 0v570"/><path d="M1260 0v650"/><path d="M1480 0v760"/></g>
+  <path d="M0 710c290-100 550-9 820-106s447-115 780-31v427H0Z" fill="#37314f"/><path d="M0 835c240-80 480 38 720-43s550-154 880-33v241H0Z" fill="#1d192b"/>
+  <path d="M790 716c-84 0-131-49-131-116 0-58 35-100 92-112l-8-99 35 61 18-89 17 89 43-61-23 105c54 23 83 66 83 121 0 62-48 101-126 101Z" fill="#d2a66c"/>
+  <path d="M698 540c-67-34-107-92-120-174m139 83c-17-76-7-137 31-184m59 184c25-77 20-138-13-184m43 221c62-41 99-100 108-179" fill="none" stroke="#d2a66c" stroke-width="16" stroke-linecap="round"/>
+  <ellipse cx="753" cy="540" rx="7" ry="10" fill="#241d28"/><ellipse cx="824" cy="540" rx="7" ry="10" fill="#241d28"/><path d="M775 579c18 11 35 11 52 0" fill="none" stroke="#241d28" stroke-width="8" stroke-linecap="round"/>
+</svg>

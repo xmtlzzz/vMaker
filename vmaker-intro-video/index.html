@@ -1,8 +1,8 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-CN">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=1920, height=1080" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1920, height=1080">
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
     <style>
       * {
@@ -48,7 +48,7 @@
         inset: 0;
         width: 100%;
         height: 100%;
-        padding: 84px 104px;
+        padding: 72px 104px 170px;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
@@ -283,7 +283,7 @@
         font-variant-numeric: tabular-nums;
       }
       .device {
-        height: 700px;
+        height: 520px;
         padding: 22px;
         border-radius: 34px;
         border: 1px solid rgba(255, 255, 255, 0.15);
@@ -322,17 +322,17 @@
         align-items: center;
         justify-content: center;
         text-align: center;
-        gap: 34px;
+        gap: 22px;
       }
       .closing-title {
         width: 1320px;
-        font-size: 126px;
+        font-size: 104px;
         line-height: 0.98;
         font-weight: 560;
       }
       .closing-copy {
         width: 900px;
-        font-size: 34px;
+        font-size: 30px;
         line-height: 1.42;
         color: rgba(248, 247, 250, 0.7);
       }
@@ -380,169 +380,250 @@
         border-radius: 34px;
         pointer-events: none;
       }
+      .caption-layer {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 18;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 126px;
+        padding: 20px 104px 28px;
+        background: linear-gradient(180deg, rgba(5, 5, 5, 0), rgba(5, 5, 5, 0.9) 34%, rgba(5, 5, 5, 0.96));
+        pointer-events: none;
+      }
+      .caption-group {
+        position: absolute;
+        bottom: 28px;
+        max-width: 1280px;
+        min-height: 62px;
+        padding: 14px 28px;
+        border: 1px solid rgba(255, 255, 255, 0.13);
+        border-radius: 18px;
+        background: rgba(5, 5, 5, 0.82);
+        color: rgba(248, 247, 250, 0.92);
+        box-shadow: 0 24px 90px -54px rgba(245, 152, 242, 0.55);
+        backdrop-filter: blur(18px);
+        font-size: 26px;
+        line-height: 1.28;
+        text-align: center;
+        opacity: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .repo-detail-grid {
+        margin-top: 26px;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 14px;
+      }
+      .repo-detail {
+        min-height: 92px;
+        padding: 18px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.055);
+        border: 1px solid rgba(255, 255, 255, 0.09);
+      }
+      .repo-detail-label {
+        color: rgba(248, 247, 250, 0.48);
+        font-size: 17px;
+      }
+      .repo-detail-value {
+        margin-top: 10px;
+        color: #ffffff;
+        font-size: 25px;
+        font-weight: 650;
+      }
     </style>
   </head>
   <body>
-    <div
-      id="root"
-      class="composition"
-      data-composition-id="main"
-      data-start="0"
-      data-duration="18"
-      data-width="1920"
-      data-height="1080"
-    >
-      <div class="orb orb-a" data-layout-ignore></div>
-      <div class="orb orb-b" data-layout-ignore></div>
-      <div class="scanline" data-layout-ignore></div>
-      <div class="soft-frame" data-layout-ignore></div>
+    <div data-hf-id="hf-2yjw" id="root" class="composition" data-composition-id="main" data-start="0" data-duration="62" data-width="1920" data-height="1080">
+      <audio data-hf-id="hf-8xjm" id="narration" class="clip" data-start="0" data-duration="61.14" data-track-index="10" src="narration.mp3" data-volume="1"></audio>
+      <div data-hf-id="hf-nvqn" class="orb orb-a" data-layout-ignore=""></div>
+      <div data-hf-id="hf-tlc4" class="orb orb-b" data-layout-ignore=""></div>
+      <div data-hf-id="hf-6esc" class="scanline" data-layout-ignore=""></div>
+      <div data-hf-id="hf-z6xp" class="soft-frame" data-layout-ignore=""></div>
 
-      <section class="scene scene-1 is-live">
-        <div class="topline scene-1-line">
-          <div><span class="brand-dot"></span>创意开发档案</div>
-          <div class="mono">01 / PROJECT GATEWAY</div>
+      <section data-hf-id="hf-dvwx" class="scene scene-1 is-live">
+        <div data-hf-id="hf-23d0" class="topline scene-1-line">
+          <div data-hf-id="hf-16ty"><span data-hf-id="hf-i9p2" class="brand-dot"></span>创意开发档案</div>
+          <div data-hf-id="hf-bdcg" class="mono">01 / PROJECT GATEWAY</div>
         </div>
-        <div>
-          <h1 class="hero-title scene-1-title">vMaker<span class="accent">.</span></h1>
-          <p class="hero-copy scene-1-copy">把 xmtlzzz 的 GitHub 公开项目，整理成一个可搜索、可浏览、可持续更新的入口。</p>
+        <div data-hf-id="hf-yeow">
+          <h1 data-hf-id="hf-pi26" class="hero-title scene-1-title">vMaker<span data-hf-id="hf-kyuz" class="accent">.</span></h1>
+          <p data-hf-id="hf-mf04" class="hero-copy scene-1-copy">把 xmtlzzz 的 GitHub 公开项目，整理成一个可搜索、可浏览、可持续更新的入口。</p>
         </div>
-        <div class="metric-row scene-1-metrics">
-          <div class="panel metric">
-            <div class="metric-label">数据源</div>
-            <div class="metric-value">GitHub</div>
+        <div data-hf-id="hf-t2tl" class="metric-row scene-1-metrics">
+          <div data-hf-id="hf-2foy" class="panel metric">
+            <div data-hf-id="hf-275x" class="metric-label">数据源</div>
+            <div data-hf-id="hf-bitz" class="metric-value">GitHub</div>
           </div>
-          <div class="panel metric">
-            <div class="metric-label">界面层</div>
-            <div class="metric-value">React Router</div>
+          <div data-hf-id="hf-3y5y" class="panel metric">
+            <div data-hf-id="hf-gd07" class="metric-label">界面层</div>
+            <div data-hf-id="hf-9kl0" class="metric-value">React Router</div>
           </div>
-          <div class="panel metric">
-            <div class="metric-label">体验目标</div>
-            <div class="metric-value">Direct Browse</div>
+          <div data-hf-id="hf-4cgz" class="panel metric">
+            <div data-hf-id="hf-dzxh" class="metric-label">体验目标</div>
+            <div data-hf-id="hf-6q2h" class="metric-value">Direct Browse</div>
           </div>
         </div>
       </section>
 
-      <section class="scene scene-2">
-        <div class="topline scene-2-line">
-          <div><span class="brand-dot"></span>CodeGraph 读到的核心结构</div>
-          <div class="mono">02 / ARCHITECTURE</div>
+      <section data-hf-id="hf-job5" class="scene scene-2">
+        <div data-hf-id="hf-k571" class="topline scene-2-line">
+          <div data-hf-id="hf-2hlo"><span data-hf-id="hf-k48q" class="brand-dot"></span>CodeGraph 读到的核心结构</div>
+          <div data-hf-id="hf-5cal" class="mono">02 / ARCHITECTURE</div>
         </div>
-        <div class="layout-row">
-          <div>
-            <div class="kicker scene-2-kicker">单一数据源</div>
-            <h2 class="headline scene-2-title">不是后台面板，也不是静态作品集。</h2>
-            <p class="body scene-2-copy">项目从 GitHub 拉取仓库、语言、topic、stars、forks 和最近 commit，再叠加少量本地展示规则。</p>
-          </div>
-          <div class="panel panel-inner pipeline scene-2-panel">
-            <div class="node">
-              <div class="node-index mono">01</div>
-              <div>
-                <div class="node-title">GitHub API</div>
-                <div class="node-copy">读取公开仓库、语言统计和最近提交。</div>
+        <div data-hf-id="hf-fd25" class="layout-row">
+          <div data-hf-id="hf-y7yw">
+            <div data-hf-id="hf-zfrh" class="kicker scene-2-kicker">单一数据源</div>
+            <h2 data-hf-id="hf-zura" class="headline scene-2-title">不是后台面板，也不是静态作品集。</h2>
+            <p data-hf-id="hf-cinm" class="body scene-2-copy">项目从 GitHub 拉取仓库、语言、topic、stars、forks 和最近 commit，再叠加少量本地展示规则。</p>
+            <div data-hf-id="hf-xoof" class="repo-detail-grid scene-2-details">
+              <div data-hf-id="hf-41jq" class="repo-detail">
+                <div data-hf-id="hf-dtbq" class="repo-detail-label mono">payload</div>
+                <div data-hf-id="hf-i1z3" class="repo-detail-value">ProjectPayload</div>
               </div>
-              <div class="node-tag mono">source</div>
-            </div>
-            <div class="node">
-              <div class="node-index mono">02</div>
-              <div>
-                <div class="node-title">project-overrides</div>
-                <div class="node-copy">只做名称、摘要、顺序、精选和隐藏控制。</div>
+              <div data-hf-id="hf-7fei" class="repo-detail">
+                <div data-hf-id="hf-80jm" class="repo-detail-label mono">cache</div>
+                <div data-hf-id="hf-myuj" class="repo-detail-value">10 min TTL</div>
               </div>
-              <div class="node-tag mono">local</div>
-            </div>
-            <div class="node">
-              <div class="node-index mono">03</div>
-              <div>
-                <div class="node-title">React Router Home</div>
-                <div class="node-copy">把数据变成 hero、搜索、语言分组和时间线。</div>
+              <div data-hf-id="hf-7tpj" class="repo-detail">
+                <div data-hf-id="hf-wbum" class="repo-detail-label mono">fallback</div>
+                <div data-hf-id="hf-cqse" class="repo-detail-value">cached data first</div>
               </div>
-              <div class="node-tag mono">view</div>
+              <div data-hf-id="hf-880k" class="repo-detail">
+                <div data-hf-id="hf-woxj" class="repo-detail-label mono">env</div>
+                <div data-hf-id="hf-bsdf" class="repo-detail-value">GITHUB_TOKEN</div>
+              </div>
+            </div>
+          </div>
+          <div data-hf-id="hf-nyxv" class="panel panel-inner pipeline scene-2-panel">
+            <div data-hf-id="hf-cdek" class="node">
+              <div data-hf-id="hf-ifxj" class="node-index mono">01</div>
+              <div data-hf-id="hf-x11t">
+                <div data-hf-id="hf-svh2" class="node-title">GitHub API</div>
+                <div data-hf-id="hf-uiyu" class="node-copy">读取公开仓库、语言统计和最近提交。</div>
+              </div>
+              <div data-hf-id="hf-ptdt" class="node-tag mono">source</div>
+            </div>
+            <div data-hf-id="hf-7gt0" class="node">
+              <div data-hf-id="hf-i1mi" class="node-index mono">02</div>
+              <div data-hf-id="hf-xfcu">
+                <div data-hf-id="hf-5xi2" class="node-title">project-overrides</div>
+                <div data-hf-id="hf-iax9" class="node-copy">只做名称、摘要、顺序、精选和隐藏控制。</div>
+              </div>
+              <div data-hf-id="hf-szpr" class="node-tag mono">local</div>
+            </div>
+            <div data-hf-id="hf-69vx" class="node">
+              <div data-hf-id="hf-hnbh" class="node-index mono">03</div>
+              <div data-hf-id="hf-w8fr">
+                <div data-hf-id="hf-bqrw" class="node-title">React Router Home</div>
+                <div data-hf-id="hf-jq48" class="node-copy">把数据变成 hero、搜索、语言分组和时间线。</div>
+              </div>
+              <div data-hf-id="hf-ouzh" class="node-tag mono">view</div>
             </div>
           </div>
         </div>
       </section>
 
-      <section class="scene scene-3">
-        <div class="topline scene-3-line">
-          <div><span class="brand-dot"></span>首页体验</div>
-          <div class="mono">03 / LIVE INDEX</div>
+      <section data-hf-id="hf-iwnc" class="scene scene-3">
+        <div data-hf-id="hf-q99a" class="topline scene-3-line">
+          <div data-hf-id="hf-6wwq"><span data-hf-id="hf-kijr" class="brand-dot"></span>首页体验</div>
+          <div data-hf-id="hf-j8mh" class="mono">03 / LIVE INDEX</div>
         </div>
-        <div class="layout-row">
-          <div class="panel panel-inner repo-map scene-3-map">
-            <div class="searchbar">Search projects: name, description, language, topics</div>
-            <div class="language-grid">
-              <div class="language-card"><strong>TypeScript</strong><span>React、Vite、UI 系统和前端实验。</span></div>
-              <div class="language-card"><strong>Python</strong><span>脚本、自动化和数据处理项目。</span></div>
-              <div class="language-card"><strong>Rust</strong><span>工具链、桌面应用和性能探索。</span></div>
-              <div class="language-card"><strong>Other</strong><span>按 GitHub 实时语言结果自然归类。</span></div>
+        <div data-hf-id="hf-9omp" class="layout-row">
+          <div data-hf-id="hf-ycxx" class="panel panel-inner repo-map scene-3-map">
+            <div data-hf-id="hf-7zn6" class="searchbar">Search projects: name, description, language, topics</div>
+            <div data-hf-id="hf-eolv" class="language-grid">
+              <div data-hf-id="hf-gvnx" class="language-card"><strong data-hf-id="hf-yrpd">TypeScript</strong><span data-hf-id="hf-hsbc">React、Vite、UI 系统和前端实验。</span></div>
+              <div data-hf-id="hf-s2gx" class="language-card"><strong data-hf-id="hf-s0mk">Python</strong><span data-hf-id="hf-doqh">脚本、自动化和数据处理项目。</span></div>
+              <div data-hf-id="hf-t9e0" class="language-card"><strong data-hf-id="hf-ffjs">Rust</strong><span data-hf-id="hf-y3f4">工具链、桌面应用和性能探索。</span></div>
+              <div data-hf-id="hf-sv2z" class="language-card"><strong data-hf-id="hf-f1dk">Other</strong><span data-hf-id="hf-rx8e">按 GitHub 实时语言结果自然归类。</span></div>
+              <div data-hf-id="hf-qvju" class="language-card"><strong data-hf-id="hf-49e2">Topics</strong><span data-hf-id="hf-reze">搜索覆盖 GitHub topics，避免只靠项目名导航。</span></div>
+              <div data-hf-id="hf-qh8t" class="language-card"><strong data-hf-id="hf-9n9u">Direct links</strong><span data-hf-id="hf-kyzj">每张项目卡片都直接打开真实仓库或主页。</span></div>
             </div>
           </div>
-          <div>
-            <div class="kicker scene-3-kicker">从首屏滑入项目索引</div>
-            <h2 class="headline scene-3-title">浏览不需要离开上下文。</h2>
-            <p class="body scene-3-copy">vMaker 保留 cinematic hero，同时把下面的项目索引做成主体验。语言导航、搜索框和卡片链接都指向真实仓库。</p>
-          </div>
-        </div>
-      </section>
-
-      <section class="scene scene-4">
-        <div class="topline scene-4-line">
-          <div><span class="brand-dot"></span>持续更新的活动流</div>
-          <div class="mono">04 / COMMIT TIMELINE</div>
-        </div>
-        <div class="layout-row">
-          <div>
-            <div class="kicker scene-4-kicker">最近活跃</div>
-            <h2 class="headline scene-4-title">项目列表不是静态截图。</h2>
-            <p class="body scene-4-copy">每个项目取最近 commit，overview 栏保留一条活动时间线。项目越多，左侧索引越像一张实时地图。</p>
-          </div>
-          <div class="panel panel-inner timeline scene-4-timeline">
-            <div class="timeline-item">
-              <div class="timeline-date mono">Latest</div>
-              <div class="timeline-title">vMaker</div>
-              <div class="timeline-message">用于集中展示个人项目的现代化作品集网站。</div>
-            </div>
-            <div class="timeline-item">
-              <div class="timeline-date mono">Grouped</div>
-              <div class="timeline-title">Language sections</div>
-              <div class="timeline-message">按 primary language 组织，Other 自动后置。</div>
-            </div>
-            <div class="timeline-item">
-              <div class="timeline-date mono">Cached</div>
-              <div class="timeline-title">10 minute payload</div>
-              <div class="timeline-message">降低 API 压力，失败时优先返回缓存数据。</div>
-            </div>
+          <div data-hf-id="hf-wmqs">
+            <div data-hf-id="hf-pl24" class="kicker scene-3-kicker">从首屏滑入项目索引</div>
+            <h2 data-hf-id="hf-p58m" class="headline scene-3-title">浏览不需要离开上下文。</h2>
+            <p data-hf-id="hf-5i3s" class="body scene-3-copy">vMaker 保留 cinematic hero，同时把下面的项目索引做成主体验。语言导航、搜索框和卡片链接都指向真实仓库。</p>
           </div>
         </div>
       </section>
 
-      <section class="scene scene-5 closing">
-        <div class="topline scene-5-line" style="width: 100%;">
-          <div><span class="brand-dot"></span>vMaker</div>
-          <div class="mono">05 / SUMMARY</div>
+      <section data-hf-id="hf-eyjb" class="scene scene-4">
+        <div data-hf-id="hf-ncnr" class="topline scene-4-line">
+          <div data-hf-id="hf-lruk"><span data-hf-id="hf-kwus" class="brand-dot"></span>持续更新的活动流</div>
+          <div data-hf-id="hf-6vd4" class="mono">04 / COMMIT TIMELINE</div>
         </div>
-        <h2 class="closing-title scene-5-title">一个面向真实仓库的项目入口。</h2>
-        <p class="closing-copy scene-5-copy">没有镜像数据库，没有额外后台层。GitHub 是事实来源，React Router 是浏览界面，vMaker 是把实验作品变得可见的索引。</p>
-        <div class="device scene-5-device">
-          <div class="device-screen">
-            <div class="device-title">Browse the work without flattening it.</div>
-            <div class="device-pill-row">
-              <div class="pill">GitHub public repos</div>
-              <div class="pill">Language grouping</div>
-              <div class="pill">Search</div>
-              <div class="pill">Commit timeline</div>
-              <div class="pill">Direct project access</div>
+        <div data-hf-id="hf-avjs" class="layout-row">
+          <div data-hf-id="hf-vftp">
+            <div data-hf-id="hf-h2s3" class="kicker scene-4-kicker">最近活跃</div>
+            <h2 data-hf-id="hf-r2zj" class="headline scene-4-title">项目列表不是静态截图。</h2>
+            <p data-hf-id="hf-icv9" class="body scene-4-copy">每个项目取最近 commit，overview 栏保留一条活动时间线。项目越多，左侧索引越像一张实时地图。</p>
+          </div>
+          <div data-hf-id="hf-afs5" class="panel panel-inner timeline scene-4-timeline">
+            <div data-hf-id="hf-cizv" class="timeline-item">
+              <div data-hf-id="hf-8k98" class="timeline-date mono">Latest</div>
+              <div data-hf-id="hf-kf22" class="timeline-title">vMaker</div>
+              <div data-hf-id="hf-279c" class="timeline-message">用于集中展示个人项目的现代化作品集网站。</div>
+            </div>
+            <div data-hf-id="hf-hzwr" class="timeline-item">
+              <div data-hf-id="hf-d707" class="timeline-date mono">Grouped</div>
+              <div data-hf-id="hf-5ng2" class="timeline-title">Language sections</div>
+              <div data-hf-id="hf-3p69" class="timeline-message">按 primary language 组织，Other 自动后置。</div>
+            </div>
+            <div data-hf-id="hf-hllq" class="timeline-item">
+              <div data-hf-id="hf-qqxx" class="timeline-date mono">Cached</div>
+              <div data-hf-id="hf-v2sl" class="timeline-title">10 minute payload</div>
+              <div data-hf-id="hf-bji5" class="timeline-message">降低 API 压力，失败时优先返回缓存数据。</div>
             </div>
           </div>
         </div>
       </section>
 
-      <div class="wipe" data-layout-ignore></div>
+      <section data-hf-id="hf-zcl3" class="scene scene-5 closing">
+        <div data-hf-id="hf-alq7" class="topline scene-5-line" style="width: 100%;">
+          <div data-hf-id="hf-zt3y"><span data-hf-id="hf-lb5t" class="brand-dot"></span>vMaker</div>
+          <div data-hf-id="hf-h4cz" class="mono">05 / SUMMARY</div>
+        </div>
+        <h2 data-hf-id="hf-0xqt" class="closing-title scene-5-title">一个面向真实仓库的项目入口。</h2>
+        <p data-hf-id="hf-lctp" class="closing-copy scene-5-copy">没有镜像数据库，没有额外后台层。GitHub 是事实来源，React Router 是浏览界面，vMaker 是把实验作品变得可见的索引。</p>
+        <div data-hf-id="hf-vr97" class="device scene-5-device">
+          <div data-hf-id="hf-knsr" class="device-screen">
+            <div data-hf-id="hf-ukni" class="device-title">Browse the work without flattening it.</div>
+            <div data-hf-id="hf-m50h" class="device-pill-row">
+              <div data-hf-id="hf-kf5a" class="pill">GitHub public repos</div>
+              <div data-hf-id="hf-nv18" class="pill">Language grouping</div>
+              <div data-hf-id="hf-w67x" class="pill">Search</div>
+              <div data-hf-id="hf-h1uz" class="pill">Commit timeline</div>
+              <div data-hf-id="hf-wl31" class="pill">Direct project access</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div data-hf-id="hf-tglz" class="caption-layer" data-layout-allow-overflow="">
+        <div data-hf-id="hf-ckqy" id="cap-1" class="caption-group">欢迎来到 vMaker。它不是后台系统，也不是静态作品集。</div>
+        <div data-hf-id="hf-b4o6" id="cap-2" class="caption-group">它把 GitHub 公开项目整理成一个可搜索、按语言浏览、持续更新的入口。</div>
+        <div data-hf-id="hf-5u4h" id="cap-3" class="caption-group">数据来自 GitHub API：仓库、语言、主题、星标、分支，以及最近提交。</div>
+        <div data-hf-id="hf-ok0z" id="cap-4" class="caption-group">本地只保留展示规则；事实来源仍然是 GitHub。</div>
+        <div data-hf-id="hf-qsh9" id="cap-5" class="caption-group">首页上半部分是品牌 hero，下半部分是项目索引。</div>
+        <div data-hf-id="hf-bh0y" id="cap-6" class="caption-group">项目按语言分组，搜索覆盖名称、描述、语言和 topic。</div>
+        <div data-hf-id="hf-0s7j" id="cap-7" class="caption-group">左侧时间线读取最新 commit，让入口像一张实时项目地图。</div>
+        <div data-hf-id="hf-budg" id="cap-8" class="caption-group">不复制数据库，不增加后台层，只把真实仓库变得更容易进入和理解。</div>
+      </div>
+
+      <div data-hf-id="hf-5yhw" class="wipe" data-layout-ignore=""></div>
     </div>
 
     <script>
       window.__timelines = window.__timelines || {};
-      const DURATION = 18;
+      const DURATION = 62;
       const repeatCount = Math.ceil(DURATION / 6) - 1;
       const tl = gsap.timeline({ paused: true });
 
@@ -555,53 +636,69 @@
       }
 
       function transition(fromScene, toScene, at) {
-        tl.fromTo(".wipe", { scaleX: 0, transformOrigin: "left center" }, { scaleX: 1, duration: 0.34, ease: "power3.inOut" }, at);
-        tl.set(toScene, { opacity: 1 }, at + 0.18);
-        tl.set(fromScene, { opacity: 0 }, at + 0.2);
-        tl.fromTo(".wipe", { scaleX: 1, transformOrigin: "right center" }, { scaleX: 0, duration: 0.4, ease: "power2.inOut" }, at + 0.34);
+        tl.fromTo(".wipe", { scaleX: 0, transformOrigin: "left center" }, { scaleX: 1, duration: 0.58, ease: "power3.inOut" }, at);
+        tl.set(toScene, { opacity: 1 }, at + 0.32);
+        tl.set(fromScene, { opacity: 0 }, at + 0.34);
+        tl.fromTo(".wipe", { scaleX: 1, transformOrigin: "right center" }, { scaleX: 0, duration: 0.62, ease: "power2.inOut" }, at + 0.58);
       }
+
+      function caption(id, start, end) {
+        tl.fromTo(id, { opacity: 0, y: 18, scale: 0.98 }, { opacity: 1, y: 0, scale: 1, duration: 0.28, ease: "power3.out" }, start);
+        tl.to(id, { opacity: 0, y: -10, scale: 0.985, duration: 0.2, ease: "power2.in" }, end - 0.2);
+        tl.set(id, { opacity: 0 }, end);
+      }
+
+      caption("#cap-1", 0.1, 5.48);
+      caption("#cap-2", 5.48, 14.36);
+      caption("#cap-3", 14.36, 21.69);
+      caption("#cap-4", 21.69, 29.19);
+      caption("#cap-5", 29.19, 37.5);
+      caption("#cap-6", 37.5, 45.83);
+      caption("#cap-7", 45.83, 52.2);
+      caption("#cap-8", 52.2, 61.14);
 
       tl.from(".scene-1-line", { y: -28, opacity: 0, duration: 0.46, ease: "power3.out" }, 0.18);
       tl.from(".scene-1-title", { x: -72, opacity: 0, duration: 0.7, ease: "expo.out" }, 0.34);
       tl.from(".scene-1-copy", { y: 42, opacity: 0, duration: 0.58, ease: "back.out(1.35)" }, 0.78);
       tl.from(".scene-1-metrics .metric", { y: 56, opacity: 0, scale: 0.96, duration: 0.54, stagger: 0.12, ease: "power2.out" }, 1.06);
 
-      transition(".scene-1", ".scene-2", 3.25);
-      revealScene(".scene-2", 3.43);
-      tl.from(".scene-2-line", { y: -28, opacity: 0, duration: 0.42, ease: "power4.out" }, 3.82);
-      tl.from(".scene-2-kicker", { x: -40, opacity: 0, duration: 0.34, ease: "sine.out" }, 3.94);
-      tl.from(".scene-2-title", { y: 54, opacity: 0, duration: 0.58, ease: "expo.out" }, 4.08);
-      tl.from(".scene-2-copy", { x: 40, opacity: 0, duration: 0.48, ease: "power2.out" }, 4.4);
-      tl.from(".scene-2-panel", { x: 76, opacity: 0, scale: 0.98, duration: 0.62, ease: "back.out(1.2)" }, 4.12);
-      tl.from(".scene-2-panel .node", { x: 46, opacity: 0, duration: 0.44, stagger: 0.14, ease: "power3.out" }, 4.42);
+      transition(".scene-1", ".scene-2", 13.0);
+      revealScene(".scene-2", 13.32);
+      tl.from(".scene-2-line", { y: -28, opacity: 0, duration: 0.42, ease: "power4.out" }, 13.84);
+      tl.from(".scene-2-kicker", { x: -40, opacity: 0, duration: 0.34, ease: "sine.out" }, 13.98);
+      tl.from(".scene-2-title", { y: 54, opacity: 0, duration: 0.58, ease: "expo.out" }, 14.2);
+      tl.from(".scene-2-copy", { x: 40, opacity: 0, duration: 0.48, ease: "power2.out" }, 14.62);
+      tl.from(".scene-2-details .repo-detail", { y: 28, opacity: 0, duration: 0.4, stagger: 0.08, ease: "power3.out" }, 14.92);
+      tl.from(".scene-2-panel", { x: 76, opacity: 0, scale: 0.98, duration: 0.62, ease: "back.out(1.2)" }, 14.24);
+      tl.from(".scene-2-panel .node", { x: 46, opacity: 0, duration: 0.44, stagger: 0.14, ease: "power3.out" }, 14.6);
 
-      transition(".scene-2", ".scene-3", 6.72);
-      revealScene(".scene-3", 6.9);
-      tl.from(".scene-3-line", { y: -26, opacity: 0, duration: 0.4, ease: "power2.out" }, 7.25);
-      tl.from(".scene-3-map", { x: -72, opacity: 0, scale: 0.985, duration: 0.64, ease: "expo.out" }, 7.34);
-      tl.from(".scene-3-map .searchbar", { y: -24, opacity: 0, duration: 0.38, ease: "back.out(1.4)" }, 7.68);
-      tl.from(".scene-3-map .language-card", { y: 48, opacity: 0, scale: 0.96, duration: 0.46, stagger: 0.09, ease: "power4.out" }, 7.86);
-      tl.from(".scene-3-kicker", { x: 36, opacity: 0, duration: 0.36, ease: "sine.out" }, 7.48);
-      tl.from(".scene-3-title", { y: 58, opacity: 0, duration: 0.58, ease: "expo.out" }, 7.66);
-      tl.from(".scene-3-copy", { y: 36, opacity: 0, duration: 0.48, ease: "power2.out" }, 8.04);
+      transition(".scene-2", ".scene-3", 29.2);
+      revealScene(".scene-3", 29.52);
+      tl.from(".scene-3-line", { y: -26, opacity: 0, duration: 0.4, ease: "power2.out" }, 30.05);
+      tl.from(".scene-3-map", { x: -72, opacity: 0, scale: 0.985, duration: 0.64, ease: "expo.out" }, 30.15);
+      tl.from(".scene-3-map .searchbar", { y: -24, opacity: 0, duration: 0.38, ease: "back.out(1.4)" }, 30.49);
+      tl.from(".scene-3-map .language-card", { y: 48, opacity: 0, scale: 0.96, duration: 0.46, stagger: 0.08, ease: "power4.out" }, 30.67);
+      tl.from(".scene-3-kicker", { x: 36, opacity: 0, duration: 0.36, ease: "sine.out" }, 30.31);
+      tl.from(".scene-3-title", { y: 58, opacity: 0, duration: 0.58, ease: "expo.out" }, 30.49);
+      tl.from(".scene-3-copy", { y: 36, opacity: 0, duration: 0.48, ease: "power2.out" }, 30.89);
 
-      transition(".scene-3", ".scene-4", 10.12);
-      revealScene(".scene-4", 10.3);
-      tl.from(".scene-4-line", { y: -26, opacity: 0, duration: 0.4, ease: "power3.out" }, 10.65);
-      tl.from(".scene-4-kicker", { x: -34, opacity: 0, duration: 0.34, ease: "sine.out" }, 10.78);
-      tl.from(".scene-4-title", { y: 52, opacity: 0, duration: 0.6, ease: "expo.out" }, 10.94);
-      tl.from(".scene-4-copy", { y: 34, opacity: 0, duration: 0.46, ease: "power2.out" }, 11.3);
-      tl.from(".scene-4-timeline", { x: 72, opacity: 0, scale: 0.98, duration: 0.62, ease: "back.out(1.15)" }, 10.98);
-      tl.from(".scene-4-timeline .timeline-item", { x: 44, opacity: 0, duration: 0.44, stagger: 0.16, ease: "power4.out" }, 11.42);
+      transition(".scene-3", ".scene-4", 45.7);
+      revealScene(".scene-4", 46.02);
+      tl.from(".scene-4-line", { y: -26, opacity: 0, duration: 0.4, ease: "power3.out" }, 46.54);
+      tl.from(".scene-4-kicker", { x: -34, opacity: 0, duration: 0.34, ease: "sine.out" }, 46.7);
+      tl.from(".scene-4-title", { y: 52, opacity: 0, duration: 0.6, ease: "expo.out" }, 46.9);
+      tl.from(".scene-4-copy", { y: 34, opacity: 0, duration: 0.46, ease: "power2.out" }, 47.28);
+      tl.from(".scene-4-timeline", { x: 72, opacity: 0, scale: 0.98, duration: 0.62, ease: "back.out(1.15)" }, 46.92);
+      tl.from(".scene-4-timeline .timeline-item", { x: 44, opacity: 0, duration: 0.44, stagger: 0.16, ease: "power4.out" }, 47.38);
 
-      transition(".scene-4", ".scene-5", 13.55);
-      revealScene(".scene-5", 13.73);
-      tl.from(".scene-5-line", { y: -26, opacity: 0, duration: 0.42, ease: "power3.out" }, 14.0);
-      tl.from(".scene-5-title", { y: 58, opacity: 0, duration: 0.68, ease: "expo.out" }, 14.18);
-      tl.from(".scene-5-copy", { y: 36, opacity: 0, duration: 0.5, ease: "sine.out" }, 14.66);
-      tl.from(".scene-5-device", { y: 80, opacity: 0, scale: 0.96, duration: 0.7, ease: "back.out(1.18)" }, 14.94);
-      tl.from(".scene-5-device .pill", { y: 28, opacity: 0, duration: 0.34, stagger: 0.07, ease: "power3.out" }, 15.34);
-      tl.to(".scene-5", { opacity: 0, duration: 0.7, ease: "sine.in" }, 17.1);
+      transition(".scene-4", ".scene-5", 52.1);
+      revealScene(".scene-5", 52.42);
+      tl.from(".scene-5-line", { y: -26, opacity: 0, duration: 0.42, ease: "power3.out" }, 52.96);
+      tl.from(".scene-5-title", { y: 58, opacity: 0, duration: 0.68, ease: "expo.out" }, 53.18);
+      tl.from(".scene-5-copy", { y: 36, opacity: 0, duration: 0.5, ease: "sine.out" }, 53.68);
+      tl.from(".scene-5-device", { y: 80, opacity: 0, scale: 0.96, duration: 0.7, ease: "back.out(1.18)" }, 54.1);
+      tl.from(".scene-5-device .pill", { y: 28, opacity: 0, duration: 0.34, stagger: 0.07, ease: "power3.out" }, 54.58);
+      tl.to(".scene-5", { opacity: 0, duration: 0.7, ease: "sine.in" }, 61.25);
       window.__timelines["main"] = tl;
     </script>
   </body>

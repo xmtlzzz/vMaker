@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" role="img" aria-label="Abstract bird in a morning sky">
+  <rect width="1600" height="1000" fill="#12323a"/>
+  <circle cx="1220" cy="235" r="126" fill="#f4cf82"/>
+  <path d="M0 650c240-140 380-58 612-80 312-30 475-270 988-142v572H0Z" fill="#24505a"/>
+  <path d="M0 770c290-108 540 30 800-70s460-165 800-95v395H0Z" fill="#112a31"/>
+  <g fill="none" stroke="#8ec0b1" stroke-width="9" opacity=".7"><path d="M20 240c120-90 225-75 340 4"/><path d="M280 340c91-70 174-62 270 3"/></g>
+  <path d="M720 418c133-160 283-179 400-85-85 3-142 42-198 99 125-17 220 23 289 115-162-45-314-10-491 76 28-78 31-142 0-205Z" fill="#e9eef0"/>
+  <path d="M720 418c69 33 111 89 128 169-54-35-101-45-156-41 28-44 37-87 28-128Z" fill="#96bbc0"/>
+  <circle cx="810" cy="442" r="9" fill="#173039"/><path d="m1115 452 78 16-69 19Z" fill="#e6a55b"/>
+</svg>

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" role="img" aria-label="Minimal penguin on an icy landscape">
+  <rect width="1600" height="1000" fill="#153245"/>
+  <circle cx="1210" cy="205" r="124" fill="#e8e1bd"/>
+  <path d="M0 620c280-145 498-53 755-120 278-73 490-256 845-113v613H0Z" fill="#2b596d"/>
+  <path d="M0 770c322-92 509 34 792-53 288-89 478-147 808-66v349H0Z" fill="#b8d9dc"/>
+  <path d="M0 876c286-76 540 18 768-43 302-80 567-91 832-29v196H0Z" fill="#edf4ef"/>
+  <g fill="#89b5c2" opacity=".75"><path d="M160 620c55-58 115-71 180-39-49 24-86 57-115 100Z"/><path d="M1310 610c70-54 145-57 212-8-61 10-111 38-152 82Z"/></g>
+  <ellipse cx="800" cy="610" rx="136" ry="212" fill="#15222b"/>
+  <ellipse cx="800" cy="662" rx="94" ry="143" fill="#f2f1e7"/>
+  <path d="M682 565c-75 20-119 72-128 150 58-20 101-53 128-99Zm236 0c75 20 119 72 128 150-58-20-101-53-128-99Z" fill="#15222b"/>
+  <ellipse cx="756" cy="557" rx="13" ry="17" fill="#f5f7f2"/><ellipse cx="844" cy="557" rx="13" ry="17" fill="#f5f7f2"/><circle cx="758" cy="559" r="6" fill="#17242a"/><circle cx="842" cy="559" r="6" fill="#17242a"/>
+  <path d="m760 585 40 24 40-24-40-20Z" fill="#e7a64b"/>
+  <ellipse cx="730" cy="814" rx="54" ry="17" fill="#df9a43"/><ellipse cx="870" cy="814" rx="54" ry="17" fill="#df9a43"/>
+</svg>

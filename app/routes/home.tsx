@@ -1,10 +1,9 @@
-import { Atom, Boxes, ChevronDown, ExternalLink, Gauge, GitBranch, Menu, Moon, Palette, Search, Server, Sparkles, Sun, Wind, X } from 'lucide-react'
+import { Atom, Boxes, ChevronDown, Ellipsis, ExternalLink, Gauge, GitBranch, Menu, Moon, Palette, Search, Server, Sparkles, Sun, Wind, X } from 'lucide-react'
 import type { CSSProperties, ReactElement, RefObject, SVGProps } from 'react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { BorderGlow } from '~/components/react-bits/BorderGlow'
 import { LogoLoop } from '~/components/react-bits/LogoLoop'
-import { ShapeBlur } from '~/components/react-bits/ShapeBlur'
 import { VariableProximity } from '~/components/react-bits/VariableProximity'
 import { Button } from '~/components/ui/button'
 import { formatDate, getProjects } from '~/lib/github/projects'
@@ -37,7 +36,7 @@ type HeroSlide = {
   availability: string
   description: string
   label: string
-  videoUrl: string
+  imageUrl: string
 }
 
 type CommitTimelineItem = {
@@ -77,21 +76,21 @@ const HERO_SLIDES: HeroSlide[] = [
     availability: 'Available for the next build sprint',
     description: 'A curated gateway to projects, websites, experiments, and the systems that hold them together.',
     label: '01 / PROJECT INDEX',
-    videoUrl: 'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260629_030107_874273ea-684a-4e90-bb96-8fdfde48d53d.mp4',
+    imageUrl: '/hero-penguin.svg',
   },
   {
     accent: '#FFFFFF',
     availability: 'Shipping websites, tools, and internal systems',
     description: 'Structured around real repositories from GitHub, with language grouping, fast search, and direct project access.',
     label: '02 / WEB SYSTEMS',
-    videoUrl: 'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260629_032424_3c9c2a9d-807b-4482-80e6-dd6d9dfd4545.mp4',
+    imageUrl: '/hero-bird.svg',
   },
   {
     accent: '#FFFFFF',
     availability: 'Open to creative dev collaborations',
     description: 'Made for browsing the full spread of xmtlzzz work without flattening it into a static portfolio screenshot.',
     label: '03 / CREATIVE DEV',
-    videoUrl: 'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260627_094019_4214ea73-b963-46a4-8327-61489192de99.mp4',
+    imageUrl: '/hero-deer.svg',
   },
 ]
 
@@ -110,6 +109,7 @@ const copy = {
     languageNav: 'Language navigation',
     latest: 'Latest',
     menu: 'Menu',
+    projectsTop: 'Projects top',
     projectsUnavailable: 'Projects unavailable',
     repos: 'Repos',
     search: 'Search projects',
@@ -137,6 +137,7 @@ const copy = {
     languageNav: '语言导航',
     latest: '最近活跃',
     menu: '菜单',
+    projectsTop: '回到项目分页顶部',
     projectsUnavailable: '项目暂不可用',
     repos: '仓库数',
     search: '搜索项目',
@@ -338,6 +339,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isAccentMenuOpen, setIsAccentMenuOpen] = useState(false)
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false)
+  const [isProjectControlsOpen, setIsProjectControlsOpen] = useState(false)
   const [hoveredProjectId, setHoveredProjectId] = useState<string | null>(null)
   const [showBackToTop, setShowBackToTop] = useState(false)
   const timelineContainerRef = useRef<HTMLDivElement | null>(null)
@@ -345,6 +347,8 @@ export default function Home({ loaderData }: Route.ComponentProps) {
   const heroSectionRef = useRef<HTMLElement | null>(null)
   const projectsSectionRef = useRef<HTMLElement | null>(null)
   const moreMenuRef = useRef<HTMLDivElement | null>(null)
+  const projectScrollLockedRef = useRef(false)
+  const topNavigationRef = useRef(false)
   const t = copy[locale]
 
   const activeSlide = HERO_SLIDES[activeIndex]
@@ -452,39 +456,76 @@ export default function Home({ loaderData }: Route.ComponentProps) {
   useEffect(() => {
     if (typeof window === 'undefined') return
 
-    let timeoutId: number | null = null
-
     const handleScroll = () => {
-      const heroSection = heroSectionRef.current
-      const projectsSection = projectsSectionRef.current
-      if (!heroSection || !projectsSection) return
-
-      const projectsTop = projectsSection.offsetTop
-      const heroHeight = heroSection.offsetHeight
-      const threshold = Math.min(heroHeight * 0.42, 360)
+      const heroHeight = heroSectionRef.current?.offsetHeight ?? 0
+      const projectsTop = projectsSectionRef.current?.offsetTop ?? Number.POSITIVE_INFINITY
       const currentY = window.scrollY
 
+      if (topNavigationRef.current && currentY <= 1) {
+        topNavigationRef.current = false
+      }
+
+      if (!topNavigationRef.current && currentY >= projectsTop - 1) {
+        projectScrollLockedRef.current = true
+      }
+
+
       setShowBackToTop(currentY > Math.max(heroHeight * 0.4, 280))
+    }
 
-      if (timeoutId) window.clearTimeout(timeoutId)
+    const handleWheel = (event: WheelEvent) => {
+      const projectsTop = projectsSectionRef.current?.offsetTop ?? Number.POSITIVE_INFINITY
+      if (projectScrollLockedRef.current && event.deltaY < 0 && window.scrollY + event.deltaY < projectsTop) {
+        event.preventDefault()
+        window.scrollTo({ top: projectsTop })
+      }
+    }
 
-      timeoutId = window.setTimeout(() => {
-        if (currentY <= 0 || currentY >= projectsTop + threshold) return
-
-        const snapTarget = currentY < threshold ? 0 : projectsTop
-        window.scrollTo({
-          top: snapTarget,
-          behavior: 'smooth',
-        })
-      }, 110)
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const projectsTop = projectsSectionRef.current?.offsetTop ?? Number.POSITIVE_INFINITY
+      const upwardKeys = ['ArrowUp', 'PageUp', 'Home']
+      if (projectScrollLockedRef.current && upwardKeys.includes(event.key) && window.scrollY <= projectsTop + 1) {
+        event.preventDefault()
+        window.scrollTo({ top: projectsTop })
+      }
     }
 
     window.addEventListener('scroll', handleScroll, { passive: true })
+    window.addEventListener('wheel', handleWheel, { passive: false })
+    window.addEventListener('keydown', handleKeyDown)
     handleScroll()
 
     return () => {
-      if (timeoutId) window.clearTimeout(timeoutId)
       window.removeEventListener('scroll', handleScroll)
+      window.removeEventListener('wheel', handleWheel)
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    const closeMenus = (event: PointerEvent) => {
+      const target = event.target as HTMLElement
+      if (!target.closest('.hero-accent-picker')) setIsAccentMenuOpen(false)
+      if (!target.closest('.projects-anchor-more')) setIsMoreMenuOpen(false)
+      if (!target.closest('.project-floating-actions')) setIsProjectControlsOpen(false)
+      if (!target.closest('.hero-mobile-actions')) setIsMenuOpen(false)
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return
+      setIsAccentMenuOpen(false)
+      setIsMoreMenuOpen(false)
+      setIsProjectControlsOpen(false)
+      setIsMenuOpen(false)
+    }
+
+    window.addEventListener('pointerdown', closeMenus)
+    window.addEventListener('keydown', handleKeyDown)
+    return () => {
+      window.removeEventListener('pointerdown', closeMenus)
+      window.removeEventListener('keydown', handleKeyDown)
     }
   }, [])
 
@@ -526,15 +567,13 @@ export default function Home({ loaderData }: Route.ComponentProps) {
       <section className='hero-shell relative min-h-svh overflow-hidden bg-black text-white' ref={heroSectionRef}>
         <div className='absolute inset-0 z-0'>
           {HERO_SLIDES.map((slide, index) => (
-            <video
-              autoPlay
-              className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-[1200ms] ease-in-out ${index === activeIndex ? 'opacity-100' : 'opacity-0'}`}
-              key={HERO_SLIDES[index].label}
-              loop
-              muted
-              playsInline
-              preload={index === activeIndex ? 'auto' : 'metadata'}
-              src={slide.videoUrl}
+            <img
+              alt=''
+              className={`hero-background-image transition-opacity duration-[900ms] ease-out ${index === activeIndex ? 'opacity-100' : 'opacity-0'}`}
+              decoding={index === activeIndex ? 'sync' : 'async'}
+              fetchPriority={index === 0 ? 'high' : 'low'}
+              key={slide.imageUrl}
+              src={slide.imageUrl}
             />
           ))}
         </div>
@@ -741,14 +780,53 @@ export default function Home({ loaderData }: Route.ComponentProps) {
       </section>
 
       {showBackToTop && (
-        <button
-          aria-label='Back to top'
-          className='back-to-top-button'
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          type='button'
-        >
-          <span>Top</span>
-        </button>
+        <div className='project-floating-actions'>
+          <div className={`project-control-menu ${isProjectControlsOpen ? 'is-open' : ''}`}>
+            <button aria-label='Change language' className='project-control-button' onClick={() => setLocale(locale === 'en' ? 'zh' : 'en')} type='button'>
+              {locale === 'en' ? '中' : 'EN'}
+            </button>
+            <button aria-label='Toggle theme' className='project-control-button' onClick={handleThemeToggle} type='button'>
+              {theme === 'light' ? <Moon className='size-4' /> : <Sun className='size-4' />}
+            </button>
+            <div className='hero-accent-picker'>
+              <button aria-label='Change accent color' className='project-control-button' onClick={() => setIsAccentMenuOpen((open) => !open)} type='button'>
+                <Palette className='size-4' />
+              </button>
+              <div className={`hero-accent-menu ${isAccentMenuOpen ? 'open' : ''}`}>
+                {ACCENT_PRESETS.map((preset) => (
+                  <button
+                    aria-label={preset.label}
+                    className={`hero-accent-swatch ${accentId === preset.id ? 'is-active' : ''}`}
+                    key={preset.id}
+                    onClick={() => {
+                      setAccentId(preset.id)
+                      setIsAccentMenuOpen(false)
+                    }}
+                    style={{ '--swatch-color': preset.color } as CSSProperties}
+                    type='button'
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+          <button aria-expanded={isProjectControlsOpen} aria-label='Toggle project controls' className='project-control-button project-control-toggle' onClick={() => setIsProjectControlsOpen((open) => !open)} type='button'>
+            <Ellipsis className='size-4' />
+          </button>
+          <button
+            aria-label='Back to top'
+            className='back-to-top-button'
+            onClick={() => {
+              projectScrollLockedRef.current = false
+              topNavigationRef.current = true
+              setIsProjectControlsOpen(false)
+              setIsAccentMenuOpen(false)
+              window.scrollTo({ top: 0, behavior: 'smooth' })
+            }}
+            type='button'
+          >
+            <span>Top</span>
+          </button>
+        </div>
       )}
     </main>
   )
@@ -896,16 +974,7 @@ function HeroNavbar({
 function Metric({ isDark, label, value }: { isDark: boolean; label: string; value: string }) {
   return (
     <div className={`project-metric ${isDark ? 'project-metric-dark' : 'project-metric-light'}`}>
-      <ShapeBlur
-        borderSize={0.05}
-        circleEdge={1}
-        circleSize={0.22}
-        className='project-metric-blur'
-        pixelRatioProp={typeof window === 'undefined' ? 1 : window.devicePixelRatio || 1}
-        roundness={0.5}
-        shapeSize={0.78}
-        variation={0}
-      />
+
       <p className='project-metric-label'>{label}</p>
       <p className='project-metric-value'>{value}</p>
     </div>
@@ -950,7 +1019,7 @@ function ProjectLanguageSection({
             <h3 className='language-section-title project-group-title'>{group.language}</h3>
           </div>
         </div>
-        <a className='project-back-link' href='#projects'>{t.top}</a>
+        <a className='project-back-link' href='#projects'>{t.projectsTop}</a>
       </div>
       <div className='grid gap-4 md:grid-cols-2 xl:grid-cols-3'>
         {group.projects.map((project) => (
