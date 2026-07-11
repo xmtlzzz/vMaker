@@ -569,7 +569,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
           {HERO_SLIDES.map((slide, index) => (
             <img
               alt=''
-              className={`hero-background-image transition-opacity duration-[900ms] ease-out ${index === activeIndex ? 'opacity-100' : 'opacity-0'}`}
+              className={`hero-background-image ${index === activeIndex ? 'is-active' : ''}`}
               decoding={index === activeIndex ? 'sync' : 'async'}
               fetchPriority={index === 0 ? 'high' : 'low'}
               key={slide.imageUrl}
