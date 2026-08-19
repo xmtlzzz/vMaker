@@ -120,29 +120,6 @@ The left overview column contains a commit timeline. The column itself stays in 
 
 项目同时支持 **Cloudflare Workers**（默认推荐）和 **Node 环境（Vercel / 本地 react-router-serve）**。token 读取已做成平台无关：Cloudflare 从 env binding 注入，Node 回退 `process.env`。
 
-### Cloudflare Workers
-
-```bash
-npm install
-npm run deploy   # 内部：react-router build && wrangler deploy
-```
-
-部署前在 Cloudflare 面板完成如下配置：
-
-1. **Settings → Compatibility flags**：确认已启用 `nodejs_compat`
-2. **Settings → Compatibility date**：设为 **2025-03-12 之后**（例如 2025-04-01 或 Latest）。`process.env` 填充环境变量是 2025-03-11 上线的特性，日期太旧读不到
-3. **Settings → Variables & Secrets**：把 `GITHUB_TOKEN` 加为 **Secret**（必须是真实 token，占位符 `your_github_token` 会被代码忽略）
-4. 修改兼容日期/变量后**重新部署**一次
-
-对应 `wrangler.toml` 已配置好（`main = "./worker.ts"`、静态资源 `./build/client`）。本地联调：
-
-```bash
-cp .dev.vars.example .dev.vars   # 填入真实 token
-npm run cf:dev                   # react-router build && wrangler dev
-```
-
-> 为什么之前读不到？`app/lib/github/projects.ts` 原来直接读 `process.env.GITHUB_TOKEN`（Node 写法）。Workers 的 `process.env` 只在 `nodejs_compat` + 足够新的兼容日期下才填充；现在改为由 `app/routes/home.tsx` loader 通过 `context.cloudflare.env.GITHUB_TOKEN` 注入（Node 下回退 `process.env`），两种平台都正常。
-
 ### Vercel / Node
 
 1. Push the repository to GitHub
