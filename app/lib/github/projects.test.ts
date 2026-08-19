@@ -86,6 +86,9 @@ async function testGithubHeadersIgnorePlaceholderToken() {
 
     process.env.GITHUB_TOKEN = '  real-token  '
     assert.equal(githubHeaders().Authorization, 'Bearer real-token')
+
+    // GitHub API 强制要求 User-Agent（Workers fetch 不会自动附带）
+    assert.match(githubHeaders()['User-Agent'] ?? '', /^vMaker \(https:\/\/vmaker\.xmtlz\.dev\)$/)
   } finally {
     if (originalToken === undefined) {
       delete process.env.GITHUB_TOKEN

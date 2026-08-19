@@ -89,6 +89,9 @@ let cachedPayload: { payload: ProjectPayload; timestamp: number } | null = null
 export function githubHeaders(token?: string) {
   const headers: Record<string, string> = {
     Accept: 'application/vnd.github+json',
+    // GitHub API 强制要求 User-Agent，否则返回 403 "Request forbidden by administrative rules"。
+    // Cloudflare Workers 的 fetch 不会自动附加该头（Node/undici 会自动加），所以必须显式声明。
+    'User-Agent': 'vMaker (https://vmaker.xmtlz.dev)',
     'X-GitHub-Api-Version': '2022-11-28',
   }
 
