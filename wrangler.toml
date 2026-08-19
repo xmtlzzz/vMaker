@@ -1,0 +1,16 @@
+# Cloudflare Workers 部署配置（React Router 官方适配）
+# 部署：npm run deploy（先 react-router build 再 wrangler deploy）
+name = "vmaker"
+main = "./worker.ts"
+compatibility_date = "2025-04-01"
+compatibility_flags = ["nodejs_compat"]
+
+# 静态资源（build/client）由 Workers Static Assets 托管
+[assets]
+directory = "./build/client"
+binding = "ASSETS"
+
+# 本地开发环境变量（.dev.vars，会被 git 忽略）
+# GITHUB_TOKEN=your_github_token
+[vars]
+# 如需明文变量可在此声明，若在面板配置则留空

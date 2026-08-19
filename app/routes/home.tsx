@@ -324,8 +324,14 @@ export function meta() {
   ]
 }
 
-export async function loader(): Promise<ProjectPayload> {
-  return getProjects()
+export async function loader({ context }: Route.LoaderArgs): Promise<ProjectPayload> {
+  // Cloudflare 环境：token 从 env binding 注入（context.cloudflare.env.GITHUB_TOKEN）
+  // 本地 / Vercel 等 Node 环境：getProjects 内部回退 process.env.GITHUB_TOKEN
+  const cloudflare = (
+    context as { cloudflare?: { env?: { GITHUB_TOKEN?: string } } } | undefined
+  )?.cloudflare
+
+  return getProjects(cloudflare?.env?.GITHUB_TOKEN)
 }
 
 export default function Home({ loaderData }: Route.ComponentProps) {

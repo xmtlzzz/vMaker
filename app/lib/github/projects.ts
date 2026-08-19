@@ -86,24 +86,26 @@ type RepoDetailMap = Record<string, Partial<RepoDetails> | undefined>
 const CACHE_TTL = 1000 * 60 * 10
 let cachedPayload: { payload: ProjectPayload; timestamp: number } | null = null
 
-export function githubHeaders() {
+export function githubHeaders(token?: string) {
   const headers: Record<string, string> = {
     Accept: 'application/vnd.github+json',
     'X-GitHub-Api-Version': '2022-11-28',
   }
 
-  const token = process.env.GITHUB_TOKEN?.trim()
+  // 优先使用调用方注入的 token（Cloudflare 从 env binding 传入），
+  // 本地 / Node 环境（Vercel、react-router-serve）回退到 process.env
+  const resolved = token?.trim() ?? process.env.GITHUB_TOKEN?.trim()
 
-  if (token && token !== 'your_github_token') {
-    headers.Authorization = `Bearer ${token}`
+  if (resolved && resolved !== 'your_github_token') {
+    headers.Authorization = `Bearer ${resolved}`
   }
 
   return headers
 }
 
-async function githubFetch<T>(path: string): Promise<T> {
+async function githubFetch<T>(path: string, token?: string): Promise<T> {
   const response = await fetch(`${GITHUB_API}${path}`, {
-    headers: githubHeaders(),
+    headers: githubHeaders(token),
   })
 
   if (!response.ok) {
@@ -113,19 +115,19 @@ async function githubFetch<T>(path: string): Promise<T> {
   return response.json() as Promise<T>
 }
 
-async function getRepoLanguages(repo: string) {
+async function getRepoLanguages(repo: string, token?: string) {
   try {
-    return await githubFetch<Record<string, number>>(`/repos/${GITHUB_USER}/${repo}/languages`)
+    return await githubFetch<Record<string, number>>(`/repos/${GITHUB_USER}/${repo}/languages`, token)
   } catch {
     return {}
   }
 }
 
-async function getRepoCommits(repo: string) {
+async function getRepoCommits(repo: string, token?: string) {
   let commits: GitHubCommit[] = []
 
   try {
-    commits = await githubFetch<GitHubCommit[]>(`/repos/${GITHUB_USER}/${repo}/commits?per_page=5`)
+    commits = await githubFetch<GitHubCommit[]>(`/repos/${GITHUB_USER}/${repo}/commits?per_page=5`, token)
   } catch {
     return []
   }
@@ -292,7 +294,7 @@ export function createFallbackPayload(error?: string): ProjectPayload {
   }
 }
 
-export async function getProjects(): Promise<ProjectPayload> {
+export async function getProjects(token?: string): Promise<ProjectPayload> {
   const now = Date.now()
 
   if (cachedPayload && now - cachedPayload.timestamp < CACHE_TTL) {
@@ -300,7 +302,7 @@ export async function getProjects(): Promise<ProjectPayload> {
   }
 
   try {
-    const repos = await githubFetch<GitHubRepo[]>(`/users/${GITHUB_USER}/repos?sort=pushed&per_page=100`)
+    const repos = await githubFetch<GitHubRepo[]>(`/users/${GITHUB_USER}/repos?sort=pushed&per_page=100`, token)
     const visibleRepos = repos.filter((repo) => !repo.fork && !projectOverrides[repo.name]?.hidden)
 
     const detailsEntries = await mapWithConcurrency(
@@ -308,8 +310,8 @@ export async function getProjects(): Promise<ProjectPayload> {
       DETAIL_FETCH_CONCURRENCY,
       async (repo) => {
         const [languages, commits] = await Promise.all([
-          getRepoLanguages(repo.name),
-          getRepoCommits(repo.name),
+          getRepoLanguages(repo.name, token),
+          getRepoCommits(repo.name, token),
         ])
 
         return [repo.name, { commits, languages }] as const

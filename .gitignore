@@ -4,6 +4,8 @@
 .env.*.local
 !.env.example
 node_modules
+.dev.vars
+.npm-cache
 
 # React Router
 .react-router
