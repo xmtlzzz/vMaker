@@ -2,8 +2,18 @@
 # 部署：npm run deploy（先 react-router build 再 wrangler deploy）
 name = "vmaker"
 main = "./worker.ts"
-compatibility_date = "2025-04-01"
+
+# 兼容日期与云端原配置保持一致（2026-08-04）：
+# - 足够新，process.env 填充环境变量（2025-03-11 上线）必然支持
+# - 避免本地覆盖远程时触发警告/降级
+compatibility_date = "2026-08-04"
 compatibility_flags = ["nodejs_compat"]
+
+# 自定义域名路由（云端原本就有，勿删，否则会移除该域名访问）
+[[routes]]
+pattern = "vmaker.xmtlz.dev"
+zone_name = "xmtlz.dev"
+custom_domain = true
 
 # 静态资源（build/client）由 Workers Static Assets 托管
 [assets]
@@ -14,3 +24,7 @@ binding = "ASSETS"
 # GITHUB_TOKEN=your_github_token
 [vars]
 # 如需明文变量可在此声明，若在面板配置则留空
+
+# 观测（与云端原配置一致，方便看日志）
+[observability]
+enabled = true

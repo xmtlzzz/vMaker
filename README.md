@@ -79,6 +79,8 @@ GITHUB_TOKEN=your_github_token
 
 Without it, GitHub API rate limits are much easier to hit, especially now that the homepage also fetches recent commit data per repository.
 
+> ⚠️ The value must be a **real** GitHub token. The placeholder `your_github_token` is deliberately ignored by the code (`githubHeaders`), so using it is the same as having no token: on Cloudflare the shared egress IP quickly hits the 60 req/hr unauthenticated limit (`403 Forbidden`) and the homepage falls back to showing only `vMaker`.
+
 ## Local Development
 
 Install dependencies:
@@ -129,7 +131,7 @@ npm run deploy   # 内部：react-router build && wrangler deploy
 
 1. **Settings → Compatibility flags**：确认已启用 `nodejs_compat`
 2. **Settings → Compatibility date**：设为 **2025-03-12 之后**（例如 2025-04-01 或 Latest）。`process.env` 填充环境变量是 2025-03-11 上线的特性，日期太旧读不到
-3. **Settings → Variables & Secrets**：把 `GITHUB_TOKEN` 加为 **Secret**（生产环境）
+3. **Settings → Variables & Secrets**：把 `GITHUB_TOKEN` 加为 **Secret**（必须是真实 token，占位符 `your_github_token` 会被代码忽略）
 4. 修改兼容日期/变量后**重新部署**一次
 
 对应 `wrangler.toml` 已配置好（`main = "./worker.ts"`、静态资源 `./build/client`）。本地联调：

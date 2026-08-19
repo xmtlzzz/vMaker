@@ -109,7 +109,25 @@ async function githubFetch<T>(path: string, token?: string): Promise<T> {
   })
 
   if (!response.ok) {
-    throw new Error(`GitHub API request failed: ${response.status} ${response.statusText}`)
+    // 带上 GitHub 返回的原始原因（如 "API rate limit exceeded for ..."、"Bad credentials"），
+    // 避免只看到 403/401 而无法判断是限流还是 token 未生效。
+    let reason = ''
+    try {
+      const body = await response.text()
+      if (body) {
+        try {
+          reason = (JSON.parse(body) as { message?: string }).message ?? body.slice(0, 200)
+        } catch {
+          reason = body.slice(0, 200)
+        }
+      }
+    } catch {
+      // 读取响应体失败则忽略，只保留状态码
+    }
+
+    throw new Error(
+      `GitHub API request failed: ${response.status} ${response.statusText}${reason ? ` — ${reason}` : ''}`,
+    )
   }
 
   return response.json() as Promise<T>
