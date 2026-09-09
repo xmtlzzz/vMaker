@@ -729,6 +729,8 @@
   display: grid;
   gap: 1rem;
   grid-template-columns: minmax(0, 1fr) minmax(220px, 260px);
+  position: relative;
+  z-index: 30;
 }
 
 .projects-nav-wrap {
@@ -760,6 +762,8 @@
 
 .projects-anchor-more {
   flex: none;
+  position: relative;
+  z-index: 40;
 }
 
 .projects-anchor-chip {
@@ -827,7 +831,7 @@
   position: absolute;
   right: 0;
   top: calc(100% + 0.55rem);
-  z-index: 20;
+  z-index: 50;
 }
 
 .projects-anchor-dropdown-item {
