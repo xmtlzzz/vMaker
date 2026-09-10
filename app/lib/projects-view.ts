@@ -25,7 +25,11 @@ export function groupProjectsByLanguage(projects: Project[]): ProjectGroup[] {
   }
 
   return [...groups.entries()]
-    .map(([language, groupedProjects]) => ({ id: languageId(language), language, projects: groupedProjects }))
+    .map(([language, groupedProjects]) => ({
+      id: languageId(language),
+      language,
+      projects: groupedProjects,
+    }))
     .sort((a, b) => {
       if (a.language === 'Other') return 1
       if (b.language === 'Other') return -1
@@ -33,7 +37,9 @@ export function groupProjectsByLanguage(projects: Project[]): ProjectGroup[] {
     })
 }
 
-export function getLatestCommitTimeline(projects: Project[]): CommitTimelineItem[] {
+export function getLatestCommitTimeline(
+  projects: Project[]
+): CommitTimelineItem[] {
   return projects
     .map((project) => {
       const latestCommit = project.commits[0]

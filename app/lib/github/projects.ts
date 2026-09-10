@@ -119,7 +119,9 @@ async function githubFetch<T>(path: string, token?: string): Promise<T> {
       const body = await response.text()
       if (body) {
         try {
-          reason = (JSON.parse(body) as { message?: string }).message ?? body.slice(0, 200)
+          reason =
+            (JSON.parse(body) as { message?: string }).message ??
+            body.slice(0, 200)
         } catch {
           reason = body.slice(0, 200)
         }
@@ -129,7 +131,7 @@ async function githubFetch<T>(path: string, token?: string): Promise<T> {
     }
 
     throw new Error(
-      `GitHub API request failed: ${response.status} ${response.statusText}${reason ? ` — ${reason}` : ''}`,
+      `GitHub API request failed: ${response.status} ${response.statusText}${reason ? ` — ${reason}` : ''}`
     )
   }
 
@@ -138,7 +140,10 @@ async function githubFetch<T>(path: string, token?: string): Promise<T> {
 
 async function getRepoLanguages(repo: string, token?: string) {
   try {
-    return await githubFetch<Record<string, number>>(`/repos/${GITHUB_USER}/${repo}/languages`, token)
+    return await githubFetch<Record<string, number>>(
+      `/repos/${GITHUB_USER}/${repo}/languages`,
+      token
+    )
   } catch {
     return {}
   }
@@ -148,7 +153,10 @@ async function getRepoCommits(repo: string, token?: string) {
   let commits: GitHubCommit[] = []
 
   try {
-    commits = await githubFetch<GitHubCommit[]>(`/repos/${GITHUB_USER}/${repo}/commits?per_page=5`, token)
+    commits = await githubFetch<GitHubCommit[]>(
+      `/repos/${GITHUB_USER}/${repo}/commits?per_page=5`,
+      token
+    )
   } catch {
     return []
   }
@@ -164,7 +172,7 @@ async function getRepoCommits(repo: string, token?: string) {
 export async function mapWithConcurrency<T, R>(
   items: T[],
   concurrency: number,
-  mapper: (item: T, index: number) => Promise<R>,
+  mapper: (item: T, index: number) => Promise<R>
 ) {
   if (!Number.isInteger(concurrency) || concurrency < 1) {
     throw new Error('Concurrency must be a positive integer')
@@ -182,7 +190,7 @@ export async function mapWithConcurrency<T, R>(
   }
 
   await Promise.all(
-    Array.from({ length: Math.min(concurrency, items.length) }, () => worker()),
+    Array.from({ length: Math.min(concurrency, items.length) }, () => worker())
   )
 
   return results
@@ -204,7 +212,11 @@ function getLanguageShares(languages: Record<string, number>) {
     .sort((a, b) => b.bytes - a.bytes)
 }
 
-function toProject(repo: GitHubRepo, languages: Record<string, number> = {}, commits: CommitSummary[] = []): Project {
+function toProject(
+  repo: GitHubRepo,
+  languages: Record<string, number> = {},
+  commits: CommitSummary[] = []
+): Project {
   const override = projectOverrides[repo.name] ?? {}
 
   return {
@@ -213,7 +225,8 @@ function toProject(repo: GitHubRepo, languages: Record<string, number> = {}, com
     commits,
     cover: override.cover,
     createdAt: repo.created_at,
-    description: override.summary ?? repo.description ?? '这个项目还没有 GitHub 描述。',
+    description:
+      override.summary ?? repo.description ?? '这个项目还没有 GitHub 描述。',
     displayName: override.displayName ?? repo.name,
     featured: override.featured ?? false,
     forks: repo.forks_count,
@@ -244,7 +257,10 @@ function sortProjects(projects: Project[]) {
       return aOrder - bOrder
     }
 
-    return new Date(b.pushedAt || b.updatedAt || 0).getTime() - new Date(a.pushedAt || a.updatedAt || 0).getTime()
+    return (
+      new Date(b.pushedAt || b.updatedAt || 0).getTime() -
+      new Date(a.pushedAt || a.updatedAt || 0).getTime()
+    )
   })
 }
 
@@ -270,8 +286,13 @@ function summarize(projects: Project[]): ProjectSummary {
   }
 }
 
-export function buildProjectPayload(repos: GitHubRepo[], detailsByRepo: RepoDetailMap = {}): ProjectPayload {
-  const visibleRepos = repos.filter((repo) => !repo.fork && !projectOverrides[repo.name]?.hidden)
+export function buildProjectPayload(
+  repos: GitHubRepo[],
+  detailsByRepo: RepoDetailMap = {}
+): ProjectPayload {
+  const visibleRepos = repos.filter(
+    (repo) => !repo.fork && !projectOverrides[repo.name]?.hidden
+  )
   const projects = visibleRepos.map((repo) => {
     const details = detailsByRepo[repo.name]
 
@@ -327,8 +348,13 @@ export async function getProjects(token?: string): Promise<ProjectPayload> {
   }
 
   try {
-    const repos = await githubFetch<GitHubRepo[]>(`/users/${GITHUB_USER}/repos?sort=pushed&per_page=100`, token)
-    const visibleRepos = repos.filter((repo) => !repo.fork && !projectOverrides[repo.name]?.hidden)
+    const repos = await githubFetch<GitHubRepo[]>(
+      `/users/${GITHUB_USER}/repos?sort=pushed&per_page=100`,
+      token
+    )
+    const visibleRepos = repos.filter(
+      (repo) => !repo.fork && !projectOverrides[repo.name]?.hidden
+    )
 
     const detailsEntries = await mapWithConcurrency(
       visibleRepos,
@@ -340,15 +366,19 @@ export async function getProjects(token?: string): Promise<ProjectPayload> {
         ])
 
         return [repo.name, { commits, languages }] as const
-      },
+      }
     )
 
-    const payload = buildProjectPayload(repos, Object.fromEntries(detailsEntries))
+    const payload = buildProjectPayload(
+      repos,
+      Object.fromEntries(detailsEntries)
+    )
 
     cachedPayload = { payload, timestamp: now }
     return payload
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'GitHub API request failed'
+    const message =
+      error instanceof Error ? error.message : 'GitHub API request failed'
 
     if (cachedPayload) {
       return {

@@ -11,5 +11,10 @@ node_modules
 .react-router
 build
 
+# tooling / local state
+.workbuddy
+.wrangler
+eslint-report.json
+
 # typescript
 *.tsbuildinfo

@@ -33,7 +33,9 @@ const LANGUAGE_COLORS: Record<string, string> = {
 const LANGUAGE_FALLBACK_COLOR = '#94A3B8'
 
 export function languageColor(language: string) {
-  return LANGUAGE_COLORS[language.trim().toLowerCase()] ?? LANGUAGE_FALLBACK_COLOR
+  return (
+    LANGUAGE_COLORS[language.trim().toLowerCase()] ?? LANGUAGE_FALLBACK_COLOR
+  )
 }
 
 export function languageId(language: string) {
@@ -50,11 +52,13 @@ export function languageNavLabel(language: string) {
   if (abbreviations[normalized]) return abbreviations[normalized]
   if (language.length <= 6) return language
 
-  return language
-    .split(/[^a-zA-Z0-9]+/)
-    .filter(Boolean)
-    .map((part) => part[0])
-    .join('')
-    .slice(0, 3)
-    .toUpperCase() || language.slice(0, 3).toUpperCase()
+  return (
+    language
+      .split(/[^a-zA-Z0-9]+/)
+      .filter(Boolean)
+      .map((part) => part[0])
+      .join('')
+      .slice(0, 3)
+      .toUpperCase() || language.slice(0, 3).toUpperCase()
+  )
 }

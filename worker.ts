@@ -1,7 +1,7 @@
-import { createRequestHandler } from "react-router"
-import type { ServerBuild } from "react-router"
-import * as build from "./build/server"
-import type { ExecutionContext } from "@cloudflare/workers-types"
+import { createRequestHandler } from 'react-router'
+import type { ServerBuild } from 'react-router'
+import * as build from './build/server'
+import type { ExecutionContext } from '@cloudflare/workers-types'
 
 // Cloudflare Workers 环境变量绑定
 // 正式环境的 GITHUB_TOKEN 请在 Cloudflare 面板 Settings → Variables 中配置为 Secret；
@@ -13,7 +13,7 @@ interface Env {
 const requestHandler = createRequestHandler(
   // build/server 是 react-router build 生成的无类型声明 bundle，这里显式断言
   build as unknown as ServerBuild,
-  process.env.NODE_ENV,
+  process.env.NODE_ENV
 )
 
 export default {

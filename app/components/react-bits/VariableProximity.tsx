@@ -9,7 +9,11 @@ type VariableProximityProps = {
   text: string
 }
 
-export function VariableProximity({ className, labelClassName, text }: VariableProximityProps) {
+export function VariableProximity({
+  className,
+  labelClassName,
+  text,
+}: VariableProximityProps) {
   const [progress, setProgress] = useState(0)
   const [pointerX, setPointerX] = useState<number | null>(null)
   const containerRef = useRef<HTMLSpanElement | null>(null)
@@ -35,8 +39,12 @@ export function VariableProximity({ className, labelClassName, text }: VariableP
       ref={containerRef}
     >
       {characters.map((character, index) => {
-        const anchor = characters.length === 1 ? 0.5 : index / (characters.length - 1)
-        const influence = pointerX === null ? 0 : Math.max(0, 1 - Math.abs(progress - anchor) * 3.2)
+        const anchor =
+          characters.length === 1 ? 0.5 : index / (characters.length - 1)
+        const influence =
+          pointerX === null
+            ? 0
+            : Math.max(0, 1 - Math.abs(progress - anchor) * 3.2)
         const style = {
           '--vp-scale': `${1 + influence * 0.26}`,
           '--vp-shift': `${influence * -14}px`,
@@ -45,7 +53,11 @@ export function VariableProximity({ className, labelClassName, text }: VariableP
         } as CSSProperties
 
         return (
-          <span className={cn('variable-proximity-char', labelClassName)} key={`${character}-${index}`} style={style}>
+          <span
+            className={cn('variable-proximity-char', labelClassName)}
+            key={`${character}-${index}`}
+            style={style}
+          >
             {character === ' ' ? '\u00A0' : character}
           </span>
         )

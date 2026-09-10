@@ -7,7 +7,11 @@ import {
   mapWithConcurrency,
 } from './projects'
 
-const repo = (name: string, pushedAt: string, extra: Partial<Record<string, unknown>> = {}) => ({
+const repo = (
+  name: string,
+  pushedAt: string,
+  extra: Partial<Record<string, unknown>> = {}
+) => ({
   archived: false,
   created_at: '2026-01-01T00:00:00Z',
   description: `${name} repository`,
@@ -34,34 +38,63 @@ async function testBuildProjectPayload() {
     ],
     {
       alpha: {
-        commits: [{ date: '2026-02-01T00:00:00Z', message: 'Ship alpha', sha: 'abcdef1', url: 'https://example.com/a' }],
+        commits: [
+          {
+            date: '2026-02-01T00:00:00Z',
+            message: 'Ship alpha',
+            sha: 'abcdef1',
+            url: 'https://example.com/a',
+          },
+        ],
         languages: { JavaScript: 200 },
       },
       vMaker: {
-        commits: [{ date: '2026-01-01T00:00:00Z', message: 'Ship vMaker', sha: 'abcdef2', url: 'https://example.com/v' }],
+        commits: [
+          {
+            date: '2026-01-01T00:00:00Z',
+            message: 'Ship vMaker',
+            sha: 'abcdef2',
+            url: 'https://example.com/v',
+          },
+        ],
         languages: { TypeScript: 800 },
       },
-    },
+    }
   )
 
-  assert.deepEqual(payload.projects.map((project) => project.name), ['vMaker', 'alpha'])
-  assert.equal(payload.projects[0].description, '用于集中展示个人项目的现代化作品集网站。')
+  assert.deepEqual(
+    payload.projects.map((project) => project.name),
+    ['vMaker', 'alpha']
+  )
+  assert.equal(
+    payload.projects[0].description,
+    '用于集中展示个人项目的现代化作品集网站。'
+  )
   assert.equal(payload.summary.totalProjects, 2)
   assert.equal(payload.summary.totalCodeSize, 1000)
-  assert.deepEqual(payload.summary.primaryLanguages, ['TypeScript', 'JavaScript'])
+  assert.deepEqual(payload.summary.primaryLanguages, [
+    'TypeScript',
+    'JavaScript',
+  ])
 }
 
 async function testFeaturedSortsFirst() {
   const payload = buildProjectPayload(
-    [repo('alpha', '2026-06-01T00:00:00Z'), repo('vMaker', '2026-01-01T00:00:00Z')],
+    [
+      repo('alpha', '2026-06-01T00:00:00Z'),
+      repo('vMaker', '2026-01-01T00:00:00Z'),
+    ],
     {
       alpha: { commits: [], languages: { JavaScript: 100 } },
       vMaker: { commits: [], languages: { TypeScript: 300 } },
-    },
+    }
   )
 
   // vMaker 在 overrides 中 featured: true，应排在更新时间更晚的 alpha 之前
-  assert.deepEqual(payload.projects.map((project) => project.name), ['vMaker', 'alpha'])
+  assert.deepEqual(
+    payload.projects.map((project) => project.name),
+    ['vMaker', 'alpha']
+  )
 }
 
 async function testLanguageSharesAndCodeSize() {
@@ -113,7 +146,10 @@ async function testGithubHeadersIgnorePlaceholderToken() {
     assert.equal(githubHeaders().Authorization, 'Bearer real-token')
 
     // GitHub API 强制要求 User-Agent（Workers fetch 不会自动附带）
-    assert.match(githubHeaders()['User-Agent'] ?? '', /^vMaker \(https:\/\/vmaker\.xmtlz\.dev\)$/)
+    assert.match(
+      githubHeaders()['User-Agent'] ?? '',
+      /^vMaker \(https:\/\/vmaker\.xmtlz\.dev\)$/
+    )
   } finally {
     if (originalToken === undefined) {
       delete process.env.GITHUB_TOKEN

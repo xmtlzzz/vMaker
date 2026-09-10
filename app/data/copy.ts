@@ -6,15 +6,18 @@ export const copy = {
     browse: 'Browse projects',
     codeSize: 'code size',
     dataLeft: 'Source: GitHub public repositories from xmtlzzz',
-    dataRight: 'No mirrored database, no admin layer, no duplicated project records',
+    dataRight:
+      'No mirrored database, no admin layer, no duplicated project records',
     empty: 'No matching projects',
     featured: 'Featured',
     forks: 'forks',
     github: 'Open GitHub',
-    heroDescription: 'vMaker is a project index for the GitHub work published by xmtlzzz, designed to make browsing repositories, languages, and experiments direct and structured.',
+    heroDescription:
+      'vMaker is a project index for the GitHub work published by xmtlzzz, designed to make browsing repositories, languages, and experiments direct and structured.',
     heroEyebrow: 'Creative development archive',
     heroTitle: 'vMaker.',
-    indexLead: 'Scroll from the hero into a live project index without losing context.',
+    indexLead:
+      'Scroll from the hero into a live project index without losing context.',
     languageNav: 'Language navigation',
     languages: 'Language composition',
     latest: 'Latest',
@@ -25,9 +28,11 @@ export const copy = {
     search: 'Search projects',
     stars: 'stars',
     status: 'Index status',
-    subtitle: 'The home page stays focused on vMaker itself. Use the top navigation or the project index below to jump into individual xmtlzzz projects.',
+    subtitle:
+      'The home page stays focused on vMaker itself. Use the top navigation or the project index below to jump into individual xmtlzzz projects.',
     title: 'Jump to a project',
-    tokenHelp: 'Set a real GITHUB_TOKEN (GitHub personal access token) in .env / Vercel, or as a Cloudflare Worker secret under Settings → Variables & Secrets, then redeploy and restart.',
+    tokenHelp:
+      'Set a real GITHUB_TOKEN (GitHub personal access token) in .env / Vercel, or as a Cloudflare Worker secret under Settings → Variables & Secrets, then redeploy and restart.',
     top: 'Top',
     tryAnother: 'Try another search term.',
     unavailable: 'GitHub projects could not be loaded',
@@ -44,7 +49,8 @@ export const copy = {
     featured: '精选',
     forks: '分支',
     github: '打开 GitHub',
-    heroDescription: 'vMaker 是一个面向 xmtlzzz GitHub 项目的索引页，用来更直接地浏览仓库、语言分布和不同类型的实验作品。',
+    heroDescription:
+      'vMaker 是一个面向 xmtlzzz GitHub 项目的索引页，用来更直接地浏览仓库、语言分布和不同类型的实验作品。',
     heroEyebrow: '创意开发档案',
     heroTitle: 'vMaker.',
     indexLead: '从首屏自然滑入实时项目索引，而不是切到另一套界面。',
@@ -58,9 +64,11 @@ export const copy = {
     search: '搜索项目',
     stars: '星标',
     status: '索引状态',
-    subtitle: '首页继续聚焦 vMaker 本身。你可以通过顶部导航或下方项目索引，定位到不同的 xmtlzzz 项目。',
+    subtitle:
+      '首页继续聚焦 vMaker 本身。你可以通过顶部导航或下方项目索引，定位到不同的 xmtlzzz 项目。',
     title: '定位到项目',
-    tokenHelp: '请在 .env / Vercel，或 Cloudflare 面板 Settings → Variables & Secrets 里配置真实的 GITHUB_TOKEN（占位符 your_github_token 会被忽略），再重新部署并重启服务。',
+    tokenHelp:
+      '请在 .env / Vercel，或 Cloudflare 面板 Settings → Variables & Secrets 里配置真实的 GITHUB_TOKEN（占位符 your_github_token 会被忽略），再重新部署并重启服务。',
     top: '返回顶部',
     tryAnother: '换一个搜索词试试。',
     unavailable: 'GitHub 项目加载失败',

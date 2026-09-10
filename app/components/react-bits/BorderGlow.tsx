@@ -22,12 +22,20 @@ export function BorderGlow({ children, className, id }: BorderGlowProps) {
 
   return (
     <div
-      className={cn('border-glow group relative rounded-[1.25rem] p-px', className)}
+      className={cn(
+        'border-glow group relative rounded-[1.25rem] p-px',
+        className
+      )}
       id={id}
       onMouseMove={handlePointerMove}
-      style={{ '--glow-x': `${position.x}%`, '--glow-y': `${position.y}%` } as React.CSSProperties}
+      style={
+        {
+          '--glow-x': `${position.x}%`,
+          '--glow-y': `${position.y}%`,
+        } as React.CSSProperties
+      }
     >
-      <div className='relative z-10 h-full rounded-[calc(1.25rem-1px)] border border-border bg-card'>
+      <div className="relative z-10 h-full rounded-[calc(1.25rem-1px)] border border-border bg-card">
         {children}
       </div>
     </div>

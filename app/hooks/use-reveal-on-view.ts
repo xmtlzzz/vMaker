@@ -1,7 +1,9 @@
 import type { RefObject } from 'react'
 import { useEffect, useRef, useState } from 'react'
 
-export function useRevealOnView<T extends HTMLElement>(threshold = 0.35): [RefObject<T | null>, boolean] {
+export function useRevealOnView<T extends HTMLElement>(
+  threshold = 0.35
+): [RefObject<T | null>, boolean] {
   const ref = useRef<T | null>(null)
   const [visible, setVisible] = useState(false)
 
@@ -16,7 +18,7 @@ export function useRevealOnView<T extends HTMLElement>(threshold = 0.35): [RefOb
           observer.disconnect()
         }
       },
-      { threshold },
+      { threshold }
     )
 
     observer.observe(node)

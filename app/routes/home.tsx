@@ -20,7 +20,10 @@ import type { Theme } from '~/lib/config'
 import { formatDate, getProjects } from '~/lib/github/projects'
 import type { ProjectPayload } from '~/lib/github/projects'
 import { languageNavLabel } from '~/lib/language'
-import { getLatestCommitTimeline, groupProjectsByLanguage } from '~/lib/projects-view'
+import {
+  getLatestCommitTimeline,
+  groupProjectsByLanguage,
+} from '~/lib/projects-view'
 import type { Route } from './+types/home'
 
 export function meta() {
@@ -45,7 +48,9 @@ export function meta() {
   ]
 }
 
-export async function loader({ context }: Route.LoaderArgs): Promise<ProjectPayload> {
+export async function loader({
+  context,
+}: Route.LoaderArgs): Promise<ProjectPayload> {
   // Cloudflare 环境：token 从 env binding 注入（context.cloudflare.env.GITHUB_TOKEN）
   // 本地 / Vercel 等 Node 环境：getProjects 内部回退 process.env.GITHUB_TOKEN
   const cloudflare = (
@@ -60,7 +65,9 @@ export default function Home({ loaderData }: Route.ComponentProps) {
   const [locale, setLocale] = useState<Locale>('zh')
   const [query, setQuery] = useState('')
   const [theme, setTheme] = useState<Theme>('light')
-  const [accentId, setAccentId] = useState<AccentPreset['id']>(ACCENT_PRESETS[0].id)
+  const [accentId, setAccentId] = useState<AccentPreset['id']>(
+    ACCENT_PRESETS[0].id
+  )
   const [activeIndex, setActiveIndex] = useState(0)
   const [clock, setClock] = useState('')
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -80,39 +87,65 @@ export default function Home({ loaderData }: Route.ComponentProps) {
 
   const activeSlide = HERO_SLIDES[activeIndex]
   const isDark = theme === 'dark'
-  const activeAccent = ACCENT_PRESETS.find((preset) => preset.id === accentId) ?? ACCENT_PRESETS[0]
+  const activeAccent =
+    ACCENT_PRESETS.find((preset) => preset.id === accentId) ?? ACCENT_PRESETS[0]
   const filteredProjects = useMemo(() => {
     const text = query.trim().toLowerCase()
     if (!text) return projects
 
     return projects.filter((project) => {
-      return [project.displayName, project.description, project.primaryLanguage, ...project.topics]
+      return [
+        project.displayName,
+        project.description,
+        project.primaryLanguage,
+        ...project.topics,
+      ]
         .filter(Boolean)
         .join(' ')
         .toLowerCase()
         .includes(text)
     })
   }, [projects, query])
-  const projectGroups = useMemo(() => groupProjectsByLanguage(filteredProjects), [filteredProjects])
-  const languageGroups = useMemo(() => groupProjectsByLanguage(projects), [projects])
-  const languageNavGroups = useMemo(
-    () => {
-      const visibleGroups = languageGroups.filter((group) => group.language !== 'Other')
-      const otherGroups = languageGroups.filter((group) => group.language === 'Other')
-
-      return [
-        ...visibleGroups.sort((a, b) => b.projects.length - a.projects.length || a.language.localeCompare(b.language)),
-        ...otherGroups,
-      ]
-    },
-    [languageGroups],
+  const projectGroups = useMemo(
+    () => groupProjectsByLanguage(filteredProjects),
+    [filteredProjects]
   )
-  const topLanguageGroups = useMemo(() => languageNavGroups.filter((group) => group.language !== 'Other').slice(0, 3), [languageNavGroups])
+  const languageGroups = useMemo(
+    () => groupProjectsByLanguage(projects),
+    [projects]
+  )
+  const languageNavGroups = useMemo(() => {
+    const visibleGroups = languageGroups.filter(
+      (group) => group.language !== 'Other'
+    )
+    const otherGroups = languageGroups.filter(
+      (group) => group.language === 'Other'
+    )
+
+    return [
+      ...visibleGroups.sort(
+        (a, b) =>
+          b.projects.length - a.projects.length ||
+          a.language.localeCompare(b.language)
+      ),
+      ...otherGroups,
+    ]
+  }, [languageGroups])
+  const topLanguageGroups = useMemo(
+    () =>
+      languageNavGroups
+        .filter((group) => group.language !== 'Other')
+        .slice(0, 3),
+    [languageNavGroups]
+  )
   const moreLanguageGroups = useMemo(() => {
     const visibleTopIds = new Set(topLanguageGroups.map((group) => group.id))
     return languageNavGroups.filter((group) => !visibleTopIds.has(group.id))
   }, [languageNavGroups, topLanguageGroups])
-  const commitTimeline = useMemo(() => getLatestCommitTimeline(projects), [projects])
+  const commitTimeline = useMemo(
+    () => getLatestCommitTimeline(projects),
+    [projects]
+  )
   const [titleRef, titleVisible] = useRevealOnView<HTMLDivElement>()
   const [copyRef, copyVisible] = useRevealOnView<HTMLDivElement>()
   const [buttonRef, buttonVisible] = useRevealOnView<HTMLDivElement>()
@@ -190,7 +223,8 @@ export default function Home({ loaderData }: Route.ComponentProps) {
 
     const handleScroll = () => {
       const heroHeight = heroSectionRef.current?.offsetHeight ?? 0
-      const projectsTop = projectsSectionRef.current?.offsetTop ?? Number.POSITIVE_INFINITY
+      const projectsTop =
+        projectsSectionRef.current?.offsetTop ?? Number.POSITIVE_INFINITY
       const currentY = window.scrollY
 
       if (topNavigationRef.current && currentY <= 1) {
@@ -201,22 +235,31 @@ export default function Home({ loaderData }: Route.ComponentProps) {
         projectScrollLockedRef.current = true
       }
 
-
       setShowBackToTop(currentY > Math.max(heroHeight * 0.4, 280))
     }
 
     const handleWheel = (event: WheelEvent) => {
-      const projectsTop = projectsSectionRef.current?.offsetTop ?? Number.POSITIVE_INFINITY
-      if (projectScrollLockedRef.current && event.deltaY < 0 && window.scrollY + event.deltaY < projectsTop) {
+      const projectsTop =
+        projectsSectionRef.current?.offsetTop ?? Number.POSITIVE_INFINITY
+      if (
+        projectScrollLockedRef.current &&
+        event.deltaY < 0 &&
+        window.scrollY + event.deltaY < projectsTop
+      ) {
         event.preventDefault()
         window.scrollTo({ top: projectsTop })
       }
     }
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      const projectsTop = projectsSectionRef.current?.offsetTop ?? Number.POSITIVE_INFINITY
+      const projectsTop =
+        projectsSectionRef.current?.offsetTop ?? Number.POSITIVE_INFINITY
       const upwardKeys = ['ArrowUp', 'PageUp', 'Home']
-      if (projectScrollLockedRef.current && upwardKeys.includes(event.key) && window.scrollY <= projectsTop + 1) {
+      if (
+        projectScrollLockedRef.current &&
+        upwardKeys.includes(event.key) &&
+        window.scrollY <= projectsTop + 1
+      ) {
         event.preventDefault()
         window.scrollTo({ top: projectsTop })
       }
@@ -241,7 +284,8 @@ export default function Home({ loaderData }: Route.ComponentProps) {
       const target = event.target as HTMLElement
       if (!target.closest('.hero-accent-picker')) setIsAccentMenuOpen(false)
       if (!target.closest('.projects-anchor-more')) setIsMoreMenuOpen(false)
-      if (!target.closest('.project-floating-actions')) setIsProjectControlsOpen(false)
+      if (!target.closest('.project-floating-actions'))
+        setIsProjectControlsOpen(false)
       if (!target.closest('.hero-mobile-actions')) setIsMenuOpen(false)
     }
 
@@ -296,11 +340,14 @@ export default function Home({ loaderData }: Route.ComponentProps) {
         } as CSSProperties
       }
     >
-      <section className='hero-shell relative min-h-svh overflow-hidden bg-black text-white' ref={heroSectionRef}>
-        <div className='absolute inset-0 z-0'>
+      <section
+        className="hero-shell relative min-h-svh overflow-hidden bg-black text-white"
+        ref={heroSectionRef}
+      >
+        <div className="absolute inset-0 z-0">
           {HERO_SLIDES.map((slide, index) => (
             <img
-              alt=''
+              alt=""
               className={`hero-background-image ${index === activeIndex ? 'is-active' : ''}`}
               decoding={index === activeIndex ? 'sync' : 'async'}
               fetchPriority={index === 0 ? 'high' : 'low'}
@@ -309,8 +356,8 @@ export default function Home({ loaderData }: Route.ComponentProps) {
             />
           ))}
         </div>
-        <div className='absolute inset-0 z-[1] bg-black/10' />
-        <div className='hero-scrim absolute inset-0 z-[1]' />
+        <div className="absolute inset-0 z-[1] bg-black/10" />
+        <div className="hero-scrim absolute inset-0 z-[1]" />
 
         <SiteHeader
           accentId={accentId}
@@ -328,61 +375,81 @@ export default function Home({ loaderData }: Route.ComponentProps) {
           theme={theme}
         />
 
-        <div className='hero-layout relative z-[2] mx-auto flex min-h-svh w-full max-w-[1340px] flex-col justify-end gap-[116px] px-[15px] pt-[190px]'>
-          <div className='hero-top-row flex w-full items-start justify-between gap-10'>
-            <div className='flex-[4]'>
-              <p className='hero-eyebrow mb-6'>{t.heroEyebrow}</p>
-              <div className='flex flex-col gap-3'>
+        <div className="hero-layout relative z-[2] mx-auto flex min-h-svh w-full max-w-[1340px] flex-col justify-end gap-[116px] px-[15px] pt-[190px]">
+          <div className="hero-top-row flex w-full items-start justify-between gap-10">
+            <div className="flex-[4]">
+              <p className="hero-eyebrow mb-6">{t.heroEyebrow}</p>
+              <div className="flex flex-col gap-3">
                 {HERO_SLIDES.map((slide, index) => (
                   <button
-                    className={`hero-switcher role-link text-left text-xs font-medium uppercase tracking-[-0.12px] transition-opacity ${index === activeIndex ? 'opacity-100' : 'opacity-55 hover:opacity-75'}`}
+                    className={`hero-switcher role-link text-left text-xs font-medium tracking-[-0.12px] uppercase transition-opacity ${index === activeIndex ? 'opacity-100' : 'opacity-55 hover:opacity-75'}`}
                     key={slide.label}
                     onClick={() => setActiveIndex(index)}
-                    type='button'
+                    type="button"
                   >
                     {slide.label}
                   </button>
                 ))}
               </div>
             </div>
-            <div className='flex flex-1 justify-start md:justify-end'>
-              <div className='hero-availability'>
+            <div className="flex flex-1 justify-start md:justify-end">
+              <div className="hero-availability">
                 <span
-                  className='hero-availability-dot'
-                  style={{
-                    '--dot-color': activeSlide.accent,
-                    '--dot-glow': activeSlide.accent,
-                  } as CSSProperties}
+                  className="hero-availability-dot"
+                  style={
+                    {
+                      '--dot-color': activeSlide.accent,
+                      '--dot-glow': activeSlide.accent,
+                    } as CSSProperties
+                  }
                 />
                 <span>{activeSlide.availability}</span>
               </div>
             </div>
           </div>
 
-          <div className='hero-bottom-row flex w-full items-end justify-between gap-10 pb-[54px]'>
-            <div className='flex-[2]' ref={titleRef}>
-              <div className={`reveal-block ${titleVisible ? 'is-visible reveal-up' : ''}`}>
-                <h1 className='hero-title'>
-                  <VariableProximity className='hero-title-word' labelClassName='hero-title-char' text='vMaker' />
-                  <span className='hero-title-dot'>.</span>
+          <div className="hero-bottom-row flex w-full items-end justify-between gap-10 pb-[54px]">
+            <div className="flex-[2]" ref={titleRef}>
+              <div
+                className={`reveal-block ${titleVisible ? 'is-visible reveal-up' : ''}`}
+              >
+                <h1 className="hero-title">
+                  <VariableProximity
+                    className="hero-title-word"
+                    labelClassName="hero-title-char"
+                    text="vMaker"
+                  />
+                  <span className="hero-title-dot">.</span>
                 </h1>
               </div>
             </div>
 
-            <div className='hero-copy-column flex flex-1 flex-col pl-[50px]'>
-              <div className={`reveal-block ${copyVisible ? 'is-visible reveal-right' : ''}`} id='hero-copy' ref={copyRef}>
-                <p className='hero-description'>{t.heroDescription}</p>
-                <p className='hero-slide-copy'>{activeSlide.description}</p>
+            <div className="hero-copy-column flex flex-1 flex-col pl-[50px]">
+              <div
+                className={`reveal-block ${copyVisible ? 'is-visible reveal-right' : ''}`}
+                id="hero-copy"
+                ref={copyRef}
+              >
+                <p className="hero-description">{t.heroDescription}</p>
+                <p className="hero-slide-copy">{activeSlide.description}</p>
               </div>
-              <div className={`reveal-block delay-1 ${buttonVisible ? 'is-visible reveal-right' : ''}`} ref={buttonRef}>
-                <a className='hero-cta' href='#projects'><span>{t.browse}</span></a>
+              <div
+                className={`reveal-block delay-1 ${buttonVisible ? 'is-visible reveal-right' : ''}`}
+                ref={buttonRef}
+              >
+                <a className="hero-cta" href="#projects">
+                  <span>{t.browse}</span>
+                </a>
               </div>
             </div>
           </div>
         </div>
 
-        <div className='hero-bridge relative z-[2] mx-auto flex w-full max-w-[1340px] flex-col gap-5 px-[15px] pb-0'>
-          <div className='hero-bridge-meta hero-bridge-meta-standalone' id='stack'>
+        <div className="hero-bridge relative z-[2] mx-auto flex w-full max-w-[1340px] flex-col gap-5 px-[15px] pb-0">
+          <div
+            className="hero-bridge-meta hero-bridge-meta-standalone"
+            id="stack"
+          >
             <span>{t.indexLead}</span>
             <span>{t.dataLeft}</span>
             <span>{t.dataRight}</span>
@@ -390,23 +457,39 @@ export default function Home({ loaderData }: Route.ComponentProps) {
         </div>
       </section>
 
-      <section className='projects-shell relative pb-16 pt-10' ref={projectsSectionRef}>
-        <div className='projects-shell-glow' />
-        <div className='relative mx-auto max-w-[1340px] px-[15px]' id='projects'>
-          <div className='grid gap-10 lg:grid-cols-[0.92fr_1.08fr]'>
-            <div className='projects-intro'>
-              <p className='projects-kicker'>{t.languageNav}</p>
-              <h2 className='projects-title'>{t.title}</h2>
-              <p className='projects-subtitle'>{t.subtitle}</p>
-              <div className='projects-side-card'>
-                <p className='project-meta-label'>{t.status}</p>
-                <div className='mt-5 grid grid-cols-2 gap-3'>
-                  <Metric isDark={isDark} label={t.repos} value={summary.totalProjects.toString()} />
-                  <Metric isDark={isDark} label={t.latest} value={formatDate(summary.latestActivity)} />
+      <section
+        className="projects-shell relative pt-10 pb-16"
+        ref={projectsSectionRef}
+      >
+        <div className="projects-shell-glow" />
+        <div
+          className="relative mx-auto max-w-[1340px] px-[15px]"
+          id="projects"
+        >
+          <div className="grid gap-10 lg:grid-cols-[0.92fr_1.08fr]">
+            <div className="projects-intro">
+              <p className="projects-kicker">{t.languageNav}</p>
+              <h2 className="projects-title">{t.title}</h2>
+              <p className="projects-subtitle">{t.subtitle}</p>
+              <div className="projects-side-card">
+                <p className="project-meta-label">{t.status}</p>
+                <div className="mt-5 grid grid-cols-2 gap-3">
+                  <Metric
+                    isDark={isDark}
+                    label={t.repos}
+                    value={summary.totalProjects.toString()}
+                  />
+                  <Metric
+                    isDark={isDark}
+                    label={t.latest}
+                    value={formatDate(summary.latestActivity)}
+                  />
                 </div>
-                {error && <p className='project-error-note mt-4'>{t.tokenHelp}</p>}
+                {error && (
+                  <p className="project-error-note mt-4">{t.tokenHelp}</p>
+                )}
               </div>
-              <div className='project-timeline mt-8' ref={timelineContainerRef}>
+              <div className="project-timeline mt-8" ref={timelineContainerRef}>
                 {commitTimeline.length > 0 ? (
                   commitTimeline.map((item) => (
                     <a
@@ -418,80 +501,109 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                       ref={(node) => {
                         timelineItemRefs.current.set(item.projectId, node)
                       }}
-                      rel='noreferrer'
-                      target='_blank'
+                      rel="noreferrer"
+                      target="_blank"
                     >
-                      <span className='project-timeline-date'>{formatDate(item.date)}</span>
-                      <span className='project-timeline-copy'>
-                        <span className='project-timeline-title'>{item.projectName}({item.sha})</span>
-                        <span className='project-timeline-message'> - {item.message}</span>
+                      <span className="project-timeline-date">
+                        {formatDate(item.date)}
+                      </span>
+                      <span className="project-timeline-copy">
+                        <span className="project-timeline-title">
+                          {item.projectName}({item.sha})
+                        </span>
+                        <span className="project-timeline-message">
+                          {' '}
+                          - {item.message}
+                        </span>
                       </span>
                     </a>
                   ))
                 ) : (
-                  <p className='project-empty-copy'>No commit activity available yet.</p>
+                  <p className="project-empty-copy">
+                    No commit activity available yet.
+                  </p>
                 )}
               </div>
-              <div className='project-stack-loop-wrap'>
+              <div className="project-stack-loop-wrap">
                 <LogoLoop items={STACK_LOGOS} />
               </div>
             </div>
 
             <div>
-              <div className='projects-toolbar'>
-                <div className='projects-nav-wrap'>
-                  <div className='projects-anchor-list'>
+              <div className="projects-toolbar">
+                <div className="projects-nav-wrap">
+                  <div className="projects-anchor-list">
                     {topLanguageGroups.length > 0 ? (
                       topLanguageGroups.map((group) => (
-                        <a className='projects-anchor-chip' href={`#language-${group.id}`} key={group.language} title={group.language}>
+                        <a
+                          className="projects-anchor-chip"
+                          href={`#language-${group.id}`}
+                          key={group.language}
+                          title={group.language}
+                        >
                           {languageNavLabel(group.language)}
                         </a>
                       ))
                     ) : (
-                      <span className='projects-anchor-chip opacity-60'>{t.projectsUnavailable}</span>
+                      <span className="projects-anchor-chip opacity-60">
+                        {t.projectsUnavailable}
+                      </span>
                     )}
                   </div>
-                  <div className='projects-anchor-more' ref={moreMenuRef}>
-                    <div className={`projects-anchor-dropdown ${isMoreMenuOpen ? 'is-open' : ''}`}>
+                  <div className="projects-anchor-more" ref={moreMenuRef}>
+                    <div
+                      className={`projects-anchor-dropdown ${isMoreMenuOpen ? 'is-open' : ''}`}
+                    >
                       <button
                         aria-expanded={isMoreMenuOpen}
-                        aria-haspopup='menu'
-                        className='projects-anchor-chip projects-anchor-summary'
+                        aria-haspopup="menu"
+                        className="projects-anchor-chip projects-anchor-summary"
                         onClick={() => setIsMoreMenuOpen((open) => !open)}
-                        type='button'
+                        type="button"
                       >
                         <span>More</span>
-                        <ChevronDown className='size-3.5' />
+                        <ChevronDown className="size-3.5" />
                       </button>
-                      {isMoreMenuOpen && <div className='projects-anchor-dropdown-menu' role='menu'>
-                        {moreLanguageGroups.length > 0 ? (
-                          moreLanguageGroups.map((group) => (
-                            <a
-                              className='projects-anchor-dropdown-item'
-                              href={`#language-${group.id}`}
-                              key={group.language}
-                              onClick={() => setIsMoreMenuOpen(false)}
-                              role='menuitem'
-                            >
-                              <span>{group.language}</span>
-                              <span>{group.projects.length}</span>
-                            </a>
-                          ))
-                        ) : (
-                          <span className='projects-anchor-dropdown-empty'>{t.projectsUnavailable}</span>
-                        )}
-                      </div>}
+                      {isMoreMenuOpen && (
+                        <div
+                          className="projects-anchor-dropdown-menu"
+                          role="menu"
+                        >
+                          {moreLanguageGroups.length > 0 ? (
+                            moreLanguageGroups.map((group) => (
+                              <a
+                                className="projects-anchor-dropdown-item"
+                                href={`#language-${group.id}`}
+                                key={group.language}
+                                onClick={() => setIsMoreMenuOpen(false)}
+                                role="menuitem"
+                              >
+                                <span>{group.language}</span>
+                                <span>{group.projects.length}</span>
+                              </a>
+                            ))
+                          ) : (
+                            <span className="projects-anchor-dropdown-empty">
+                              {t.projectsUnavailable}
+                            </span>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
-                <label className='projects-search'>
-                  <Search className='pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-white/45' />
-                  <input onChange={(event) => setQuery(event.target.value)} placeholder={t.search} value={query} />
+                <label className="projects-search">
+                  <Search className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-white/45" />
+                  <input
+                    onChange={(event) => setQuery(event.target.value)}
+                    placeholder={t.search}
+                    value={query}
+                  />
                 </label>
               </div>
 
               {projectGroups.length > 0 ? (
-                <div className='mt-12 space-y-12'>
+                <div className="mt-12 space-y-12">
                   {projectGroups.map((group) => (
                     <ProjectLanguageSection
                       group={group}
@@ -512,19 +624,42 @@ export default function Home({ loaderData }: Route.ComponentProps) {
       </section>
 
       {showBackToTop && (
-        <div className='project-floating-actions'>
-          <div className={`project-control-menu ${isProjectControlsOpen ? 'is-open' : ''}`}>
-            <button aria-label='Change language' className='project-control-button' onClick={() => setLocale(locale === 'en' ? 'zh' : 'en')} type='button'>
+        <div className="project-floating-actions">
+          <div
+            className={`project-control-menu ${isProjectControlsOpen ? 'is-open' : ''}`}
+          >
+            <button
+              aria-label="Change language"
+              className="project-control-button"
+              onClick={() => setLocale(locale === 'en' ? 'zh' : 'en')}
+              type="button"
+            >
               {locale === 'en' ? '中' : 'EN'}
             </button>
-            <button aria-label='Toggle theme' className='project-control-button' onClick={handleThemeToggle} type='button'>
-              {theme === 'light' ? <Moon className='size-4' /> : <Sun className='size-4' />}
+            <button
+              aria-label="Toggle theme"
+              className="project-control-button"
+              onClick={handleThemeToggle}
+              type="button"
+            >
+              {theme === 'light' ? (
+                <Moon className="size-4" />
+              ) : (
+                <Sun className="size-4" />
+              )}
             </button>
-            <div className='hero-accent-picker'>
-              <button aria-label='Change accent color' className='project-control-button' onClick={() => setIsAccentMenuOpen((open) => !open)} type='button'>
-                <Palette className='size-4' />
+            <div className="hero-accent-picker">
+              <button
+                aria-label="Change accent color"
+                className="project-control-button"
+                onClick={() => setIsAccentMenuOpen((open) => !open)}
+                type="button"
+              >
+                <Palette className="size-4" />
               </button>
-              <div className={`hero-accent-menu ${isAccentMenuOpen ? 'open' : ''}`}>
+              <div
+                className={`hero-accent-menu ${isAccentMenuOpen ? 'open' : ''}`}
+              >
                 {ACCENT_PRESETS.map((preset) => (
                   <button
                     aria-label={preset.label}
@@ -535,18 +670,24 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                       setIsAccentMenuOpen(false)
                     }}
                     style={{ '--swatch-color': preset.color } as CSSProperties}
-                    type='button'
+                    type="button"
                   />
                 ))}
               </div>
             </div>
           </div>
-          <button aria-expanded={isProjectControlsOpen} aria-label='Toggle project controls' className='project-control-button project-control-toggle' onClick={() => setIsProjectControlsOpen((open) => !open)} type='button'>
-            <Ellipsis className='size-4' />
+          <button
+            aria-expanded={isProjectControlsOpen}
+            aria-label="Toggle project controls"
+            className="project-control-button project-control-toggle"
+            onClick={() => setIsProjectControlsOpen((open) => !open)}
+            type="button"
+          >
+            <Ellipsis className="size-4" />
           </button>
           <button
-            aria-label='Back to top'
-            className='back-to-top-button'
+            aria-label="Back to top"
+            className="back-to-top-button"
             onClick={() => {
               projectScrollLockedRef.current = false
               topNavigationRef.current = true
@@ -554,7 +695,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
               setIsAccentMenuOpen(false)
               window.scrollTo({ top: 0, behavior: 'smooth' })
             }}
-            type='button'
+            type="button"
           >
             <span>Top</span>
           </button>

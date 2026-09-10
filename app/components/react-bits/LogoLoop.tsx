@@ -18,11 +18,16 @@ export function LogoLoop({ className, items }: LogoLoopProps) {
 
   return (
     <div className={cn('logo-loop-shell', className)}>
-      <div className='logo-loop-track'>
+      <div className="logo-loop-track">
         {loopItems.map((item, index) => (
-          <div aria-label={item.label} className='logo-loop-item' key={`${item.label}-${index}`} title={item.label}>
+          <div
+            aria-label={item.label}
+            className="logo-loop-item"
+            key={`${item.label}-${index}`}
+            title={item.label}
+          >
             <span
-              className='logo-loop-dot'
+              className="logo-loop-dot"
               style={{ '--logo-loop-color': item.color } as CSSProperties}
             >
               {item.icon}
