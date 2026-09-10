@@ -1,4 +1,5 @@
 import { ExternalLink, GitFork, HardDrive, Star } from 'lucide-react'
+import { Link } from 'react-router'
 
 import { BorderGlow } from '~/components/react-bits/BorderGlow'
 import { formatBytes, formatDate } from '~/lib/github/projects'
@@ -27,7 +28,11 @@ export function ProjectPanel({
       >
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-2">
-            <h3 className="project-panel-title">{project.displayName}</h3>
+            <h3 className="project-panel-title">
+              <Link to={`/projects/${project.name}`}>
+                {project.displayName}
+              </Link>
+            </h3>
             {project.featured && (
               <span className="project-featured">{t.featured}</span>
             )}

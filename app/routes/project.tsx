@@ -1,0 +1,250 @@
+import { ArrowLeft, Moon, Sun } from 'lucide-react'
+import type { CSSProperties } from 'react'
+import { Link, isRouteErrorResponse } from 'react-router'
+
+import { ProjectDetailAside } from '~/components/sections/project-detail-aside'
+import { RelatedProjects } from '~/components/sections/related-projects'
+import { ACCENT_PRESETS } from '~/data/accents'
+import { useSitePreferences } from '~/hooks/use-site-preferences'
+import { SITE_URL } from '~/lib/config'
+import { projectOgImage } from '~/lib/github/client'
+import { githubTokenFromContext } from '~/lib/github/context'
+import { getProjects } from '~/lib/github/projects'
+import type { Project } from '~/lib/github/projects'
+import { languageColor } from '~/lib/language'
+import { getRelatedProjects } from '~/lib/projects-view'
+import type { Route } from './+types/project'
+
+export async function loader({ context, params }: Route.LoaderArgs) {
+  const payload = await getProjects(githubTokenFromContext(context))
+  const project = payload.projects.find((item) => item.name === params.name)
+
+  if (!project) {
+    throw new Response('Project not found', {
+      status: 404,
+      statusText: 'Not Found',
+    })
+  }
+
+  return {
+    project,
+    related: getRelatedProjects(payload.projects, project),
+  }
+}
+
+export function meta({ data }: Route.MetaArgs) {
+  if (!data?.project) {
+    return [{ title: 'vMaker' }]
+  }
+
+  const { project } = data
+  const title = `${project.displayName} · vMaker`
+  const canonical = `${SITE_URL}/projects/${project.name}`
+  const image = projectOgImage(project.name)
+
+  return [
+    { title },
+    { name: 'description', content: project.description },
+    { tagName: 'link', rel: 'canonical', href: canonical },
+    { property: 'og:type', content: 'article' },
+    { property: 'og:site_name', content: 'vMaker' },
+    { property: 'og:title', content: title },
+    { property: 'og:description', content: project.description },
+    { property: 'og:url', content: canonical },
+    { property: 'og:locale', content: 'zh_CN' },
+    { property: 'og:locale:alternate', content: 'en_US' },
+    { property: 'og:image', content: image },
+    { property: 'og:image:width', content: '1200' },
+    { property: 'og:image:height', content: '600' },
+    { property: 'og:image:alt', content: title },
+    { name: 'twitter:card', content: 'summary_large_image' },
+    { name: 'twitter:title', content: title },
+    { name: 'twitter:description', content: project.description },
+    { name: 'twitter:image', content: image },
+  ]
+}
+
+function LanguageComposition({
+  project,
+  t,
+}: {
+  project: Project
+  t: Record<string, string>
+}) {
+  if (project.languageShares.length === 0) {
+    return null
+  }
+
+  return (
+    <section>
+      <h2 className="detail-section-label">{t.languages}</h2>
+      <div aria-hidden="true" className="detail-lang-bar">
+        {project.languageShares.map((share) => (
+          <span
+            key={share.name}
+            style={{
+              background: languageColor(share.name),
+              flexGrow: share.percent,
+            }}
+          />
+        ))}
+      </div>
+      <ul className="detail-lang-legend">
+        {project.languageShares.map((share) => (
+          <li key={share.name}>
+            <i
+              aria-hidden="true"
+              style={{ background: languageColor(share.name) }}
+            />
+            {share.name} {share.percent}%
+          </li>
+        ))}
+      </ul>
+    </section>
+  )
+}
+
+export default function ProjectRoute({ loaderData }: Route.ComponentProps) {
+  const { project, related } = loaderData
+  const {
+    accentId,
+    activeAccent,
+    isDark,
+    locale,
+    setAccentId,
+    setLocale,
+    setTheme,
+    t,
+    theme,
+  } = useSitePreferences()
+
+  // overrides.cover wins; otherwise reuse GitHub's own per-repository social card
+  const cover = project.cover ?? projectOgImage(project.name)
+
+  function cycleAccent() {
+    const index = ACCENT_PRESETS.findIndex((preset) => preset.id === accentId)
+    const next = ACCENT_PRESETS[(index + 1) % ACCENT_PRESETS.length]
+
+    setAccentId(next.id)
+  }
+
+  return (
+    <main
+      className="detail-page theme-shell home-canvas text-white"
+      lang={locale === 'zh' ? 'zh-CN' : 'en'}
+      style={
+        {
+          '--vmaker-accent': activeAccent.color,
+          '--vmaker-accent-rgb': activeAccent.rgb,
+        } as CSSProperties
+      }
+    >
+      <div className="detail-container">
+        <header className="detail-header">
+          <span className="detail-wordmark">vMaker</span>
+          <nav className="detail-header-nav">
+            <Link className="detail-back" to="/">
+              <ArrowLeft aria-hidden="true" className="size-4" />
+              {t.backToIndex}
+            </Link>
+            <button
+              aria-label={t.changeLocale}
+              className="detail-control"
+              onClick={() => setLocale(locale === 'en' ? 'zh' : 'en')}
+              type="button"
+            >
+              {locale === 'en' ? '中' : 'EN'}
+            </button>
+            <button
+              aria-label={t.changeTheme}
+              className="detail-control"
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              type="button"
+            >
+              {isDark ? (
+                <Sun aria-hidden="true" className="size-4" />
+              ) : (
+                <Moon aria-hidden="true" className="size-4" />
+              )}
+            </button>
+            <button
+              aria-label={t.changeAccent}
+              className="detail-control"
+              onClick={cycleAccent}
+              type="button"
+            >
+              <span
+                className="detail-accent-swatch"
+                style={{ background: activeAccent.color }}
+              />
+            </button>
+          </nav>
+        </header>
+
+        <div className="detail-grid">
+          <div className="detail-main">
+            <div className="detail-title-row">
+              <h1 className="detail-title">{project.displayName}</h1>
+              {project.featured && (
+                <span className="detail-badge detail-badge-accent">
+                  {t.featured}
+                </span>
+              )}
+              {project.archived && (
+                <span className="detail-badge">{t.archived}</span>
+              )}
+            </div>
+            <p className="detail-summary">{project.description}</p>
+
+            <img
+              alt={`${project.displayName} preview`}
+              className="detail-preview"
+              decoding="async"
+              loading="lazy"
+              referrerPolicy="no-referrer"
+              src={cover}
+            />
+
+            <LanguageComposition project={project} t={t} />
+
+            {project.topics.length > 0 && (
+              <section>
+                <h2 className="detail-section-label">{t.topics}</h2>
+                <ul className="detail-topics">
+                  {project.topics.map((topic) => (
+                    <li key={topic}>{topic}</li>
+                  ))}
+                </ul>
+              </section>
+            )}
+          </div>
+
+          <div className="detail-aside">
+            <ProjectDetailAside project={project} t={t} />
+          </div>
+        </div>
+
+        <RelatedProjects projects={related} t={t} />
+      </div>
+    </main>
+  )
+}
+
+export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
+  const { t } = useSitePreferences()
+  const isNotFound = isRouteErrorResponse(error) && error.status === 404
+
+  return (
+    <main className="detail-page theme-shell home-canvas text-white">
+      <div className="detail-container detail-notfound">
+        <h1 className="detail-title">
+          {isNotFound ? t.projectNotFound : t.unavailable}
+        </h1>
+        <Link className="detail-back" to="/">
+          <ArrowLeft aria-hidden="true" className="size-4" />
+          {t.backToIndex}
+        </Link>
+      </div>
+    </main>
+  )
+}

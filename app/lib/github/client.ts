@@ -3,6 +3,12 @@ const GITHUB_GRAPHQL = 'https://api.github.com/graphql'
 
 export const GITHUB_USER = 'xmtlzzz'
 
+// GitHub renders a 1200x600 social card for every public repository, so it doubles
+// as the detail page's preview image and og:image at zero maintenance cost.
+export function projectOgImage(name: string) {
+  return `https://opengraph.githubassets.com/1/${GITHUB_USER}/${name}`
+}
+
 // 优先使用调用方注入的 token（Cloudflare 从 env binding 传入），
 // 本地 / Node 环境（Vercel、react-router-serve）回退到 process.env。
 // 占位符会被忽略，等同于未配置。

@@ -32,7 +32,24 @@ Out of scope (deliberately):
 - **A full commit list.** Already decided against; the index timeline keeps one commit per project.
 - **Comments, issues, contributors, star history.** All need extra calls.
 - **Any new dependency, database or second data source.**
-- **Changing the index.** Cards, filters, timeline and the language rail stay as they are.
+- **A preview image on the index cards.** Confirmed out — the preview is a detail-page element only.
+- **Any other change to the index.** Cards keep their layout, stats, language bar, topics and
+  filter behaviour, and the timeline and language rail are untouched.
+
+### Confirmed decisions
+
+Reviewed with the owner on 2026-09-10:
+
+- the detail page is a **separate page** with its own URL (`/projects/:name`), not a modal or drawer,
+  so it is linkable, shareable and has its own metadata
+- the minimal header is accepted
+- the aside density (4 metric blocks, 2 meta rows, 2 actions) is accepted
+- mobile keeps the layout as drawn; the visible "back to index" affordance is what makes a
+  directly-landed visitor able to leave, since browser history may be empty for them
+- the preview image appears **only** on the detail page
+- the index reach the page through **one** change: the card title becomes a link to
+  `/projects/<name>`. The repository and demo links in the action row stay external and unchanged.
+  A second "details" link was considered and rejected to avoid adding another control to the card.
 
 The page must cost **zero additional GitHub requests**: it reads the same cached
 `getProjects()` payload the index already loads.

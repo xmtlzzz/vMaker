@@ -19,6 +19,12 @@ export async function loader({ context }: Route.LoaderArgs) {
       loc: `${SITE_URL}/`,
       priority: '1.0',
     },
+    ...projects.map((project) => ({
+      changefreq: 'weekly',
+      lastmod: toDateOnly(projectTimestamp(project)),
+      loc: `${SITE_URL}/projects/${project.name}`,
+      priority: '0.8',
+    })),
   ])
 
   return new Response(body, {
