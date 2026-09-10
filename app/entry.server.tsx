@@ -11,7 +11,7 @@ export default async function handleRequest(
   responseStatusCode: number,
   responseHeaders: Headers,
   routerContext: EntryContext,
-  loadContext: unknown
+  _loadContext: unknown
 ) {
   const stream = await renderToReadableStream(
     <ServerRouter context={routerContext} url={request.url} />,

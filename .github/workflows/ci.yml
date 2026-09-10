@@ -32,4 +32,7 @@ jobs:
         run: npm test
 
       - name: Check formatting
-        run: npx prettier --check "app/**/*.{ts,tsx}" "*.ts"
+        run: npx prettier --check "app/**/*.{ts,tsx}" "*.ts" "*.js"
+
+      - name: Lint
+        run: npm run lint
