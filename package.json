@@ -9,7 +9,7 @@
     "deploy": "react-router build && wrangler deploy",
     "cf:dev": "react-router build && wrangler dev",
     "cf:types": "wrangler types",
-    "test": "vite-node app/lib/github/projects.test.ts",
+    "test": "vite-node app/lib/github/projects.test.ts && vite-node app/lib/feed.test.ts",
     "typecheck": "react-router typegen && tsc",
     "format": "prettier --write \"app/**/*.{ts,tsx}\" \"*.{ts,js}\"",
     "lint": "eslint ."

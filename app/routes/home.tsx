@@ -18,10 +18,12 @@ import { useRevealOnView } from '~/hooks/use-reveal-on-view'
 import {
   ACCENT_STORAGE_KEY,
   LOCALE_STORAGE_KEY,
+  SITE_OG_IMAGE,
   SITE_URL,
   THEME_STORAGE_KEY,
 } from '~/lib/config'
 import type { Theme } from '~/lib/config'
+import { githubTokenFromContext } from '~/lib/github/context'
 import { formatDate, getProjects } from '~/lib/github/projects'
 import type { ProjectPayload } from '~/lib/github/projects'
 import { languageNavLabel } from '~/lib/language'
@@ -47,22 +49,28 @@ export function meta() {
     { property: 'og:url', content: `${SITE_URL}/` },
     { property: 'og:locale', content: 'zh_CN' },
     { property: 'og:locale:alternate', content: 'en_US' },
-    { name: 'twitter:card', content: 'summary' },
+    { property: 'og:image', content: SITE_OG_IMAGE },
+    { property: 'og:image:width', content: '1200' },
+    { property: 'og:image:height', content: '600' },
+    { property: 'og:image:alt', content: title },
+    { name: 'twitter:card', content: 'summary_large_image' },
     { name: 'twitter:title', content: title },
     { name: 'twitter:description', content: description },
+    { name: 'twitter:image', content: SITE_OG_IMAGE },
+    {
+      tagName: 'link',
+      rel: 'alternate',
+      type: 'application/rss+xml',
+      title: 'vMaker',
+      href: `${SITE_URL}/feed.xml`,
+    },
   ]
 }
 
 export async function loader({
   context,
 }: Route.LoaderArgs): Promise<ProjectPayload> {
-  // Cloudflare 环境：token 从 env binding 注入（context.cloudflare.env.GITHUB_TOKEN）
-  // 本地 / Vercel 等 Node 环境：getProjects 内部回退 process.env.GITHUB_TOKEN
-  const cloudflare = (
-    context as { cloudflare?: { env?: { GITHUB_TOKEN?: string } } } | undefined
-  )?.cloudflare
-
-  return getProjects(cloudflare?.env?.GITHUB_TOKEN)
+  return getProjects(githubTokenFromContext(context))
 }
 
 export default function Home({ loaderData }: Route.ComponentProps) {
