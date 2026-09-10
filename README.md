@@ -8,9 +8,13 @@ If GitHub is unavailable during a cold start, the homepage falls back to a small
 
 ## What It Does
 
-- Full-screen homepage hero with looping video backgrounds
+- Full-screen homepage hero with layered local SVG artwork
 - Theme toggle with persistence across refresh
+- Accent color presets with persistence
+- ZH / EN copy toggle
 - Project index grouped by primary language
+- Per-project stats: stars, forks, code size, and language composition
+- Featured projects pinned to the top of the index
 - Search across project name, description, language, and topics
 - Commit timeline in the overview column
   - one latest commit per project
@@ -27,7 +31,7 @@ If GitHub is unavailable during a cold start, the homepage falls back to a small
 - TypeScript
 - Vite
 - Tailwind CSS 4
-- shadcn/ui
+- shadcn-compatible component config (`components.json`)
 - lucide-react
 
 ## Project Structure
@@ -134,6 +138,6 @@ npm run build
 
 ## Notes
 
-- The homepage relies on remote background videos for the hero section
-- Video URLs are preloaded when possible and fall back to direct remote playback if preload fails
+- The hero section uses the local SVGs in `public/` (`hero-penguin.svg`, `hero-bird.svg`, `hero-deer.svg`) as layered backgrounds
+- The active slide, accent color, theme, and locale all live in client state; theme and accent persist to `localStorage`
 - Commit timeline quality depends on GitHub API availability
