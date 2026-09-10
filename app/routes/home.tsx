@@ -49,6 +49,8 @@ type CommitTimelineItem = {
 
 const THEME_STORAGE_KEY = 'vmaker-theme'
 const ACCENT_STORAGE_KEY = 'vmaker-accent'
+const LOCALE_STORAGE_KEY = 'vmaker-locale'
+const SITE_URL = 'https://vmaker.xmtlz.dev'
 
 const ACCENT_PRESETS: AccentPreset[] = [
   { id: 'pink', label: 'Pink', color: '#F598F2', rgb: '245 152 242' },
@@ -359,9 +361,24 @@ function useRevealOnView<T extends HTMLElement>(threshold = 0.35): [RefObject<T 
 }
 
 export function meta() {
+  const title = 'vMaker - Project Index'
+  const description =
+    'A curated, searchable index of xmtlzzz public GitHub projects, grouped by language with stars, code size, language composition and recent commit activity.'
+
   return [
-    { title: 'vMaker - Project Index' },
-    { name: 'description', content: 'A cinematic project gateway for xmtlzzz GitHub repositories.' },
+    { title },
+    { name: 'description', content: description },
+    { tagName: 'link', rel: 'canonical', href: `${SITE_URL}/` },
+    { property: 'og:type', content: 'website' },
+    { property: 'og:site_name', content: 'vMaker' },
+    { property: 'og:title', content: title },
+    { property: 'og:description', content: description },
+    { property: 'og:url', content: `${SITE_URL}/` },
+    { property: 'og:locale', content: 'zh_CN' },
+    { property: 'og:locale:alternate', content: 'en_US' },
+    { name: 'twitter:card', content: 'summary' },
+    { name: 'twitter:title', content: title },
+    { name: 'twitter:description', content: description },
   ]
 }
 
@@ -458,6 +475,11 @@ export default function Home({ loaderData }: Route.ComponentProps) {
     if (typeof window === 'undefined') return
     window.localStorage.setItem(ACCENT_STORAGE_KEY, accentId)
   }, [accentId])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    document.documentElement.lang = locale === 'zh' ? 'zh-CN' : 'en'
+  }, [locale])
 
   useEffect(() => {
     const formatClock = () =>
