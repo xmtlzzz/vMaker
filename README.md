@@ -192,6 +192,8 @@ wrangler.toml                    Workers config, custom domain, static assets bi
 
 The detail route matches on the GitHub repository name, the same identifier the index uses for its card anchors, so `#vMaker` links and `/projects/vMaker` refer to the same project.
 
+Returning to the index from a detail page carries that project's anchor, so the index lands on that project's card instead of the top of the page.
+
 ## Data model
 
 GitHub is the source of truth for repository metadata, primary language, topics, stars, forks, timestamps and recent commits.

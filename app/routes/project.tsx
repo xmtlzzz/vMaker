@@ -143,7 +143,10 @@ export default function ProjectRoute({ loaderData }: Route.ComponentProps) {
         <header className="detail-header">
           <span className="detail-wordmark">vMaker</span>
           <nav className="detail-header-nav">
-            <Link className="detail-back" to="/">
+            <Link
+              className="detail-back"
+              to={{ hash: `#${project.name}`, pathname: '/' }}
+            >
               <ArrowLeft aria-hidden="true" className="size-4" />
               {t.backToIndex}
             </Link>

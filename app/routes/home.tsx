@@ -1,6 +1,7 @@
 import { ChevronDown, Ellipsis, Moon, Palette, Search, Sun } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useLocation } from 'react-router'
 
 import { SiteHeader } from '~/components/layout/site-header'
 import { LogoLoop } from '~/components/react-bits/LogoLoop'
@@ -93,6 +94,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
   const moreMenuRef = useRef<HTMLDivElement | null>(null)
   const projectScrollLockedRef = useRef(false)
   const topNavigationRef = useRef(false)
+  const location = useLocation()
 
   const activeSlide = HERO_SLIDES[activeIndex]
   const filteredProjects = useMemo(() => {
@@ -255,6 +257,26 @@ export default function Home({ loaderData }: Route.ComponentProps) {
       window.removeEventListener('keydown', handleKeyDown)
     }
   }, [])
+
+  // Arriving from a project detail page, the URL carries #<repo-name> so the index
+  // lands on that project instead of the top of the page. The card may not exist
+  // yet on the first pass, and late-loading media can shift it, so re-align once
+  // after paint as well.
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    const target = location.hash.slice(1)
+    if (!target) return
+
+    const scrollToTarget = () => {
+      document.getElementById(decodeURIComponent(target))?.scrollIntoView()
+    }
+
+    scrollToTarget()
+    const frame = requestAnimationFrame(scrollToTarget)
+
+    return () => cancelAnimationFrame(frame)
+  }, [location.hash, projects])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
