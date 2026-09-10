@@ -8,11 +8,16 @@ import {
 } from 'react-router'
 
 import type { Route } from './+types/root'
+import { LOCALE_STORAGE_KEY, THEME_STORAGE_KEY } from './lib/config'
 import './app.css'
+
+// Runs before hydration so a dark-theme visitor never sees the light first paint.
+// The theme classes live on <html>; the route shell only carries theme-shell/home-canvas.
+const themeBootstrapScript = `(function(){var el=document.documentElement;var t=null;try{t=window.localStorage.getItem('${THEME_STORAGE_KEY}')}catch(e){}if(t==='dark'){el.classList.add('dark','theme-dark')}else{el.classList.add('theme-light')}try{if(window.localStorage.getItem('${LOCALE_STORAGE_KEY}')==='en'){el.lang='en'}}catch(e){}})()`
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="zh-CN">
+    <html lang="zh-CN" suppressHydrationWarning>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -26,6 +31,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&display=swap"
           rel="stylesheet"
         />
+        <script dangerouslySetInnerHTML={{ __html: themeBootstrapScript }} />
         <Meta />
         <Links />
       </head>

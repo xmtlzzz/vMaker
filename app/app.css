@@ -227,6 +227,16 @@
   transition-timing-function: ease;
 }
 
+/* Theme classes live on <html> (set before hydration by root.tsx), so the canvas
+   rules scope by descendant instead of assuming both classes sit on one element. */
+html.theme-dark {
+  background-color: #050505;
+}
+
+html.theme-light {
+  background-color: #faf9fc;
+}
+
 .home-canvas {
   background:
     radial-gradient(circle at top, rgba(245, 152, 242, 0.14), transparent 28%),
@@ -234,7 +244,7 @@
     linear-gradient(180deg, #000 0%, #040404 50%, #070707 100%);
 }
 
-.theme-light.home-canvas {
+.theme-light .home-canvas {
   background:
     radial-gradient(circle at top, rgba(245, 152, 242, 0.08), transparent 24%),
     radial-gradient(circle at 82% 18%, rgb(var(--vmaker-accent-rgb) / 0.06), transparent 22%),

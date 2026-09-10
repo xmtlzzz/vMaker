@@ -15,7 +15,12 @@ import type { Locale } from '~/data/copy'
 import { HERO_SLIDES } from '~/data/hero-slides'
 import { STACK_LOGOS } from '~/data/stack-logos'
 import { useRevealOnView } from '~/hooks/use-reveal-on-view'
-import { ACCENT_STORAGE_KEY, SITE_URL, THEME_STORAGE_KEY } from '~/lib/config'
+import {
+  ACCENT_STORAGE_KEY,
+  LOCALE_STORAGE_KEY,
+  SITE_URL,
+  THEME_STORAGE_KEY,
+} from '~/lib/config'
 import type { Theme } from '~/lib/config'
 import { formatDate, getProjects } from '~/lib/github/projects'
 import type { ProjectPayload } from '~/lib/github/projects'
@@ -160,12 +165,29 @@ export default function Home({ loaderData }: Route.ComponentProps) {
     if (ACCENT_PRESETS.some((preset) => preset.id === storedAccent)) {
       setAccentId(storedAccent as AccentPreset['id'])
     }
+
+    const storedLocale = window.localStorage.getItem(LOCALE_STORAGE_KEY)
+    if (storedLocale === 'en' || storedLocale === 'zh') setLocale(storedLocale)
   }, [])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
+
+    // 主题类挂在 <html> 上：root.tsx 的内联脚本会在 hydration 前先设置一次，
+    // 这里只负责在用户切换主题后保持同步，避免暗色用户看到亮色首屏。
+    const root = document.documentElement
+    const isDarkTheme = theme === 'dark'
+    root.classList.toggle('dark', isDarkTheme)
+    root.classList.toggle('theme-dark', isDarkTheme)
+    root.classList.toggle('theme-light', !isDarkTheme)
+
     window.localStorage.setItem(THEME_STORAGE_KEY, theme)
   }, [theme])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    window.localStorage.setItem(LOCALE_STORAGE_KEY, locale)
+  }, [locale])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -332,7 +354,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
 
   return (
     <main
-      className={`${theme === 'dark' ? 'dark theme-dark' : 'theme-light'} theme-shell home-canvas min-h-svh bg-black text-white`}
+      className="theme-shell home-canvas min-h-svh bg-black text-white"
       style={
         {
           '--vmaker-accent': activeAccent.color,
