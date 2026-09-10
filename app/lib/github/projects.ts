@@ -233,6 +233,10 @@ function toProject(repo: GitHubRepo, languages: Record<string, number> = {}, com
 
 function sortProjects(projects: Project[]) {
   return projects.sort((a, b) => {
+    if (a.featured !== b.featured) {
+      return a.featured ? -1 : 1
+    }
+
     const aOrder = projectOverrides[a.name]?.order ?? Number.MAX_SAFE_INTEGER
     const bOrder = projectOverrides[b.name]?.order ?? Number.MAX_SAFE_INTEGER
 

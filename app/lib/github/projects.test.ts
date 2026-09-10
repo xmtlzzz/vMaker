@@ -51,6 +51,31 @@ async function testBuildProjectPayload() {
   assert.deepEqual(payload.summary.primaryLanguages, ['TypeScript', 'JavaScript'])
 }
 
+async function testFeaturedSortsFirst() {
+  const payload = buildProjectPayload(
+    [repo('alpha', '2026-06-01T00:00:00Z'), repo('vMaker', '2026-01-01T00:00:00Z')],
+    {
+      alpha: { commits: [], languages: { JavaScript: 100 } },
+      vMaker: { commits: [], languages: { TypeScript: 300 } },
+    },
+  )
+
+  // vMaker 在 overrides 中 featured: true，应排在更新时间更晚的 alpha 之前
+  assert.deepEqual(payload.projects.map((project) => project.name), ['vMaker', 'alpha'])
+}
+
+async function testLanguageSharesAndCodeSize() {
+  const payload = buildProjectPayload([repo('alpha', '2026-02-01T00:00:00Z')], {
+    alpha: { commits: [], languages: { TypeScript: 300, CSS: 100 } },
+  })
+
+  const project = payload.projects[0]
+  assert.equal(project.codeSize, 400)
+  assert.equal(project.languageShares[0].name, 'TypeScript')
+  assert.equal(project.languageShares[0].percent, 75)
+  assert.equal(project.languageShares[1].percent, 25)
+}
+
 async function testFallbackPayload() {
   const payload = createFallbackPayload('GitHub unavailable')
 
@@ -99,6 +124,8 @@ async function testGithubHeadersIgnorePlaceholderToken() {
 }
 
 await testBuildProjectPayload()
+await testFeaturedSortsFirst()
+await testLanguageSharesAndCodeSize()
 await testFallbackPayload()
 await testMapWithConcurrency()
 await testGithubHeadersIgnorePlaceholderToken()

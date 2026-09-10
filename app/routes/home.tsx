@@ -1,4 +1,4 @@
-import { Atom, Boxes, ChevronDown, Ellipsis, ExternalLink, Gauge, GitBranch, Menu, Moon, Palette, Search, Server, Sparkles, Sun, Wind, X } from 'lucide-react'
+import { Atom, Boxes, ChevronDown, Ellipsis, ExternalLink, Gauge, GitBranch, GitFork, HardDrive, Menu, Moon, Palette, Search, Server, Sparkles, Star, Sun, Wind, X } from 'lucide-react'
 import type { CSSProperties, ReactElement, RefObject, SVGProps } from 'react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
@@ -6,7 +6,7 @@ import { BorderGlow } from '~/components/react-bits/BorderGlow'
 import { LogoLoop } from '~/components/react-bits/LogoLoop'
 import { VariableProximity } from '~/components/react-bits/VariableProximity'
 import { Button } from '~/components/ui/button'
-import { formatDate, getProjects } from '~/lib/github/projects'
+import { formatBytes, formatDate, getProjects } from '~/lib/github/projects'
 import type { Project, ProjectPayload } from '~/lib/github/projects'
 import type { Route } from './+types/home'
 
@@ -98,21 +98,26 @@ const copy = {
   en: {
     badge: 'Personal project gateway',
     browse: 'Browse projects',
+    codeSize: 'code size',
     dataLeft: 'Source: GitHub public repositories from xmtlzzz',
     dataRight: 'No mirrored database, no admin layer, no duplicated project records',
     empty: 'No matching projects',
+    featured: 'Featured',
+    forks: 'forks',
     github: 'Open GitHub',
     heroDescription: 'vMaker is a project index for the GitHub work published by xmtlzzz, designed to make browsing repositories, languages, and experiments direct and structured.',
     heroEyebrow: 'Creative development archive',
     heroTitle: 'vMaker.',
     indexLead: 'Scroll from the hero into a live project index without losing context.',
     languageNav: 'Language navigation',
+    languages: 'Language composition',
     latest: 'Latest',
     menu: 'Menu',
     projectsTop: 'Projects top',
     projectsUnavailable: 'Projects unavailable',
     repos: 'Repos',
     search: 'Search projects',
+    stars: 'stars',
     status: 'Index status',
     subtitle: 'The home page stays focused on vMaker itself. Use the top navigation or the project index below to jump into individual xmtlzzz projects.',
     title: 'Jump to a project',
@@ -126,21 +131,26 @@ const copy = {
   zh: {
     badge: '个人项目入口',
     browse: '浏览项目',
+    codeSize: '代码量',
     dataLeft: '数据源：xmtlzzz 的 GitHub 公开仓库',
     dataRight: '不做镜像数据库，不加后台层，不复制项目记录',
     empty: '没有匹配的项目',
+    featured: '精选',
+    forks: '分支',
     github: '打开 GitHub',
     heroDescription: 'vMaker 是一个面向 xmtlzzz GitHub 项目的索引页，用来更直接地浏览仓库、语言分布和不同类型的实验作品。',
     heroEyebrow: '创意开发档案',
     heroTitle: 'vMaker.',
     indexLead: '从首屏自然滑入实时项目索引，而不是切到另一套界面。',
     languageNav: '语言导航',
+    languages: '语言构成',
     latest: '最近活跃',
     menu: '菜单',
     projectsTop: '回到项目分页顶部',
     projectsUnavailable: '项目暂不可用',
     repos: '仓库数',
     search: '搜索项目',
+    stars: '星标',
     status: '索引状态',
     subtitle: '首页继续聚焦 vMaker 本身。你可以通过顶部导航或下方项目索引，定位到不同的 xmtlzzz 项目。',
     title: '定位到项目',
@@ -231,6 +241,38 @@ function languageIconConfig(language: string): LanguageIconConfig {
   if (['sql', 'postgresql', 'mysql'].includes(normalized)) return { accentClassName: 'border-violet-500/30 bg-violet-500/12 text-violet-700 dark:text-violet-300', icon: DatabaseBadge }
 
   return { accentClassName: 'border-border bg-muted text-muted-foreground', icon: GenericCodeBadge }
+}
+
+const LANGUAGE_COLORS: Record<string, string> = {
+  c: '#555555',
+  'c#': '#178600',
+  'c++': '#F34B7D',
+  css: '#1572B6',
+  go: '#00ADD8',
+  html: '#E34F26',
+  java: '#EA580C',
+  javascript: '#F7DF1E',
+  jsx: '#61DAFB',
+  kotlin: '#7F52FF',
+  php: '#777BB4',
+  python: '#3776AB',
+  react: '#61DAFB',
+  ruby: '#CC342D',
+  rust: '#F97316',
+  scss: '#CC6699',
+  shell: '#89E051',
+  sql: '#7C3AED',
+  svelte: '#FF3E00',
+  swift: '#F05138',
+  tsx: '#3178C6',
+  typescript: '#3178C6',
+  vue: '#41B883',
+}
+
+const LANGUAGE_FALLBACK_COLOR = '#94A3B8'
+
+function languageColor(language: string) {
+  return LANGUAGE_COLORS[language.trim().toLowerCase()] ?? LANGUAGE_FALLBACK_COLOR
 }
 
 function languageId(language: string) {
@@ -1064,14 +1106,49 @@ function ProjectPanel({
         onMouseLeave={() => onHover(null)}
       >
         <div className='flex items-start justify-between gap-4'>
-          <div>
+          <div className='flex items-center gap-2'>
             <h3 className='project-panel-title'>{project.displayName}</h3>
+            {project.featured && <span className='project-featured'>{t.featured}</span>}
           </div>
           <a aria-label={`Open ${project.displayName}`} className='project-panel-link' href={project.homepage || project.url} rel='noreferrer' target='_blank'><ExternalLink className='size-4' /></a>
         </div>
         <p className='project-panel-description'>{project.description}</p>
+        {project.languageShares.length > 0 && (
+          <div aria-label={t.languages} className='project-lang' role='group'>
+            <div aria-hidden='true' className='project-lang-bar'>
+              {project.languageShares.slice(0, 4).map((share) => (
+                <span
+                  key={share.name}
+                  style={{ background: languageColor(share.name), flexGrow: share.percent }}
+                />
+              ))}
+            </div>
+            <div className='project-lang-legend'>
+              {project.languageShares.slice(0, 3).map((share) => (
+                <span className='project-lang-legend-item' key={share.name}>
+                  <i aria-hidden='true' style={{ background: languageColor(share.name) }} />
+                  {share.name} {share.percent}%
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
         <div className='mt-5 flex flex-wrap gap-2'>
           {project.topics.slice(0, 4).map((topic) => <span className='project-topic' key={topic}>{topic}</span>)}
+        </div>
+        <div className='project-panel-stats'>
+          <span className='project-stat' title={t.stars}>
+            <Star aria-hidden='true' className='size-3.5' />
+            <span>{project.stars}</span>
+          </span>
+          <span className='project-stat' title={t.forks}>
+            <GitFork aria-hidden='true' className='size-3.5' />
+            <span>{project.forks}</span>
+          </span>
+          <span className='project-stat' title={t.codeSize}>
+            <HardDrive aria-hidden='true' className='size-3.5' />
+            <span>{formatBytes(project.codeSize)}</span>
+          </span>
         </div>
         <div className='mt-6 flex flex-wrap gap-4 text-sm'>
           <a className='project-action' href={project.url} rel='noreferrer' target='_blank'>Repository</a>
