@@ -1,141 +1,39 @@
 import { projectOverrides } from '~/data/project-overrides'
+import {
+  GITHUB_USER,
+  githubFetch,
+  resolveGithubToken,
+} from '~/lib/github/client'
+import { fetchRepoIndexFromGraphql } from '~/lib/github/graphql'
+import type {
+  CommitSummary,
+  GitHubCommit,
+  GitHubRepo,
+  Project,
+  ProjectPayload,
+  ProjectSummary,
+  RepoDetailMap,
+  RepoIndex,
+} from '~/lib/github/types'
 
-const GITHUB_USER = 'xmtlzzz'
-const GITHUB_API = 'https://api.github.com'
+export { githubHeaders, resolveGithubToken } from '~/lib/github/client'
+export type {
+  CommitSummary,
+  GitHubRepo,
+  Project,
+  ProjectPayload,
+  ProjectSummary,
+  RepoDetails,
+  RepoIndex,
+} from '~/lib/github/types'
+
 const DETAIL_FETCH_CONCURRENCY = 5
-
-type GitHubRepo = {
-  archived: boolean
-  created_at: string
-  description: string | null
-  fork: boolean
-  forks_count: number
-  full_name: string
-  homepage: string | null
-  html_url: string
-  language: string | null
-  name: string
-  pushed_at: string | null
-  stargazers_count: number
-  topics?: string[]
-  updated_at: string
-}
-
-type GitHubCommit = {
-  html_url: string
-  sha: string
-  commit: {
-    author: {
-      date: string
-      name: string
-    } | null
-    message: string
-  }
-}
-
-export type CommitSummary = {
-  date: string
-  message: string
-  sha: string
-  url: string
-}
-
-export type Project = {
-  archived: boolean
-  codeSize: number
-  commits: CommitSummary[]
-  cover?: string
-  createdAt: string
-  description: string
-  displayName: string
-  featured: boolean
-  forks: number
-  fullName: string
-  homepage: string | null
-  languages: Record<string, number>
-  languageShares: Array<{ name: string; bytes: number; percent: number }>
-  name: string
-  primaryLanguage: string | null
-  pushedAt: string | null
-  stars: number
-  topics: string[]
-  updatedAt: string
-  url: string
-}
-
-export type ProjectSummary = {
-  latestActivity: string | null
-  primaryLanguages: string[]
-  totalCodeSize: number
-  totalProjects: number
-}
-
-export type ProjectPayload = {
-  error?: string
-  projects: Project[]
-  summary: ProjectSummary
-}
-
-type RepoDetails = {
-  commits: CommitSummary[]
-  languages: Record<string, number>
-}
-
-type RepoDetailMap = Record<string, Partial<RepoDetails> | undefined>
 
 const CACHE_TTL = 1000 * 60 * 10
 let cachedPayload: { payload: ProjectPayload; timestamp: number } | null = null
 
-export function githubHeaders(token?: string) {
-  const headers: Record<string, string> = {
-    Accept: 'application/vnd.github+json',
-    // GitHub API 强制要求 User-Agent，否则返回 403 "Request forbidden by administrative rules"。
-    // Cloudflare Workers 的 fetch 不会自动附加该头（Node/undici 会自动加），所以必须显式声明。
-    'User-Agent': 'vMaker (https://vmaker.xmtlz.dev)',
-    'X-GitHub-Api-Version': '2022-11-28',
-  }
-
-  // 优先使用调用方注入的 token（Cloudflare 从 env binding 传入），
-  // 本地 / Node 环境（Vercel、react-router-serve）回退到 process.env
-  const resolved = token?.trim() ?? process.env.GITHUB_TOKEN?.trim()
-
-  if (resolved && resolved !== 'your_github_token') {
-    headers.Authorization = `Bearer ${resolved}`
-  }
-
-  return headers
-}
-
-async function githubFetch<T>(path: string, token?: string): Promise<T> {
-  const response = await fetch(`${GITHUB_API}${path}`, {
-    headers: githubHeaders(token),
-  })
-
-  if (!response.ok) {
-    // 带上 GitHub 返回的原始原因（如 "API rate limit exceeded for ..."、"Bad credentials"），
-    // 避免只看到 403/401 而无法判断是限流还是 token 未生效。
-    let reason = ''
-    try {
-      const body = await response.text()
-      if (body) {
-        try {
-          reason =
-            (JSON.parse(body) as { message?: string }).message ??
-            body.slice(0, 200)
-        } catch {
-          reason = body.slice(0, 200)
-        }
-      }
-    } catch {
-      // 读取响应体失败则忽略，只保留状态码
-    }
-
-    throw new Error(
-      `GitHub API request failed: ${response.status} ${response.statusText}${reason ? ` — ${reason}` : ''}`
-    )
-  }
-
-  return response.json() as Promise<T>
+function describeError(error: unknown) {
+  return error instanceof Error ? error.message : 'GitHub API request failed'
 }
 
 async function getRepoLanguages(repo: string, token?: string) {
@@ -194,6 +92,57 @@ export async function mapWithConcurrency<T, R>(
   )
 
   return results
+}
+
+// The REST reader costs 1 + 2N requests: the repo list, then languages and
+// commits for every repo. It stays as the unauthenticated path and as the
+// fallback when the GraphQL read fails. Exported so it can be tested against a
+// stubbed fetch rather than the live rate limit.
+export async function fetchRepoIndexFromRest(
+  token?: string
+): Promise<RepoIndex> {
+  const repos = await githubFetch<GitHubRepo[]>(
+    `/users/${GITHUB_USER}/repos?sort=pushed&per_page=100`,
+    token
+  )
+  const visibleRepos = repos.filter(
+    (repo) => !repo.fork && !projectOverrides[repo.name]?.hidden
+  )
+
+  const detailsEntries = await mapWithConcurrency(
+    visibleRepos,
+    DETAIL_FETCH_CONCURRENCY,
+    async (repo) => {
+      const [languages, commits] = await Promise.all([
+        getRepoLanguages(repo.name, token),
+        getRepoCommits(repo.name, token),
+      ])
+
+      return [repo.name, { commits, languages }] as const
+    }
+  )
+
+  return { details: Object.fromEntries(detailsEntries), repos }
+}
+
+async function readRepoIndex(token?: string): Promise<RepoIndex> {
+  const authToken = resolveGithubToken(token)
+
+  // The GraphQL API is authenticated-only, so without a token REST is the only
+  // reader available (public repositories still work unauthenticated).
+  if (!authToken) {
+    return fetchRepoIndexFromRest()
+  }
+
+  try {
+    return await fetchRepoIndexFromGraphql(authToken)
+  } catch (error) {
+    console.warn(
+      `[vMaker] GitHub GraphQL read failed, falling back to REST — ${describeError(error)}`
+    )
+
+    return fetchRepoIndexFromRest(authToken)
+  }
 }
 
 function getLanguageShares(languages: Record<string, number>) {
@@ -348,37 +297,20 @@ export async function getProjects(token?: string): Promise<ProjectPayload> {
   }
 
   try {
-    const repos = await githubFetch<GitHubRepo[]>(
-      `/users/${GITHUB_USER}/repos?sort=pushed&per_page=100`,
-      token
-    )
-    const visibleRepos = repos.filter(
-      (repo) => !repo.fork && !projectOverrides[repo.name]?.hidden
-    )
+    const index = await readRepoIndex(token)
 
-    const detailsEntries = await mapWithConcurrency(
-      visibleRepos,
-      DETAIL_FETCH_CONCURRENCY,
-      async (repo) => {
-        const [languages, commits] = await Promise.all([
-          getRepoLanguages(repo.name, token),
-          getRepoCommits(repo.name, token),
-        ])
+    if (index.truncatedFrom) {
+      console.warn(
+        `[vMaker] indexed ${index.repos.length} of ${index.truncatedFrom} repositories; the remainder needs pagination`
+      )
+    }
 
-        return [repo.name, { commits, languages }] as const
-      }
-    )
-
-    const payload = buildProjectPayload(
-      repos,
-      Object.fromEntries(detailsEntries)
-    )
+    const payload = buildProjectPayload(index.repos, index.details)
 
     cachedPayload = { payload, timestamp: now }
     return payload
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : 'GitHub API request failed'
+    const message = describeError(error)
 
     if (cachedPayload) {
       return {

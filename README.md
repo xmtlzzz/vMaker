@@ -99,7 +99,9 @@ npm ci → build → typecheck → test → prettier --check → lint
 
 > ⚠️ **`build` must run before `typecheck`.** `worker.ts` does `import * as build from './build/server'`, and `build/` is gitignored. On a clean checkout `tsc` fails with `Cannot find module './build/server'` until a build has produced that directory. The same applies locally — run `npm run build` before `npm run typecheck`.
 
-Testing is intentionally minimal: plain `node:assert` executed through `vite-node`. The `test` script chains the test files explicitly (`app/lib/github/projects.test.ts` then `app/lib/feed.test.ts`), so adding a new file means updating that script.
+Testing is intentionally minimal: plain `node:assert` executed through `vite-node`. The `test` script chains the four test files explicitly (`app/lib/github/projects.test.ts`, `graphql.test.ts`, `rest.test.ts`, then `app/lib/feed.test.ts`), so adding a new file means updating that script.
+
+`rest.test.ts` stubs `globalThis.fetch` instead of touching the network, which keeps the REST reader covered even when the unauthenticated rate limit is exhausted.
 
 Lint currently reports **0 errors and 3 warnings**. The warnings come from `react-hooks/set-state-in-effect` in `app/routes/home.tsx` (see Known limitations).
 
@@ -151,9 +153,14 @@ app/
     feed.test.ts                 Unit tests for the builders
     language.ts                  Language naming, ids, nav labels, colors
     projects-view.ts             Grouping + commit timeline derivation (pure)
-    github/projects.ts           GitHub fetching, cache, payload building, formatting
+    github/types.ts              Shared shapes: GitHubRepo, RepoDetails, Project, RepoIndex
+    github/client.ts             Token resolution and the REST / GraphQL transports
+    github/graphql.ts            The one-shot ProjectIndex query and its pure mapper
+    github/projects.ts           REST reader, cache, payload building, formatters
     github/context.ts            Pulls GITHUB_TOKEN out of the Cloudflare load context
-    github/projects.test.ts      Unit tests
+    github/projects.test.ts      Unit tests for the payload builder
+    github/graphql.test.ts       Unit tests for the GraphQL mapper and query shape
+    github/rest.test.ts          Unit tests for the REST reader (stubbed fetch)
     utils.ts                     cn() class merge helper
 public/
   hero-*.svg                     Hero artwork
@@ -167,11 +174,12 @@ wrangler.toml                    Workers config, custom domain, static assets bi
 
 GitHub is the source of truth for repository metadata, primary language, topics, stars, forks, timestamps and recent commits.
 
-Fetching behaviour:
+Fetching behaviour — two readers feed the same payload builder:
 
-- Repository list: `/users/xmtlzzz/repos?sort=pushed&per_page=100`
-- Per repository: `/languages` and `/commits?per_page=5`
-- Detail requests are capped at **5 concurrent** to avoid a request burst on a cold cache fill
+- **GraphQL** (used when a token is present): a single `ProjectIndex` query reads the repository list, languages, topics and the last 5 commits per repository in **one request**. The GraphQL API is authenticated-only, so it is never attempted without a token.
+- **REST** (unauthenticated path, and the fallback if the GraphQL read fails): `/users/xmtlzzz/repos?sort=pushed&per_page=100`, then `/languages` and `/commits?per_page=5` per repository, capped at **5 concurrent**.
+- Whichever reader runs, results are normalised into `GitHubRepo` + `RepoDetails` in `app/lib/github/*`, so `buildProjectPayload` stays the single place that shapes the data.
+- A GraphQL failure is logged (`[vMaker] GitHub GraphQL read failed, falling back to REST — …`) rather than swallowed. Both readers read one page of at most **100 repositories**; the rest are skipped and a warning is logged.
 - A module-level **in-memory cache with a 10 minute TTL** absorbs repeat loads
 - Forks are always excluded; repositories marked `hidden` in the overrides are excluded too
 - Any GitHub failure falls back to the overrides-derived payload, and a stale cache entry is reused if one exists
@@ -360,7 +368,9 @@ npm ci → build → typecheck → test → prettier --check → lint
 
 > ⚠️ **`build` 必须先于 `typecheck`。** `worker.ts` 里有 `import * as build from './build/server'`，而 `build/` 被 gitignore。在干净检出上，`tsc` 会因为找不到 `./build/server` 而报错（`Cannot find module './build/server'`），必须先构建出该目录。本地同理——请先跑 `npm run build` 再跑 `npm run typecheck`。
 
-测试刻意保持轻量：用裸 `node:assert` 通过 `vite-node` 执行。`test` 脚本里显式串联了测试文件（先 `app/lib/github/projects.test.ts`，再 `app/lib/feed.test.ts`），新增测试文件需要同步修改该脚本。
+测试刻意保持轻量：用裸 `node:assert` 通过 `vite-node` 执行。`test` 脚本里显式串联了四个测试文件（依次为 `app/lib/github/projects.test.ts`、`graphql.test.ts`、`rest.test.ts`、`app/lib/feed.test.ts`），新增测试文件需要同步修改该脚本。
+
+`rest.test.ts` 通过桩替换 `globalThis.fetch`、不触碰网络，因此即使匿名额度耗尽，REST 读取逻辑依然有覆盖。
 
 当前 lint 结果是 **0 error、3 warning**，warning 全部来自 `app/routes/home.tsx` 的 `react-hooks/set-state-in-effect`（见「已知限制」）。
 
@@ -412,9 +422,14 @@ app/
     feed.test.ts                 上述构建器的单元测试
     language.ts                  语言命名、id、导航标签、颜色
     projects-view.ts             分组与提交时间线派生（纯函数）
-    github/projects.ts           GitHub 抓取、缓存、payload 组装、格式化
+    github/types.ts              共享类型：GitHubRepo、RepoDetails、Project、RepoIndex
+    github/client.ts             token 解析与 REST / GraphQL 传输层
+    github/graphql.ts            一次性 ProjectIndex 查询及其纯映射函数
+    github/projects.ts           REST 读取、缓存、payload 组装、格式化
     github/context.ts            从 Cloudflare load context 中取出 GITHUB_TOKEN
-    github/projects.test.ts      单元测试
+    github/projects.test.ts      payload 构建的单元测试
+    github/graphql.test.ts       GraphQL 映射与查询结构的单元测试
+    github/rest.test.ts          REST 读取的单元测试（桩 fetch）
     utils.ts                     cn() class 合并工具
 public/
   hero-*.svg                     首屏插画
@@ -428,11 +443,12 @@ wrangler.toml                    Workers 配置、自定义域名、静态资源
 
 GitHub 是仓库元信息、主要语言、topics、star / fork、时间戳和最近提交的唯一数据源。
 
-抓取行为：
+抓取行为 —— 两个读取器产出同一份 payload：
 
-- 仓库列表：`/users/xmtlzzz/repos?sort=pushed&per_page=100`
-- 每个仓库：`/languages` 与 `/commits?per_page=5`
-- 明细请求并发上限为 **5**，避免冷缓存填充时产生请求突发
+- **GraphQL**（有 token 时优先）：一条 `ProjectIndex` 查询在**单次请求**内拿到仓库列表、语言构成、topics 以及每个仓库最近 5 条提交。GraphQL API 必须认证，所以无 token 时完全不会尝试。
+- **REST**（无 token 时的路径，也是 GraphQL 失败后的降级路径）：先 `/users/xmtlzzz/repos?sort=pushed&per_page=100`，再对每个仓库请求 `/languages` 与 `/commits?per_page=5`，并发上限 **5**。
+- 无论走哪个读取器，结果都会归一化成 `app/lib/github/*` 里的 `GitHubRepo` + `RepoDetails`，因此 `buildProjectPayload` 仍是唯一负责塑形的纯函数。
+- GraphQL 失败会**打日志而不是被吞掉**（`[vMaker] GitHub GraphQL read failed, falling back to REST — …`）。两个读取器都只读一页、最多 **100 个仓库**，超出部分会跳过并打印告警。
 - 模块级**内存缓存，TTL 10 分钟**，用于吸收重复访问
 - fork 一律排除；在 overrides 中标记 `hidden` 的仓库也排除
 - 任何 GitHub 失败都会降级到 overrides 派生的 payload；若已有缓存，则复用旧缓存
