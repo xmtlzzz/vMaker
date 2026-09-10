@@ -57,3 +57,83 @@ export function getLatestCommitTimeline(
     .filter((item): item is CommitTimelineItem => item !== null)
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 }
+
+export type ProjectSortKey = 'activity' | 'stars' | 'name' | 'size'
+
+export type ProjectFilter = {
+  demoOnly: boolean
+  featuredOnly: boolean
+  language: string
+  query: string
+}
+
+export const DEFAULT_SORT_KEY: ProjectSortKey = 'activity'
+
+export const ALL_LANGUAGES = 'all'
+
+const SORT_KEYS: readonly string[] = ['activity', 'stars', 'name', 'size']
+
+export function isProjectSortKey(
+  value: string | null
+): value is ProjectSortKey {
+  return value !== null && SORT_KEYS.includes(value)
+}
+
+function lastActivity(project: Project) {
+  return new Date(project.pushedAt || project.updatedAt || 0).getTime()
+}
+
+export function filterProjects(
+  projects: Project[],
+  filter: ProjectFilter
+): Project[] {
+  const text = filter.query.trim().toLowerCase()
+
+  return projects.filter((project) => {
+    if (filter.featuredOnly && !project.featured) return false
+    if (filter.demoOnly && !project.homepage) return false
+    if (
+      filter.language !== ALL_LANGUAGES &&
+      languageName(project) !== filter.language
+    ) {
+      return false
+    }
+    if (!text) return true
+
+    return [
+      project.displayName,
+      project.description,
+      project.primaryLanguage,
+      ...project.topics,
+    ]
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase()
+      .includes(text)
+  })
+}
+
+export function sortProjectsForView(
+  projects: Project[],
+  key: ProjectSortKey
+): Project[] {
+  // copy first: callers pass the loader payload straight through
+  const sorted = [...projects]
+
+  switch (key) {
+    case 'stars':
+      return sorted.sort(
+        (a, b) =>
+          b.stars - a.stars || a.displayName.localeCompare(b.displayName)
+      )
+    case 'name':
+      return sorted.sort((a, b) => a.displayName.localeCompare(b.displayName))
+    case 'size':
+      return sorted.sort(
+        (a, b) =>
+          b.codeSize - a.codeSize || a.displayName.localeCompare(b.displayName)
+      )
+    default:
+      return sorted.sort((a, b) => lastActivity(b) - lastActivity(a))
+  }
+}
