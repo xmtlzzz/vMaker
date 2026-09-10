@@ -1,8 +1,6 @@
 import { ChevronDown, Ellipsis, Moon, Palette, Search, Sun } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useSearchParams } from 'react-router'
-import type { ShouldRevalidateFunctionArgs } from 'react-router'
 
 import { SiteHeader } from '~/components/layout/site-header'
 import { LogoLoop } from '~/components/react-bits/LogoLoop'
@@ -26,16 +24,11 @@ import {
 import type { Theme } from '~/lib/config'
 import { formatDate, getProjects } from '~/lib/github/projects'
 import type { ProjectPayload } from '~/lib/github/projects'
+import { languageNavLabel } from '~/lib/language'
 import {
-  ALL_LANGUAGES,
-  DEFAULT_SORT_KEY,
-  filterProjects,
   getLatestCommitTimeline,
   groupProjectsByLanguage,
-  isProjectSortKey,
-  sortProjectsForView,
 } from '~/lib/projects-view'
-import { languageNavLabel } from '~/lib/language'
 import type { Route } from './+types/home'
 
 export function meta() {
@@ -60,19 +53,6 @@ export function meta() {
   ]
 }
 
-// Browsing state is driven by the query string, so re-running the loader on every
-// keystroke would be a wasted round-trip: the payload does not depend on it.
-export function shouldRevalidate({
-  currentUrl,
-  nextUrl,
-  defaultShouldRevalidate,
-}: ShouldRevalidateFunctionArgs) {
-  if (currentUrl.pathname !== nextUrl.pathname) return true
-  if (currentUrl.search !== nextUrl.search) return false
-
-  return defaultShouldRevalidate
-}
-
 export async function loader({
   context,
 }: Route.LoaderArgs): Promise<ProjectPayload> {
@@ -88,7 +68,7 @@ export async function loader({
 export default function Home({ loaderData }: Route.ComponentProps) {
   const { error, projects, summary } = loaderData
   const [locale, setLocale] = useState<Locale>('zh')
-  const [searchParams, setSearchParams] = useSearchParams()
+  const [query, setQuery] = useState('')
   const [theme, setTheme] = useState<Theme>('light')
   const [accentId, setAccentId] = useState<AccentPreset['id']>(
     ACCENT_PRESETS[0].id
@@ -114,59 +94,26 @@ export default function Home({ loaderData }: Route.ComponentProps) {
   const isDark = theme === 'dark'
   const activeAccent =
     ACCENT_PRESETS.find((preset) => preset.id === accentId) ?? ACCENT_PRESETS[0]
+  const filteredProjects = useMemo(() => {
+    const text = query.trim().toLowerCase()
+    if (!text) return projects
 
-  // Browsing state lives in the URL so a filtered view can be shared or reloaded.
-  const sortParam = searchParams.get('sort')
-  const sortKey = isProjectSortKey(sortParam) ? sortParam : DEFAULT_SORT_KEY
-  const query = searchParams.get('q') ?? ''
-  const languageFilter = searchParams.get('lang') ?? ALL_LANGUAGES
-  const featuredOnly = searchParams.get('featured') === '1'
-  const demoOnly = searchParams.get('demo') === '1'
-
-  function updateParams(
-    patch: Record<string, string | null>,
-    options?: { replace?: boolean }
-  ) {
-    setSearchParams(
-      (prev) => {
-        const next = new URLSearchParams(prev)
-        for (const [key, value] of Object.entries(patch)) {
-          if (value === null || value === '') next.delete(key)
-          else next.set(key, value)
-        }
-        return next
-      },
-      { replace: options?.replace ?? false }
-    )
-  }
-
-  const hasActiveFilters =
-    query !== '' ||
-    languageFilter !== ALL_LANGUAGES ||
-    featuredOnly ||
-    demoOnly ||
-    sortKey !== DEFAULT_SORT_KEY
-
-  const filteredProjects = useMemo(
-    () =>
-      sortProjectsForView(
-        filterProjects(projects, {
-          demoOnly,
-          featuredOnly,
-          language: languageFilter,
-          query,
-        }),
-        sortKey
-      ),
-    [projects, query, languageFilter, featuredOnly, demoOnly, sortKey]
-  )
+    return projects.filter((project) => {
+      return [
+        project.displayName,
+        project.description,
+        project.primaryLanguage,
+        ...project.topics,
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase()
+        .includes(text)
+    })
+  }, [projects, query])
   const projectGroups = useMemo(
     () => groupProjectsByLanguage(filteredProjects),
     [filteredProjects]
-  )
-  const languageFilterOptions = useMemo(
-    () => groupProjectsByLanguage(projects).map((group) => group.language),
-    [projects]
   )
   const languageGroups = useMemo(
     () => groupProjectsByLanguage(projects),
@@ -671,91 +618,11 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                   <Search className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-white/45" />
                   <input
                     aria-label={t.search}
-                    onChange={(event) =>
-                      updateParams({ q: event.target.value }, { replace: true })
-                    }
+                    onChange={(event) => setQuery(event.target.value)}
                     placeholder={t.search}
                     value={query}
                   />
                 </label>
-              </div>
-
-              <div className="projects-filters">
-                <label className="projects-filter">
-                  <span className="projects-filter-label">{t.sortBy}</span>
-                  <select
-                    className="projects-filter-select"
-                    onChange={(event) =>
-                      updateParams({
-                        sort:
-                          event.target.value === DEFAULT_SORT_KEY
-                            ? null
-                            : event.target.value,
-                      })
-                    }
-                    value={sortKey}
-                  >
-                    <option value="activity">{t.sortActivity}</option>
-                    <option value="stars">{t.sortStars}</option>
-                    <option value="name">{t.sortName}</option>
-                    <option value="size">{t.sortSize}</option>
-                  </select>
-                </label>
-
-                <label className="projects-filter">
-                  <span className="projects-filter-label">
-                    {t.filterLanguage}
-                  </span>
-                  <select
-                    className="projects-filter-select"
-                    onChange={(event) =>
-                      updateParams({
-                        lang:
-                          event.target.value === ALL_LANGUAGES
-                            ? null
-                            : event.target.value,
-                      })
-                    }
-                    value={languageFilter}
-                  >
-                    <option value={ALL_LANGUAGES}>{t.languageAll}</option>
-                    {languageFilterOptions.map((language) => (
-                      <option key={language} value={language}>
-                        {language}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-
-                <button
-                  aria-pressed={featuredOnly}
-                  className={`projects-filter-toggle ${featuredOnly ? 'is-active' : ''}`}
-                  onClick={() =>
-                    updateParams({ featured: featuredOnly ? null : '1' })
-                  }
-                  type="button"
-                >
-                  {t.filterFeatured}
-                </button>
-
-                <button
-                  aria-pressed={demoOnly}
-                  className={`projects-filter-toggle ${demoOnly ? 'is-active' : ''}`}
-                  onClick={() => updateParams({ demo: demoOnly ? null : '1' })}
-                  type="button"
-                >
-                  {t.filterDemo}
-                </button>
-
-                {hasActiveFilters && (
-                  <button
-                    className="projects-filter-reset"
-                    onClick={() => setSearchParams({}, { replace: true })}
-                    type="button"
-                  >
-                    {t.resetFilters}
-                  </button>
-                )}
               </div>
 
               {projectGroups.length > 0 ? (
