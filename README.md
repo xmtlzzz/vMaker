@@ -1,5 +1,7 @@
 # vMaker
 
+[![CI](https://github.com/xmtlzzz/vMaker/actions/workflows/ci.yml/badge.svg)](https://github.com/xmtlzzz/vMaker/actions/workflows/ci.yml)
+
 **English** · [简体中文](#简体中文)
 
 > A React Router 7 (SSR) gateway that turns the public GitHub work of `xmtlzzz` into a curated, searchable project index.
