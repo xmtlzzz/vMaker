@@ -1,0 +1,49 @@
+﻿/*
+ * Motion + focus affordances.
+ *
+ * Loaded after the main app.css rules (see the @import at the end of
+ * app/app.css), so same-specificity declarations here win.
+ */
+
+/*
+ * Accessibility fix: `.reveal-block` ships at `opacity: 0` and is only revealed
+ * by the revealUp / revealRight animations. app.css switches those animations
+ * off under reduced motion, which left the hero copy permanently invisible.
+ * Restore the final state directly instead of depending on an animation.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .reveal-block {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Skip link: off-screen until focused, then pinned to the viewport corner. */
+.skip-link {
+  background: #050505;
+  border: 1px solid rgb(var(--vmaker-accent-rgb) / 70%);
+  border-radius: 999px;
+  color: var(--vmaker-accent);
+  font-size: 0.85rem;
+  font-weight: 600;
+  left: 1rem;
+  padding: 0.6rem 1.1rem;
+  position: absolute;
+  text-decoration: none;
+  top: -100%;
+  z-index: 100;
+}
+
+.skip-link:focus,
+.skip-link:focus-visible {
+  outline: 2px solid rgb(var(--vmaker-accent-rgb) / 70%);
+  outline-offset: 2px;
+  top: 1rem;
+}
+
+/* Shared keyboard focus ring; `:where()` keeps specificity at zero so the
+ * component-level focus styles already in app.css keep winning. */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid rgb(var(--vmaker-accent-rgb) / 70%);
+  outline-offset: 2px;
+}

@@ -16,9 +16,12 @@ import { useRevealOnView } from '~/hooks/use-reveal-on-view'
 import { useSitePreferences } from '~/hooks/use-site-preferences'
 import { SITE_OG_IMAGE, SITE_URL } from '~/lib/config'
 import { githubTokenFromContext } from '~/lib/github/context'
-import { formatDate } from '~/lib/format'
+import { matchesQuery, parseSearchQuery, sortProjects } from '~/lib/browse'
+import type { SortKey } from '~/lib/browse'
+import { formatBytes, formatDate } from '~/lib/format'
 import { getProjects } from '~/lib/github/projects'
 import type { ProjectPayload } from '~/lib/github/projects'
+import { indexTotals, topTopics } from '~/lib/insights'
 import { languageNavLabel } from '~/lib/language'
 import {
   getLatestCommitTimeline,
@@ -88,6 +91,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
   const [isProjectControlsOpen, setIsProjectControlsOpen] = useState(false)
   const [hoveredProjectId, setHoveredProjectId] = useState<string | null>(null)
   const [showBackToTop, setShowBackToTop] = useState(false)
+  const [sortKey, setSortKey] = useState<SortKey | 'default'>('default')
   const timelineContainerRef = useRef<HTMLDivElement | null>(null)
   const timelineItemRefs = useRef(new Map<string, HTMLAnchorElement | null>())
   const heroSectionRef = useRef<HTMLElement | null>(null)
@@ -98,23 +102,18 @@ export default function Home({ loaderData }: Route.ComponentProps) {
   const location = useLocation()
 
   const activeSlide = HERO_SLIDES[activeIndex]
+  // Filtering always preserves the loader order (featured first). Only an explicit
+  // sort choice reorders the list, so the default view is byte-for-byte what it was.
   const filteredProjects = useMemo(() => {
-    const text = query.trim().toLowerCase()
-    if (!text) return projects
+    const trimmed = query.trim()
+    const matched = trimmed
+      ? projects.filter((project) =>
+          matchesQuery(project, parseSearchQuery(trimmed))
+        )
+      : projects
 
-    return projects.filter((project) => {
-      return [
-        project.displayName,
-        project.description,
-        project.primaryLanguage,
-        ...project.topics,
-      ]
-        .filter(Boolean)
-        .join(' ')
-        .toLowerCase()
-        .includes(text)
-    })
-  }, [projects, query])
+    return sortKey === 'default' ? matched : sortProjects(matched, sortKey)
+  }, [projects, query, sortKey])
   const projectGroups = useMemo(
     () => groupProjectsByLanguage(filteredProjects),
     [filteredProjects]
@@ -155,6 +154,8 @@ export default function Home({ loaderData }: Route.ComponentProps) {
     () => getLatestCommitTimeline(projects),
     [projects]
   )
+  const totals = useMemo(() => indexTotals(projects), [projects])
+  const topics = useMemo(() => topTopics(projects, 6), [projects])
   const [titleRef, titleVisible] = useRevealOnView<HTMLDivElement>()
   const [copyRef, copyVisible] = useRevealOnView<HTMLDivElement>()
   const [buttonRef, buttonVisible] = useRevealOnView<HTMLDivElement>()
@@ -335,6 +336,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
   return (
     <main
       className="theme-shell home-canvas min-h-svh bg-black text-white"
+      id="main-content"
       style={
         {
           '--vmaker-accent': activeAccent.color,
@@ -342,6 +344,9 @@ export default function Home({ loaderData }: Route.ComponentProps) {
         } as CSSProperties
       }
     >
+      <a className="skip-link" href="#projects">
+        {t.skipToContent}
+      </a>
       <section
         className="hero-shell relative min-h-svh overflow-hidden bg-black text-white"
         ref={heroSectionRef}
@@ -484,9 +489,44 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                   <Metric
                     isDark={isDark}
                     label={t.latest}
-                    value={formatDate(summary.latestActivity, locale)}
+                    value={formatDate(
+                      totals.latestActivity ?? summary.latestActivity,
+                      locale
+                    )}
+                  />
+                  <Metric
+                    isDark={isDark}
+                    label={t.stars}
+                    value={totals.totalStars.toString()}
+                  />
+                  <Metric
+                    isDark={isDark}
+                    label={t.totalCode}
+                    value={formatBytes(totals.totalCodeSize)}
                   />
                 </div>
+                {topics.length > 0 && (
+                  <div className="index-topics" aria-label={t.topics}>
+                    {topics.map((entry) => (
+                      <button
+                        aria-pressed={query.includes(`topic:${entry.topic}`)}
+                        className="index-topic-chip"
+                        key={entry.topic}
+                        onClick={() =>
+                          setQuery((current) =>
+                            current.includes(`topic:${entry.topic}`)
+                              ? current
+                              : `${current} topic:${entry.topic}`.trim()
+                          )
+                        }
+                        type="button"
+                      >
+                        {entry.topic}
+                        <span>{entry.count}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
                 {error && (
                   <p className="project-error-note mt-4">{t.tokenHelp}</p>
                 )}
@@ -592,6 +632,23 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                     </div>
                   </div>
                 </div>
+                <label className="projects-sort">
+                  <span className="projects-sort-label">{t.sort}</span>
+                  <select
+                    aria-label={t.sort}
+                    className="projects-sort-select"
+                    onChange={(event) =>
+                      setSortKey(event.target.value as SortKey | 'default')
+                    }
+                    value={sortKey}
+                  >
+                    <option value="default">{t.latest}</option>
+                    <option value="activity">{t.sortActivity}</option>
+                    <option value="stars">{t.sortStars}</option>
+                    <option value="name">{t.sortName}</option>
+                    <option value="size">{t.sortSize}</option>
+                  </select>
+                </label>
                 <label className="projects-search">
                   <Search className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-white/45" />
                   <input
