@@ -68,6 +68,15 @@ async function testReadsEveryEndpoint() {
   projectOverrides.secret = { hidden: true }
 
   const calls = installFetch((url) => {
+    if (url.endsWith('/users/xmtlzzz')) {
+      return json({
+        avatar_url: 'https://avatars.githubusercontent.com/u/1?v=4',
+        html_url: 'https://github.com/xmtlzzz',
+        login: 'xmtlzzz',
+        name: 'Xmtlzzz',
+      })
+    }
+
     if (url.includes('/repos?sort=pushed&per_page=100')) {
       // vMaker is visible, forked is a fork, secret is hidden via the overrides
       return json([
@@ -152,6 +161,12 @@ async function testReadsEveryEndpoint() {
     assert.equal(index.details.forked, undefined)
     assert.equal(index.details.secret, undefined)
     assert.equal(index.truncatedFrom, undefined)
+    assert.deepEqual(index.owner, {
+      avatarUrl: 'https://avatars.githubusercontent.com/u/1?v=4',
+      login: 'xmtlzzz',
+      name: 'Xmtlzzz',
+      url: 'https://github.com/xmtlzzz',
+    })
   } finally {
     restoreFetch()
     restoreOverrides()
@@ -207,12 +222,45 @@ async function testTokenIsForwarded() {
   try {
     await fetchRepoIndexFromRest('test-token')
 
-    assert.equal(calls.length, 1)
-    assert.equal(headers[0]?.Authorization, 'Bearer test-token')
+    // the profile read and the repository list, both authenticated
+    assert.equal(calls.length, 2)
+    assert.ok(calls.some((url) => url.endsWith('/users/xmtlzzz')))
+    assert.ok(calls.some((url) => url.includes('/users/xmtlzzz/repos?')))
+    assert.ok(
+      headers.every((entry) => entry.Authorization === 'Bearer test-token')
+    )
 
     // the placeholder documented in the README must never be sent as a token
+    const before = headers.length
     await fetchRepoIndexFromRest('your_github_token')
-    assert.equal(headers[1]?.Authorization, undefined)
+    assert.ok(
+      headers.slice(before).every((entry) => entry.Authorization === undefined)
+    )
+  } finally {
+    restoreFetch()
+  }
+}
+
+// The profile read is a nice-to-have: a 403 on `/users/<login>` (e.g. the shared
+// Cloudflare egress IP is throttled) must cost only the display name, never the index.
+async function testProfileFailureStillReturnsRepositories() {
+  installFetch((url) => {
+    if (url.endsWith('/users/xmtlzzz')) {
+      return json({ message: 'API rate limit exceeded' }, 403)
+    }
+    if (url.includes('/repos?sort=pushed')) return json([repoFixture('vMaker')])
+    if (url.includes('/languages')) return json({})
+    if (url.includes('/commits')) return json([])
+    if (url.includes('/releases')) return json([])
+
+    return undefined
+  })
+
+  try {
+    const index = await fetchRepoIndexFromRest()
+
+    assert.equal(index.owner, undefined)
+    assert.equal(index.repos.length, 1)
   } finally {
     restoreFetch()
   }
@@ -220,5 +268,6 @@ async function testTokenIsForwarded() {
 
 await testReadsEveryEndpoint()
 await testDetailFailuresDegrade()
+await testProfileFailureStillReturnsRepositories()
 await testRepoListFailureThrows()
 await testTokenIsForwarded()

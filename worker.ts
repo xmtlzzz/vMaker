@@ -7,7 +7,12 @@ import type { ExecutionContext } from '@cloudflare/workers-types'
 // 正式环境的 GITHUB_TOKEN 请在 Cloudflare 面板 Settings → Variables 中配置为 Secret；
 // 本地调试用 .dev.vars（见 .dev.vars.example）
 interface Env {
+  // Optional overrides. Both are read from the load context by the routes:
+  // GITHUB_LOGIN picks the account the REST reader indexes, SITE_URL pins the
+  // canonical origin used by meta tags, the feed and the sitemap.
+  GITHUB_LOGIN?: string
   GITHUB_TOKEN?: string
+  SITE_URL?: string
 }
 
 const requestHandler = createRequestHandler(

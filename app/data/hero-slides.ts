@@ -27,7 +27,7 @@ export const HERO_SLIDES: HeroSlide[] = [
     accent: '#FFFFFF',
     availability: 'Open to creative dev collaborations',
     description:
-      'Made for browsing the full spread of xmtlzzz work without flattening it into a static portfolio screenshot.',
+      'Made for browsing the full spread of {owner} work without flattening it into a static portfolio screenshot.',
     label: '03 / CREATIVE DEV',
     imageUrl: '/hero-deer.svg',
   },

@@ -40,6 +40,22 @@ export type CommitSummary = {
   url: string
 }
 
+// The account the index is rendered *for*. `login` is the handle used in links,
+// `name` is the human display name used in prose, and both come from GitHub rather
+// than a constant so a deployment labels itself with its own account.
+export type GitHubOwner = {
+  avatarUrl: string | null
+  login: string
+  name: string | null
+  url: string
+}
+
+// The name to render in prose: the human display name when GitHub has one, the
+// handle otherwise. Never empty, so copy never reads "from ."
+export function ownerLabel(owner: GitHubOwner) {
+  return owner.name?.trim() || owner.login
+}
+
 export type ProjectRelease = {
   name: string
   publishedAt: string
@@ -84,6 +100,7 @@ export type ProjectSummary = {
 
 export type ProjectPayload = {
   error?: string
+  owner: GitHubOwner
   projects: Project[]
   summary: ProjectSummary
 }
@@ -102,6 +119,9 @@ export type RepoDetailMap = Record<string, Partial<RepoDetails> | undefined>
 // What a reader (REST or GraphQL) hands back to the payload builder.
 export type RepoIndex = {
   details: RepoDetailMap
+  // Present when the reader can see the account itself (GraphQL `viewer`). The REST
+  // reader has no such endpoint, so it leaves this unset and falls back to the login.
+  owner?: GitHubOwner
   repos: GitHubRepo[]
   // set when the source knows the account has more repositories than were read
   truncatedFrom?: number

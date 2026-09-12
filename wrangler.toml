@@ -24,6 +24,11 @@ binding = "ASSETS"
 # GITHUB_TOKEN=your_github_token
 [vars]
 # 如需明文变量可在此声明，若在面板配置则留空
+# 可选：无 token 时（REST 读取器）索引哪个账号，默认 xmtlzzz
+# GITHUB_LOGIN = "xmtlzzz"
+# 可选：钉住 canonical / og:url / feed / sitemap 使用的正式域名；
+# 不配置则按请求域名解析，预览部署会使用自己的地址
+# SITE_URL = "https://vmaker.xmtlz.dev"
 
 # 观测（与云端原配置一致，方便看日志）
 [observability]

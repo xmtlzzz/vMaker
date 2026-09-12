@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "vMaker 请求流量",
+    "locale": "zh-CN",
+    "output": "docs/diagrams/vmaker-traffic.html",
+    "quality_profile": "showcase",
+    "viewBox": [1084, 600],
+    "column_fit": "spread",
+    "animation": "trace",
+    "views": [
+      {
+        "id": "read-and-degrade",
+        "label": "读取与降级",
+        "focus": ["user", "spa", "worker", "loader", "projects", "gql", "rest"],
+        "note": "GraphQL 优先；无 token 或查询失败时在同一次请求内切到 REST。"
+      },
+      {
+        "id": "cache-reuse",
+        "label": "缓存复用",
+        "focus": ["loader", "projects"],
+        "note": "详情页读取同一份缓存 payload，不产生任何额外 GitHub 请求。"
+      }
+    ]
+  },
+  "participants": [
+    { "id": "user", "type": "external", "label": "访客", "sublabel": "浏览器" },
+    { "id": "spa", "type": "frontend", "label": "React 客户端", "sublabel": "hydration" },
+    { "id": "worker", "type": "cloud", "label": "Worker", "sublabel": "worker.ts" },
+    { "id": "loader", "type": "backend", "label": "路由 Loader", "sublabel": "home / project" },
+    { "id": "projects", "type": "backend", "label": "GitHub 数据层", "sublabel": "projects.ts" },
+    { "id": "gql", "type": "external", "label": "GitHub GraphQL", "sublabel": "需 token" },
+    { "id": "rest", "type": "external", "label": "GitHub REST", "sublabel": "1 + 2N · 并发 5" }
+  ],
+  "segments": [
+    { "from": 162, "to": 492, "label": "GraphQL 优先 · REST 降级 · 缓存复用" }
+  ],
+  "messages": [
+    { "id": "open-home", "from": "user", "to": "spa", "y": 170, "label": "打开首页 /", "variant": "default" },
+    { "id": "nav-request", "from": "spa", "to": "worker", "y": 202, "label": "GET / · 导航请求", "variant": "emphasis" },
+    { "id": "inject-context", "from": "worker", "to": "loader", "y": 234, "label": "注入 cloudflare env / ctx", "variant": "default" },
+    { "id": "call-getprojects", "from": "loader", "to": "projects", "y": 266, "label": "getProjects(token)", "variant": "emphasis" },
+    { "id": "graphql-query", "from": "projects", "to": "gql", "y": 298, "label": "ProjectIndex 单次查询", "variant": "emphasis" },
+    { "id": "graphql-rows", "from": "gql", "to": "projects", "y": 330, "label": "仓库 + 语言 + 5 条提交", "variant": "return" },
+    { "id": "rest-fallback", "from": "projects", "to": "rest", "y": 362, "label": "无 token / 失败 → 降级", "variant": "dashed" },
+    { "id": "rest-rows", "from": "rest", "to": "projects", "y": 394, "label": "同一 RepoIndex 形状", "variant": "return" },
+    { "id": "payload", "from": "projects", "to": "loader", "y": 426, "label": "ProjectPayload · 写缓存", "variant": "return" },
+    { "id": "ssr-html", "from": "loader", "to": "spa", "y": 458, "label": "SSR HTML", "variant": "return" },
+    { "id": "render-index", "from": "spa", "to": "user", "y": 490, "label": "首屏 + 索引（hydration）", "variant": "return" }
+  ],
+  "activations": [
+    { "participant": "spa", "from": 194, "to": 496, "type": "frontend" },
+    { "participant": "worker", "from": 202, "to": 462, "type": "cloud" },
+    { "participant": "loader", "from": 234, "to": 462, "type": "backend" },
+    { "participant": "projects", "from": 266, "to": 430, "type": "backend" },
+    { "participant": "gql", "from": 294, "to": 334, "type": "external" },
+    { "participant": "rest", "from": 358, "to": 398, "type": "external" }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "一次请求，双读取器",
+      "items": [
+        "GraphQL 需要 token，命中时用一次 ProjectIndex 拿到全部数据",
+        "无 token 走 REST；GraphQL 失败也在同一次请求内降级到 REST",
+        "两个读取器产出同一个 RepoIndex，下游只有一条塑形路径"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "缓存与详情页复用",
+      "items": [
+        "模块级内存缓存 TTL 10 分钟，吸收重复访问",
+        "详情页读同一份 payload，因此不产生任何额外 GitHub 请求",
+        "GitHub 完全不可用时回退本地 overrides；有旧缓存则复用旧缓存",
+        "/feed.xml 与 /sitemap.xml 复用同一 loader，返回 XML 并缓存 600 秒"
+      ]
+    }
+  ]
+}

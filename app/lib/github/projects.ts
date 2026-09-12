@@ -1,12 +1,13 @@
 import { projectOverrides } from '~/data/project-overrides'
 import {
-  GITHUB_USER,
   githubFetch,
+  resolveGithubLogin,
   resolveGithubToken,
 } from '~/lib/github/client'
 import { fetchRepoIndexFromGraphql } from '~/lib/github/graphql'
 import type {
   GitHubCommit,
+  GitHubOwner,
   GitHubRepo,
   Project,
   ProjectPayload,
@@ -17,8 +18,10 @@ import type {
 } from '~/lib/github/types'
 
 export { githubHeaders, resolveGithubToken } from '~/lib/github/client'
+export { ownerLabel } from '~/lib/github/types'
 export type {
   CommitSummary,
+  GitHubOwner,
   GitHubRepo,
   Project,
   ProjectPayload,
@@ -26,6 +29,18 @@ export type {
   RepoDetails,
   RepoIndex,
 } from '~/lib/github/types'
+
+// The owner shown when GitHub cannot tell us who we are - the offline fallback and
+// the unauthenticated REST path. The login is known, the human name is not, so the
+// UI falls back to rendering the login instead of inventing a name.
+export function fallbackOwner(login = resolveGithubLogin()): GitHubOwner {
+  return {
+    avatarUrl: null,
+    login,
+    name: null,
+    url: `https://github.com/${login}`,
+  }
+}
 
 const DETAIL_FETCH_CONCURRENCY = 5
 
@@ -36,10 +51,10 @@ function describeError(error: unknown) {
   return error instanceof Error ? error.message : 'GitHub API request failed'
 }
 
-async function getRepoLanguages(repo: string, token?: string) {
+async function getRepoLanguages(login: string, repo: string, token?: string) {
   try {
     return await githubFetch<Record<string, number>>(
-      `/repos/${GITHUB_USER}/${repo}/languages`,
+      `/repos/${login}/${repo}/languages`,
       token
     )
   } catch {
@@ -47,7 +62,7 @@ async function getRepoLanguages(repo: string, token?: string) {
   }
 }
 
-async function getRepoReleases(repo: string, token?: string) {
+async function getRepoReleases(login: string, repo: string, token?: string) {
   try {
     const releases = await githubFetch<
       Array<{
@@ -56,7 +71,7 @@ async function getRepoReleases(repo: string, token?: string) {
         tag_name: string
         html_url: string
       }>
-    >(`/repos/${GITHUB_USER}/${repo}/releases?per_page=5`, token)
+    >(`/repos/${login}/${repo}/releases?per_page=5`, token)
 
     return releases.map((release) => ({
       name: release.name || release.tag_name || 'Release',
@@ -69,12 +84,12 @@ async function getRepoReleases(repo: string, token?: string) {
   }
 }
 
-async function getRepoCommits(repo: string, token?: string) {
+async function getRepoCommits(login: string, repo: string, token?: string) {
   let commits: GitHubCommit[] = []
 
   try {
     commits = await githubFetch<GitHubCommit[]>(
-      `/repos/${GITHUB_USER}/${repo}/commits?per_page=5`,
+      `/repos/${login}/${repo}/commits?per_page=5`,
       token
     )
   } catch {
@@ -124,10 +139,14 @@ export async function mapWithConcurrency<T, R>(
 export async function fetchRepoIndexFromRest(
   token?: string
 ): Promise<RepoIndex> {
-  const repos = await githubFetch<GitHubRepo[]>(
-    `/users/${GITHUB_USER}/repos?sort=pushed&per_page=100`,
-    token
-  )
+  const login = resolveGithubLogin()
+  const [profile, repos] = await Promise.all([
+    getOwnerProfile(login, token),
+    githubFetch<GitHubRepo[]>(
+      `/users/${login}/repos?sort=pushed&per_page=100`,
+      token
+    ),
+  ])
   const visibleRepos = repos.filter(
     (repo) => !repo.fork && !projectOverrides[repo.name]?.hidden
   )
@@ -137,9 +156,9 @@ export async function fetchRepoIndexFromRest(
     DETAIL_FETCH_CONCURRENCY,
     async (repo) => {
       const [languages, commits, releases] = await Promise.all([
-        getRepoLanguages(repo.name, token),
-        getRepoCommits(repo.name, token),
-        getRepoReleases(repo.name, token),
+        getRepoLanguages(login, repo.name, token),
+        getRepoCommits(login, repo.name, token),
+        getRepoReleases(login, repo.name, token),
       ])
 
       return [
@@ -155,7 +174,43 @@ export async function fetchRepoIndexFromRest(
     }
   )
 
-  return { details: Object.fromEntries(detailsEntries), repos }
+  return {
+    details: Object.fromEntries(detailsEntries),
+    ...(profile ? { owner: profile } : {}),
+    repos,
+  }
+}
+
+type RestProfile = {
+  avatar_url?: string | null
+  html_url?: string | null
+  login?: string | null
+  name?: string | null
+}
+
+// A failure here only costs the display name, so it degrades to undefined and the
+// caller falls back to the login rather than failing the whole index.
+async function getOwnerProfile(
+  login: string,
+  token?: string
+): Promise<GitHubOwner | undefined> {
+  try {
+    const profile = await githubFetch<RestProfile>(`/users/${login}`, token)
+    const resolvedLogin = profile.login?.trim()
+
+    if (!resolvedLogin) {
+      return undefined
+    }
+
+    return {
+      avatarUrl: profile.avatar_url?.trim() || null,
+      login: resolvedLogin,
+      name: profile.name?.trim() || null,
+      url: profile.html_url?.trim() || `https://github.com/${resolvedLogin}`,
+    }
+  } catch {
+    return undefined
+  }
 }
 
 async function readRepoIndex(token?: string): Promise<RepoIndex> {
@@ -285,7 +340,8 @@ function summarize(projects: Project[]): ProjectSummary {
 
 export function buildProjectPayload(
   repos: GitHubRepo[],
-  detailsByRepo: RepoDetailMap = {}
+  detailsByRepo: RepoDetailMap = {},
+  owner: GitHubOwner = fallbackOwner()
 ): ProjectPayload {
   const visibleRepos = repos.filter(
     (repo) => !repo.fork && !projectOverrides[repo.name]?.hidden
@@ -296,6 +352,7 @@ export function buildProjectPayload(
   const sortedProjects = sortProjects(projects)
 
   return {
+    owner,
     projects: sortedProjects,
     summary: summarize(sortedProjects),
   }
@@ -303,6 +360,7 @@ export function buildProjectPayload(
 
 function fallbackRepo(name: string): GitHubRepo {
   const override = projectOverrides[name] ?? {}
+  const login = resolveGithubLogin()
 
   return {
     archived: false,
@@ -310,9 +368,9 @@ function fallbackRepo(name: string): GitHubRepo {
     description: override.summary ?? null,
     fork: false,
     forks_count: 0,
-    full_name: `${GITHUB_USER}/${name}`,
+    full_name: `${login}/${name}`,
     homepage: null,
-    html_url: `https://github.com/${GITHUB_USER}/${name}`,
+    html_url: `https://github.com/${login}/${name}`,
     language: null,
     name,
     pushed_at: null,
@@ -351,7 +409,11 @@ export async function getProjects(token?: string): Promise<ProjectPayload> {
       )
     }
 
-    const payload = buildProjectPayload(index.repos, index.details)
+    const payload = buildProjectPayload(
+      index.repos,
+      index.details,
+      index.owner ?? fallbackOwner()
+    )
 
     cachedPayload = { payload, timestamp: now }
     return payload

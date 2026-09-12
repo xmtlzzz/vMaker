@@ -3,7 +3,7 @@ import { readdirSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-import { copy } from '~/data/copy'
+import { copy, formatCopy } from '~/data/copy'
 import { formatBytes, formatDate, NO_RECORD } from '~/lib/format'
 
 // The en/zh dictionaries must stay key-for-key identical: a key added to only one
@@ -76,10 +76,43 @@ function testFormatDateHandlesMissingValues() {
   assert.equal(formatDate('not-a-date', 'en'), NO_RECORD.en)
 }
 
+function testFormatCopyFillsPlaceholders() {
+  assert.equal(formatCopy('Hello {owner}', { owner: 'Ada' }), 'Hello Ada')
+  assert.equal(
+    formatCopy('{owner} and {owner}', { owner: 'Ada' }),
+    'Ada and Ada'
+  )
+  // an unknown placeholder is left intact rather than silently blanked
+  assert.equal(formatCopy('{missing}', {}), '{missing}')
+  // text without placeholders is returned untouched
+  assert.equal(formatCopy('plain text', { owner: 'Ada' }), 'plain text')
+}
+
+// The account is a runtime value now, so no dictionary string may embed the handle.
+// A leftover literal would render one account's name on another account's deploy.
+function testCopyHasNoHardcodedHandle() {
+  for (const locale of ['en', 'zh'] as const) {
+    for (const value of Object.values(copy[locale])) {
+      assert.ok(
+        !value.includes('xmtlzzz'),
+        `copy.${locale} must not hardcode an account: ${value}`
+      )
+    }
+  }
+
+  // the strings that name the account must carry the placeholder instead
+  for (const key of ['dataLeft', 'heroDescription', 'subtitle'] as const) {
+    assert.match(copy.en[key], /\{owner\}/)
+    assert.match(copy.zh[key], /\{owner\}/)
+  }
+}
+
 testCopyParity()
 testEveryUsedKeyExists()
 testFormatBytes()
 testFormatDateIsLocaleAware()
 testFormatDateHandlesMissingValues()
+testFormatCopyFillsPlaceholders()
+testCopyHasNoHardcodedHandle()
 
 console.log('format tests passed')

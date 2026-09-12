@@ -12,10 +12,15 @@ import { Metric } from '~/components/sections/project-metric'
 import { ACCENT_PRESETS } from '~/data/accents'
 import { HERO_SLIDES } from '~/data/hero-slides'
 import { STACK_LOGOS } from '~/data/stack-logos'
+import { formatCopy } from '~/data/copy'
 import { useRevealOnView } from '~/hooks/use-reveal-on-view'
 import { useSitePreferences } from '~/hooks/use-site-preferences'
-import { SITE_OG_IMAGE, SITE_URL } from '~/lib/config'
-import { githubTokenFromContext } from '~/lib/github/context'
+import { resolveSiteUrl, SITE_REPO } from '~/lib/config'
+import { repoOgImage } from '~/lib/github/client'
+import {
+  githubTokenFromContext,
+  siteUrlFromContext,
+} from '~/lib/github/context'
 import { matchesQuery, parseSearchQuery, sortProjects } from '~/lib/browse'
 import type { SortKey } from '~/lib/browse'
 import {
@@ -26,7 +31,7 @@ import {
 } from '~/lib/document-cache'
 import { formatBytes, formatDate } from '~/lib/format'
 import { etagMatches } from '~/lib/http-cache'
-import { getProjects } from '~/lib/github/projects'
+import { getProjects, ownerLabel } from '~/lib/github/projects'
 import { indexTotals, topTopics } from '~/lib/insights'
 import { languageNavLabel } from '~/lib/language'
 import {
@@ -35,36 +40,41 @@ import {
 } from '~/lib/projects-view'
 import type { Route } from './+types/home'
 
-export function meta() {
+export function meta({ data }: Route.MetaArgs) {
+  const owner = data?.owner
+  const ownerName = owner ? ownerLabel(owner) : 'GitHub'
   const title = 'vMaker - Project Index'
-  const description =
-    'A curated, searchable index of xmtlzzz public GitHub projects, grouped by language with stars, code size, language composition and recent commit activity.'
+  const description = `A curated, searchable index of ${ownerName} public GitHub projects, grouped by language with stars, code size, language composition and recent commit activity.`
+  const siteUrl = resolveSiteUrl({ configured: data?.siteUrl })
+  // GitHub's per-repository social card; the owner is always present because the
+  // loader resolves one even on the offline fallback path.
+  const ogImage = repoOgImage(owner?.login ?? 'github', SITE_REPO)
 
   return [
     { title },
     { name: 'description', content: description },
-    { tagName: 'link', rel: 'canonical', href: `${SITE_URL}/` },
+    { tagName: 'link', rel: 'canonical', href: `${siteUrl}/` },
     { property: 'og:type', content: 'website' },
     { property: 'og:site_name', content: 'vMaker' },
     { property: 'og:title', content: title },
     { property: 'og:description', content: description },
-    { property: 'og:url', content: `${SITE_URL}/` },
+    { property: 'og:url', content: `${siteUrl}/` },
     { property: 'og:locale', content: 'zh_CN' },
     { property: 'og:locale:alternate', content: 'en_US' },
-    { property: 'og:image', content: SITE_OG_IMAGE },
+    { property: 'og:image', content: ogImage },
     { property: 'og:image:width', content: '1200' },
     { property: 'og:image:height', content: '600' },
     { property: 'og:image:alt', content: title },
     { name: 'twitter:card', content: 'summary_large_image' },
     { name: 'twitter:title', content: title },
     { name: 'twitter:description', content: description },
-    { name: 'twitter:image', content: SITE_OG_IMAGE },
+    { name: 'twitter:image', content: ogImage },
     {
       tagName: 'link',
       rel: 'alternate',
       type: 'application/rss+xml',
       title: 'vMaker',
-      href: `${SITE_URL}/feed.xml`,
+      href: `${siteUrl}/feed.xml`,
     },
   ]
 }
@@ -85,11 +95,20 @@ export async function loader({ context, request }: Route.LoaderArgs) {
     throw notModifiedResponse(etag)
   }
 
-  return data(payload, { headers })
+  return data(
+    {
+      ...payload,
+      siteUrl: resolveSiteUrl({
+        configured: siteUrlFromContext(context),
+        request,
+      }),
+    },
+    { headers }
+  )
 }
 
 export default function Home({ loaderData }: Route.ComponentProps) {
-  const { error, projects, summary } = loaderData
+  const { error, owner, projects, summary } = loaderData
   const [query, setQuery] = useState('')
   const {
     accentId,
@@ -101,7 +120,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
     setTheme,
     t,
     theme,
-  } = useSitePreferences()
+  } = useSitePreferences(ownerLabel(owner))
   const [activeIndex, setActiveIndex] = useState(0)
   const [clock, setClock] = useState('')
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -396,6 +415,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
           onAccentMenuToggle={() => setIsAccentMenuOpen((open) => !open)}
           onMenuToggle={() => setIsMenuOpen((open) => !open)}
           onThemeToggle={handleThemeToggle}
+          owner={owner}
           setLocale={setLocale}
           t={t}
           theme={theme}
@@ -457,7 +477,11 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                 ref={copyRef}
               >
                 <p className="hero-description">{t.heroDescription}</p>
-                <p className="hero-slide-copy">{activeSlide.description}</p>
+                <p className="hero-slide-copy">
+                  {formatCopy(activeSlide.description, {
+                    owner: ownerLabel(owner),
+                  })}
+                </p>
               </div>
               <div
                 className={`reveal-block delay-1 ${buttonVisible ? 'is-visible reveal-right' : ''}`}

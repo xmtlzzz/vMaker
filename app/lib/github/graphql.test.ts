@@ -132,8 +132,12 @@ async function testCommitFallbacks() {
 
 async function testMapIndex() {
   const index = mapGraphqlRepoIndex({
-    user: {
+    viewer: {
+      avatarUrl: 'https://avatars.githubusercontent.com/u/1?v=4',
+      login: 'xmtlzzz',
+      name: 'Xmtlzzz',
       repositories: { nodes: [fullNode, null, bareNode], totalCount: 5 },
+      url: 'https://github.com/xmtlzzz',
     },
   })
 
@@ -145,11 +149,20 @@ async function testMapIndex() {
   assert.deepEqual(index.details.empty?.languages, {})
   // totalCount exceeds what was read, so the caller can warn about pagination
   assert.equal(index.truncatedFrom, 5)
+  // the account comes from the token's own viewer, not a constant
+  assert.deepEqual(index.owner, {
+    avatarUrl: 'https://avatars.githubusercontent.com/u/1?v=4',
+    login: 'xmtlzzz',
+    name: 'Xmtlzzz',
+    url: 'https://github.com/xmtlzzz',
+  })
 
   const complete = mapGraphqlRepoIndex({
-    user: { repositories: { nodes: [bareNode], totalCount: 1 } },
+    viewer: { repositories: { nodes: [bareNode], totalCount: 1 } },
   })
   assert.equal(complete.truncatedFrom, undefined)
+  // a viewer with no login cannot label the site, so the caller falls back
+  assert.equal(complete.owner, undefined)
 
   const empty = mapGraphqlRepoIndex({})
   assert.deepEqual(empty.repos, [])
@@ -167,13 +180,12 @@ async function testQueryAndVariablesStayInSync() {
   assert.deepEqual(unique, [
     'commits',
     'languages',
-    'login',
     'releases',
     'repos',
     'topics',
   ])
   assert.deepEqual(
-    ['login', ...Object.keys(REPO_INDEX_LIMITS)].sort(),
+    Object.keys(REPO_INDEX_LIMITS).sort(),
     unique,
     'the variables we send must match the ones the query declares'
   )

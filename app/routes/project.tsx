@@ -7,7 +7,7 @@ import { RelatedProjects } from '~/components/sections/related-projects'
 import { ACCENT_PRESETS } from '~/data/accents'
 import type { Locale } from '~/data/copy'
 import { useSitePreferences } from '~/hooks/use-site-preferences'
-import { SITE_URL } from '~/lib/config'
+import { resolveSiteUrl } from '~/lib/config'
 import {
   documentEtag,
   documentHeaders,
@@ -16,9 +16,12 @@ import {
 } from '~/lib/document-cache'
 import { formatDate } from '~/lib/format'
 import { etagMatches } from '~/lib/http-cache'
-import { projectOgImage } from '~/lib/github/client'
-import { githubTokenFromContext } from '~/lib/github/context'
-import { getProjects } from '~/lib/github/projects'
+import { repoOgImage } from '~/lib/github/client'
+import {
+  githubTokenFromContext,
+  siteUrlFromContext,
+} from '~/lib/github/context'
+import { getProjects, ownerLabel } from '~/lib/github/projects'
 import type { Project } from '~/lib/github/projects'
 import { languageColor } from '~/lib/language'
 import { getRelatedProjects } from '~/lib/projects-view'
@@ -47,8 +50,13 @@ export async function loader({ context, params, request }: Route.LoaderArgs) {
 
   return data(
     {
+      owner: payload.owner,
       project,
       related: getRelatedProjects(payload.projects, project),
+      siteUrl: resolveSiteUrl({
+        configured: siteUrlFromContext(context),
+        request,
+      }),
     },
     { headers: documentHeaders(etag) }
   )
@@ -59,10 +67,10 @@ export function meta({ data }: Route.MetaArgs) {
     return [{ title: 'vMaker' }]
   }
 
-  const { project } = data
+  const { owner, project } = data
   const title = `${project.displayName} · vMaker`
-  const canonical = `${SITE_URL}/projects/${project.name}`
-  const image = projectOgImage(project.name)
+  const canonical = `${resolveSiteUrl({ configured: data.siteUrl })}/projects/${project.name}`
+  const image = repoOgImage(owner.login, project.name)
 
   return [
     { title },
@@ -168,7 +176,7 @@ function Releases({
 }
 
 export default function ProjectRoute({ loaderData }: Route.ComponentProps) {
-  const { project, related } = loaderData
+  const { owner, project, related } = loaderData
   const {
     accentId,
     activeAccent,
@@ -179,10 +187,10 @@ export default function ProjectRoute({ loaderData }: Route.ComponentProps) {
     setTheme,
     t,
     theme,
-  } = useSitePreferences()
+  } = useSitePreferences(ownerLabel(owner))
 
   // overrides.cover wins; otherwise reuse GitHub's own per-repository social card
-  const cover = project.cover ?? projectOgImage(project.name)
+  const cover = project.cover ?? repoOgImage(owner.login, project.name)
 
   function cycleAccent() {
     const index = ACCENT_PRESETS.findIndex((preset) => preset.id === accentId)

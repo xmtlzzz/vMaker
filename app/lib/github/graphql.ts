@@ -2,6 +2,7 @@ import { GITHUB_USER, githubGraphql } from '~/lib/github/client'
 import type {
   CommitSummary,
   GitHubRepo,
+  GitHubOwner,
   ProjectRelease,
   RepoDetails,
   RepoIndex,
@@ -10,9 +11,17 @@ import type {
 // One request replaces the previous 1 + 2N REST calls (repo list, then languages
 // and commits per repo). GraphQL requires a token, so the caller only uses this
 // reader when one is available.
+//
+// The read is rooted at `viewer`, so the indexed account - and the name the site
+// renders - come from the token itself rather than a constant. Pointing the token at
+// a different account is therefore all it takes to re-label a deployment.
 export const REPO_INDEX_QUERY = `
-query ProjectIndex($login: String!, $repos: Int!, $topics: Int!, $languages: Int!, $commits: Int!, $releases: Int!) {
-  user(login: $login) {
+query ProjectIndex($repos: Int!, $topics: Int!, $languages: Int!, $commits: Int!, $releases: Int!) {
+  viewer {
+    avatarUrl
+    login
+    name
+    url
     repositories(
       first: $repos
       ownerAffiliations: [OWNER]
@@ -124,11 +133,15 @@ export type GraphqlRepositoryNode = {
 }
 
 export type GraphqlRepoIndexData = {
-  user?: {
+  viewer?: {
+    avatarUrl?: string | null
+    login?: string | null
+    name?: string | null
     repositories?: {
       nodes?: Array<GraphqlRepositoryNode | null> | null
       totalCount?: number | null
     } | null
+    url?: string | null
   } | null
 }
 
@@ -197,7 +210,7 @@ export function mapGraphqlRepository(node: GraphqlRepositoryNode) {
 }
 
 export function mapGraphqlRepoIndex(data: GraphqlRepoIndexData): RepoIndex {
-  const repositories = data.user?.repositories
+  const repositories = data.viewer?.repositories
   const nodes = (repositories?.nodes ?? []).filter(
     (node): node is GraphqlRepositoryNode => Boolean(node)
   )
@@ -212,19 +225,41 @@ export function mapGraphqlRepoIndex(data: GraphqlRepoIndexData): RepoIndex {
   }
 
   const totalCount = repositories?.totalCount ?? repos.length
+  const owner = mapGraphqlOwner(data)
 
   return {
     details,
+    ...(owner ? { owner } : {}),
     repos,
     // mirrors the existing REST reader, which reads a single page of 100
     ...(totalCount > repos.length ? { truncatedFrom: totalCount } : {}),
   }
 }
 
+// `viewer` is always resolvable for a valid token, but the mapper stays defensive:
+// a token that can read repositories should never fail the whole index just because
+// the profile fields came back empty.
+export function mapGraphqlOwner(
+  data: GraphqlRepoIndexData
+): GitHubOwner | undefined {
+  const login = data.viewer?.login?.trim()
+
+  if (!login) {
+    return undefined
+  }
+
+  return {
+    avatarUrl: data.viewer?.avatarUrl?.trim() || null,
+    login,
+    name: data.viewer?.name?.trim() || null,
+    url: data.viewer?.url?.trim() || `https://github.com/${login}`,
+  }
+}
+
 export async function fetchRepoIndexFromGraphql(token: string) {
   const data = await githubGraphql<GraphqlRepoIndexData>(
     REPO_INDEX_QUERY,
-    { login: GITHUB_USER, ...REPO_INDEX_LIMITS },
+    { ...REPO_INDEX_LIMITS },
     token
   )
 

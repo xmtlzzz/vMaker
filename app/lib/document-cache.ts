@@ -25,6 +25,9 @@ function projectPart(project: Project) {
 export function indexSignature(payload: ProjectPayload) {
   return [
     'index',
+    // The owner is rendered in the header and hero copy, so a changed account must
+    // invalidate the document even when the project list itself looks unchanged.
+    payload.owner.login,
     payload.summary.totalProjects,
     payload.summary.latestActivity ?? '',
     payload.error ?? '',

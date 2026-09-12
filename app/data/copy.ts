@@ -1,5 +1,16 @@
 export type Locale = 'en' | 'zh'
 
+// Copy refers to the account by a `{owner}` placeholder rather than a literal
+// handle, because the indexed account is resolved from the GitHub token at runtime.
+// `formatCopy` fills it in; leaving a placeholder unresolved is a visible bug, so
+// the placeholder is only ever used for the owner.
+export function formatCopy(text: string, values: Record<string, string>) {
+  return text.replace(
+    /\{(\w+)\}/g,
+    (match, key: string) => values[key] ?? match
+  )
+}
+
 // Every interface string lives here. `en` is the source of truth for the key set:
 // `zh` is typed as Record<CopyKey, string>, so a missing or extra Chinese key is a
 // compile error instead of a string that silently falls back to English.
@@ -13,7 +24,7 @@ const en = {
   close: 'Close',
   codeSize: 'code size',
   createdAt: 'Created',
-  dataLeft: 'Source: GitHub public repositories from xmtlzzz',
+  dataLeft: 'Source: public GitHub repositories from {owner}',
   dataRight:
     'No mirrored database, no admin layer, no duplicated project records',
   demo: 'Open Demo',
@@ -22,7 +33,7 @@ const en = {
   featured: 'Featured',
   forks: 'forks',
   heroDescription:
-    'vMaker is a project index for the GitHub work published by xmtlzzz, designed to make browsing repositories, languages, and experiments direct and structured.',
+    'vMaker is a project index for the GitHub work published by {owner}, designed to make browsing repositories, languages, and experiments direct and structured.',
   heroEyebrow: 'Creative development archive',
   indexLead:
     'Scroll from the hero into a live project index without losing context.',
@@ -57,7 +68,7 @@ const en = {
   stars: 'stars',
   status: 'Index status',
   subtitle:
-    'The home page stays focused on vMaker itself. Use the top navigation or the project index below to jump into individual xmtlzzz projects.',
+    'The home page stays focused on vMaker itself. Use the top navigation or the project index below to jump into individual {owner} projects.',
   title: 'Jump to a project',
   tokenHelp:
     'Set a real GITHUB_TOKEN (GitHub personal access token) in .env / Vercel, or as a Cloudflare Worker secret under Settings → Variables & Secrets, then redeploy and restart.',
@@ -82,7 +93,7 @@ const zh: Record<CopyKey, string> = {
   close: '关闭',
   codeSize: '代码量',
   createdAt: '创建于',
-  dataLeft: '数据源：xmtlzzz 的 GitHub 公开仓库',
+  dataLeft: '数据源：{owner} 的 GitHub 公开仓库',
   dataRight: '不做镜像数据库，不加后台层，不复制项目记录',
   demo: '打开 Demo',
   demoLabel: 'Demo',
@@ -90,7 +101,7 @@ const zh: Record<CopyKey, string> = {
   featured: '精选',
   forks: '分支',
   heroDescription:
-    'vMaker 是一个面向 xmtlzzz GitHub 项目的索引页，用来更直接地浏览仓库、语言分布和不同类型的实验作品。',
+    'vMaker 是一个面向 {owner} GitHub 项目的索引页，用来更直接地浏览仓库、语言分布和不同类型的实验作品。',
   heroEyebrow: '创意开发档案',
   indexLead: '从首屏自然滑入实时项目索引，而不是切到另一套界面。',
   languageNav: '语言导航',
@@ -124,7 +135,7 @@ const zh: Record<CopyKey, string> = {
   stars: '星标',
   status: '索引状态',
   subtitle:
-    '首页继续聚焦 vMaker 本身。你可以通过顶部导航或下方项目索引，定位到不同的 xmtlzzz 项目。',
+    '首页继续聚焦 vMaker 本身。你可以通过顶部导航或下方项目索引，定位到不同的 {owner} 项目。',
   title: '定位到项目',
   tokenHelp:
     '请在 .env / Vercel，或 Cloudflare 面板 Settings → Variables & Secrets 里配置真实的 GITHUB_TOKEN（占位符 your_github_token 会被忽略），再重新部署并重启服务。',

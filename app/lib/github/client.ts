@@ -1,12 +1,23 @@
+import { SITE_URL } from '~/lib/config'
+
 const GITHUB_API = 'https://api.github.com'
 const GITHUB_GRAPHQL = 'https://api.github.com/graphql'
 
+// Fallback handle, used only by the REST reader (which addresses `/users/<login>`)
+// and by the offline payload. The authenticated GraphQL reader replaces it with the
+// token's own login, so a redeploy indexes - and labels itself with - its own
+// account instead of this one. Override it with GITHUB_LOGIN when running on REST.
 export const GITHUB_USER = 'xmtlzzz'
 
+export function resolveGithubLogin() {
+  return process.env.GITHUB_LOGIN?.trim() || GITHUB_USER
+}
+
 // GitHub renders a 1200x600 social card for every public repository, so it doubles
-// as the detail page's preview image and og:image at zero maintenance cost.
-export function projectOgImage(name: string) {
-  return `https://opengraph.githubassets.com/1/${GITHUB_USER}/${name}`
+// as the detail page's preview image and og:image at zero maintenance cost. The
+// login is passed in because the indexed account is resolved at runtime.
+export function repoOgImage(login: string, name: string) {
+  return `https://opengraph.githubassets.com/1/${login}/${name}`
 }
 
 // 优先使用调用方注入的 token（Cloudflare 从 env binding 传入），
@@ -27,7 +38,7 @@ export function githubHeaders(token?: string) {
     Accept: 'application/vnd.github+json',
     // GitHub API 强制要求 User-Agent，否则返回 403 "Request forbidden by administrative rules"。
     // Cloudflare Workers 的 fetch 不会自动附加该头（Node/undici 会自动加），所以必须显式声明。
-    'User-Agent': 'vMaker (https://vmaker.xmtlz.dev)',
+    'User-Agent': `vMaker (${SITE_URL})`,
     'X-GitHub-Api-Version': '2022-11-28',
   }
 

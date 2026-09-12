@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import { ACCENT_PRESETS } from '~/data/accents'
 import type { AccentPreset } from '~/data/accents'
-import { copy } from '~/data/copy'
+import { copy, formatCopy } from '~/data/copy'
 import type { Locale } from '~/data/copy'
 import {
   ACCENT_STORAGE_KEY,
@@ -14,7 +14,11 @@ import type { Theme } from '~/lib/config'
 // Theme, accent and locale are the only preferences the site keeps, and every route
 // needs them. They live here so the index and the project detail page cannot drift
 // apart; each value is seeded from localStorage and written back on change.
-export function useSitePreferences() {
+//
+// `ownerLabel` fills the `{owner}` placeholder in the copy. It is passed in rather
+// than imported so the account is whatever the loader resolved from GitHub, not a
+// build-time constant.
+export function useSitePreferences(ownerLabel = '') {
   const [locale, setLocale] = useState<Locale>('zh')
   const [theme, setTheme] = useState<Theme>('light')
   const [accentId, setAccentId] = useState<AccentPreset['id']>(
@@ -64,6 +68,13 @@ export function useSitePreferences() {
   const activeAccent =
     ACCENT_PRESETS.find((preset) => preset.id === accentId) ?? ACCENT_PRESETS[0]
 
+  // Only the owner-related strings carry a placeholder, and formatCopy leaves any
+  // other text untouched, so interpolating the whole dictionary is safe.
+  const t = useMemo(
+    () => formatCopyObject(copy[locale], ownerLabel),
+    [locale, ownerLabel]
+  )
+
   return {
     accentId,
     activeAccent,
@@ -72,7 +83,25 @@ export function useSitePreferences() {
     setAccentId,
     setLocale,
     setTheme,
-    t: copy[locale],
+    t,
     theme,
   }
+}
+
+function formatCopyObject<T extends Record<string, string>>(
+  dictionary: T,
+  ownerLabel: string
+): T {
+  if (!ownerLabel) {
+    return dictionary
+  }
+
+  const values = { owner: ownerLabel }
+  const result = {} as Record<string, string>
+
+  for (const [key, value] of Object.entries(dictionary)) {
+    result[key] = formatCopy(value, values)
+  }
+
+  return result as T
 }

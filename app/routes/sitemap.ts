@@ -1,11 +1,18 @@
-import { SITE_URL } from '~/lib/config'
+import { resolveSiteUrl } from '~/lib/config'
 import { buildSitemap, projectTimestamp, toDateOnly } from '~/lib/feed'
-import { githubTokenFromContext } from '~/lib/github/context'
+import {
+  githubTokenFromContext,
+  siteUrlFromContext,
+} from '~/lib/github/context'
 import { getProjects } from '~/lib/github/projects'
 import type { Route } from './+types/sitemap'
 
-export async function loader({ context }: Route.LoaderArgs) {
+export async function loader({ context, request }: Route.LoaderArgs) {
   const { projects } = await getProjects(githubTokenFromContext(context))
+  const siteUrl = resolveSiteUrl({
+    configured: siteUrlFromContext(context),
+    request,
+  })
 
   const lastmod = projects
     .map((project) => projectTimestamp(project))
@@ -16,13 +23,13 @@ export async function loader({ context }: Route.LoaderArgs) {
     {
       changefreq: 'daily',
       lastmod: toDateOnly(lastmod),
-      loc: `${SITE_URL}/`,
+      loc: `${siteUrl}/`,
       priority: '1.0',
     },
     ...projects.map((project) => ({
       changefreq: 'weekly',
       lastmod: toDateOnly(projectTimestamp(project)),
-      loc: `${SITE_URL}/projects/${project.name}`,
+      loc: `${siteUrl}/projects/${project.name}`,
       priority: '0.8',
     })),
   ])

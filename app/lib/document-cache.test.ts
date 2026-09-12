@@ -46,6 +46,12 @@ function payload(
   overrides: Partial<ProjectPayload> = {}
 ): ProjectPayload {
   return {
+    owner: {
+      avatarUrl: null,
+      login: 'xmtlzzz',
+      name: null,
+      url: 'https://github.com/xmtlzzz',
+    },
     projects,
     summary: {
       latestActivity: projects[0]?.pushedAt ?? null,
@@ -136,6 +142,24 @@ function testProjectSignatureChangesWithDescription() {
   )
 }
 
+// The owner is rendered in the header and hero copy, so switching the GitHub token
+// to another account must not leave a cached page claiming the old name.
+function testIndexSignatureReflectsTheOwner() {
+  const base = indexSignature(payload([project('alpha')]))
+  const other = indexSignature(
+    payload([project('alpha')], {
+      owner: {
+        avatarUrl: null,
+        login: 'someone-else',
+        name: null,
+        url: 'https://github.com/someone-else',
+      },
+    })
+  )
+
+  assert.notEqual(other, base)
+}
+
 function testNotModifiedResponseHasNoBody() {
   const response = notModifiedResponse('"abc"')
 
@@ -187,6 +211,7 @@ testEtagIsAQuotedHeaderValue()
 testSignatureChangesWhenProjectsChange()
 testSignatureReflectsErrorState()
 testProjectSignatureChangesWithDescription()
+testIndexSignatureReflectsTheOwner()
 testNotModifiedResponseHasNoBody()
 testForwardDocumentHeadersPrefersErrorResponse()
 testForwardDocumentHeadersFallsBackToLoaderHeaders()

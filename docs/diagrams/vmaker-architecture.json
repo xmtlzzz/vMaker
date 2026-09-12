@@ -1,0 +1,209 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "vMaker 运行时架构",
+    "locale": "zh-CN",
+    "output": "docs/diagrams/vmaker-architecture.html",
+    "quality_profile": "showcase",
+    "viewBox": [1360, 640],
+    "views": [
+      {
+        "id": "client",
+        "label": "浏览器与客户端状态",
+        "focus": ["visitor", "spa"],
+        "note": "主题、强调色与语言只存在 localStorage，首屏前由内联脚本应用。"
+      },
+      {
+        "id": "edge",
+        "label": "边缘入口与 SSR",
+        "focus": ["visitor", "assets", "worker", "router"],
+        "note": "静态资源由 Static Assets 直出，未命中的动态路由交给 Worker。"
+      },
+      {
+        "id": "data",
+        "label": "数据读取与降级",
+        "focus": ["loaders", "projects", "gql", "rest", "overrides"],
+        "note": "GraphQL 优先，REST 降级，全部失败回退本地 overrides。"
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "spa",
+      "type": "frontend",
+      "label": "React 19 客户端",
+      "sublabel": "hydration · 搜索 · 偏好",
+      "pos": [40, 120],
+      "size": [190, 60]
+    },
+    {
+      "id": "visitor",
+      "type": "external",
+      "label": "访客浏览器",
+      "sublabel": "桌面 / 移动",
+      "pos": [40, 400],
+      "size": [190, 60]
+    },
+    {
+      "id": "assets",
+      "type": "cloud",
+      "label": "Static Assets",
+      "sublabel": "build/client",
+      "tag": "ASSETS binding",
+      "pos": [300, 90],
+      "size": [180, 60]
+    },
+    {
+      "id": "worker",
+      "type": "cloud",
+      "label": "Cloudflare Worker",
+      "sublabel": "worker.ts · fetch",
+      "tag": "vmaker.xmtlz.dev",
+      "pos": [300, 300],
+      "size": [180, 60]
+    },
+    {
+      "id": "router",
+      "type": "backend",
+      "label": "React Router 7",
+      "sublabel": "SSR · build/server",
+      "pos": [570, 300],
+      "size": [160, 60]
+    },
+    {
+      "id": "loaders",
+      "type": "backend",
+      "label": "路由 Loader",
+      "sublabel": "home / project / feed",
+      "pos": [790, 300],
+      "size": [160, 60]
+    },
+    {
+      "id": "projects",
+      "type": "backend",
+      "label": "GitHub 数据层",
+      "sublabel": "projects.ts",
+      "tag": "缓存 TTL 10min",
+      "pos": [1080, 300],
+      "size": [180, 60]
+    },
+    {
+      "id": "gql",
+      "type": "external",
+      "label": "GitHub GraphQL",
+      "sublabel": "api.github.com/graphql",
+      "tag": "需 token",
+      "pos": [1080, 120],
+      "size": [180, 60]
+    },
+    {
+      "id": "rest",
+      "type": "external",
+      "label": "GitHub REST",
+      "sublabel": "api.github.com",
+      "tag": "1 + 2N · 并发 5",
+      "pos": [1080, 480],
+      "size": [180, 60]
+    },
+    {
+      "id": "overrides",
+      "type": "database",
+      "label": "本地 Overrides",
+      "sublabel": "project-overrides.ts",
+      "pos": [790, 480],
+      "size": [160, 60]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Cloudflare Workers 运行时",
+      "wraps": ["assets", "worker", "router", "loaders", "projects"]
+    }
+  ],
+  "connections": [
+    { "id": "visitor-spa", "from": "visitor", "to": "spa", "label": "访问站点" },
+    {
+      "id": "spa-assets",
+      "from": "spa",
+      "to": "assets",
+      "label": "GET 静态资源",
+      "variant": "dashed"
+    },
+    {
+      "id": "spa-worker",
+      "from": "spa",
+      "to": "worker",
+      "label": "导航请求",
+      "variant": "emphasis"
+    },
+    {
+      "id": "worker-router",
+      "from": "worker",
+      "to": "router",
+      "label": "注入 env / ctx",
+      "variant": "emphasis"
+    },
+    { "id": "router-loaders", "from": "router", "to": "loaders", "label": "匹配路由" },
+    {
+      "id": "loaders-projects",
+      "from": "loaders",
+      "to": "projects",
+      "label": "getProjects",
+      "variant": "emphasis"
+    },
+    {
+      "id": "projects-gql",
+      "from": "projects",
+      "to": "gql",
+      "label": "GraphQL 优先",
+      "variant": "emphasis"
+    },
+    {
+      "id": "projects-rest",
+      "from": "projects",
+      "to": "rest",
+      "label": "REST 降级",
+      "variant": "dashed",
+      "labelDy": 24
+    },
+    {
+      "id": "projects-overrides",
+      "from": "projects",
+      "to": "overrides",
+      "label": "本地兜底",
+      "variant": "dashed"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "入口与渲染",
+      "items": [
+        "Worker 只做一件事：把 Cloudflare env / ctx 交给 createRequestHandler",
+        "静态资源由 Workers Static Assets 托管 build/client，不进入 SSR",
+        "四条路由：索引、项目详情、feed.xml、sitemap.xml"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "数据读取与降级",
+      "items": [
+        "GraphQL 用一次 ProjectIndex 拿到仓库、语言与最近 5 条提交，必须有 token",
+        "REST 成本 1 + 2N、并发上限 5，是无 token 与失败后的降级路径",
+        "内存缓存 TTL 10 分钟，详情页复用同一份 payload，不产生额外请求",
+        "GitHub 全部不可用时回退到本地 overrides 派生的数据集，而不是空索引"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "客户端状态",
+      "items": [
+        "主题 / 强调色 / 语言存 localStorage，内联脚本在 hydration 前应用",
+        "搜索与语言分组是纯客户端 useMemo，不触发任何请求",
+        "首屏与索引之间的滚动吸附、返回顶部胶囊均为本地交互"
+      ]
+    }
+  ]
+}

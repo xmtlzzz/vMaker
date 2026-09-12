@@ -4,6 +4,8 @@ import { Menu, Moon, Palette, Sun, X } from 'lucide-react'
 import type { AccentPreset } from '~/data/accents'
 import type { Locale } from '~/data/copy'
 import type { Theme } from '~/lib/config'
+import { ownerLabel } from '~/lib/github/types'
+import type { GitHubOwner } from '~/lib/github/types'
 
 export type SiteHeaderProps = {
   accentId: AccentPreset['id']
@@ -16,6 +18,7 @@ export type SiteHeaderProps = {
   onAccentMenuToggle: () => void
   onMenuToggle: () => void
   onThemeToggle: () => void
+  owner: GitHubOwner
   setLocale: (locale: Locale) => void
   t: Record<string, string>
   theme: Theme
@@ -32,11 +35,14 @@ export function SiteHeader({
   onAccentMenuToggle,
   onMenuToggle,
   onThemeToggle,
+  owner,
   setLocale,
   t,
   theme,
 }: SiteHeaderProps) {
   const navItems = [{ href: '#projects', index: '01', label: t.works }]
+  const ownerHref = owner.url || `https://github.com/${owner.login}`
+  const ownerName = ownerLabel(owner)
 
   return (
     <header className="absolute top-0 left-0 z-10 w-full">
@@ -69,11 +75,11 @@ export function SiteHeader({
           <div className="hero-desktop-meta flex items-center gap-3 text-right">
             <a
               className="text-xs font-medium tracking-[-0.12px] text-white/88 uppercase"
-              href="https://github.com/xmtlzzz"
+              href={ownerHref}
               rel="noreferrer"
               target="_blank"
             >
-              GitHub / xmtlzzz
+              GitHub / {ownerName}
             </a>
             <span className="text-xs font-medium tracking-[-0.12px] text-white/58 uppercase">
               {clock}
@@ -196,7 +202,9 @@ export function SiteHeader({
               ))}
             </div>
             <div className="mt-8 flex flex-col gap-2 text-sm text-white/58">
-              <span>GitHub / xmtlzzz</span>
+              <a href={ownerHref} rel="noreferrer" target="_blank">
+                GitHub / {ownerName}
+              </a>
               <span>{clock}</span>
             </div>
           </div>

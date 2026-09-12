@@ -4,7 +4,7 @@
 
 **English** · [简体中文](./README.zh-CN.md)
 
-> A React Router 7 (SSR) gateway that turns the public GitHub work of `xmtlzzz` into a curated, searchable project index.
+> A React Router 7 (SSR) gateway that turns an account's public GitHub work into a curated, searchable project index. Who that account is comes from the GitHub token at runtime, not from a constant.
 
 ## The problem
 
@@ -19,7 +19,7 @@ Public work is spread across many repositories, and neither a GitHub profile nor
 
 ## Overview
 
-`vMaker` reads repository data from GitHub, adds a small amount of local presentation metadata, and renders it as a searchable, language-grouped project index at [vmaker.xmtlz.dev](https://vmaker.xmtlz.dev).
+`vMaker` reads repository data from GitHub, adds a small amount of local presentation metadata, and renders it as a searchable, language-grouped project index. `vmaker.xmtlz.dev` is the deployed preview; the account it indexes, and the origin it advertises, are resolved at runtime rather than baked in, so a fork or a preview deploy labels itself with its own account and host.
 
 It is **not** an admin panel and it does **not** maintain a separate project database. GitHub is the only source of truth.
 
@@ -117,11 +117,13 @@ Lint reports **0 errors and 3 warnings**, all from `react-hooks/set-state-in-eff
 GITHUB_TOKEN=your_github_token
 ```
 
-- `GITHUB_TOKEN` is **strongly recommended**. The site fetches languages and recent commits per repository, so an unauthenticated client is easy to rate-limit.
+- `GITHUB_TOKEN` is **strongly recommended**. The site fetches languages and recent commits per repository, so an unauthenticated client is easy to rate-limit. It also decides *whose* work is indexed: the GraphQL reader is rooted at the token's own `viewer`.
 - The placeholder string `your_github_token` is ignored by `githubHeaders()`. Using it is identical to having no token.
 - Without a real token the unauthenticated limit (60 requests/hour per IP) is hit quickly. On Cloudflare the shared egress IP hits it almost immediately, GitHub returns `403 Forbidden`, and the site falls back to a payload containing only `vMaker`.
 - Cloudflare: add `GITHUB_TOKEN` as a Worker secret under *Settings → Variables & Secrets*.
 - Node / Vercel: put it in `.env`.
+- `GITHUB_LOGIN` (optional) picks which account the token-less REST reader indexes; it defaults to `xmtlzzz`.
+- `SITE_URL` (optional) pins the canonical origin. Leave it unset and each request's own host is used, which is what makes previews behave.
 
 ## Project structure
 
@@ -158,7 +160,7 @@ app/
     use-reveal-on-view.ts        IntersectionObserver reveal helper
     use-site-preferences.ts      Locale / theme / accent persistence, shared by all routes
   lib/
-    config.ts                    Storage keys, site URL, social image, Theme type
+    config.ts                    Storage keys, per-request site origin resolution, Theme type
     feed.ts                      RSS + sitemap builders and XML/date helpers (pure)
     feed.test.ts                 Unit tests for the builders
     language.ts                  Language naming, ids, nav labels, colors
@@ -167,7 +169,7 @@ app/
     github/client.ts             Token resolution and the REST / GraphQL transports
     github/graphql.ts            The one-shot ProjectIndex query and its pure mapper
     github/projects.ts           REST reader, cache, payload building, formatters
-    github/context.ts            Pulls GITHUB_TOKEN out of the Cloudflare load context
+    github/context.ts            Pulls GITHUB_TOKEN / GITHUB_LOGIN / SITE_URL out of the Cloudflare load context
     github/projects.test.ts      Unit tests for the payload builder
     github/graphql.test.ts       Unit tests for the GraphQL mapper and query shape
     github/rest.test.ts          Unit tests for the REST reader (stubbed fetch)
@@ -200,8 +202,8 @@ GitHub is the source of truth for repository metadata, primary language, topics,
 
 Fetching behaviour — two readers feed the same payload builder:
 
-- **GraphQL** (used when a token is present): a single `ProjectIndex` query reads the repository list, languages, topics and the last 5 commits per repository in **one request**. The GraphQL API is authenticated-only, so it is never attempted without a token.
-- **REST** (the unauthenticated path, and the fallback if the GraphQL read fails): `/users/xmtlzzz/repos?sort=pushed&per_page=100`, then `/languages` and `/commits?per_page=5` per repository, capped at **5 concurrent**.
+- **GraphQL** (used when a token is present): a single `ProjectIndex` query reads the repository list, languages, topics and the last 5 commits per repository in **one request**. It is rooted at `viewer`, so the indexed account — and the name, avatar and profile URL the site renders — come from the token itself. The GraphQL API is authenticated-only, so it is never attempted without a token.
+- **REST** (the unauthenticated path, and the fallback if the GraphQL read fails): `/users/<login>/repos?sort=pushed&per_page=100`, then `/languages` and `/commits?per_page=5` per repository, capped at **5 concurrent**. `<login>` is `GITHUB_LOGIN` when set, otherwise `xmtlzzz`. The same reader also reads `/users/<login>` for the display name; if that call fails it costs only the name, not the index.
 - Whichever reader runs, results are normalised into `GitHubRepo` + `RepoDetails` in `app/lib/github/*`, so `buildProjectPayload` stays the single place that shapes the data.
 - A GraphQL failure is logged (`[vMaker] GitHub GraphQL read failed, falling back to REST — …`) rather than swallowed. Both readers read one page of at most **100 repositories**; the remainder is skipped with a warning.
 - A module-level **in-memory cache with a 10 minute TTL** absorbs repeat loads.
@@ -255,7 +257,9 @@ Crawler endpoints:
 - `/sitemap.xml` — generated from the live payload: one entry for the homepage plus one per project, with `lastmod` from its `pushedAt` (`Cache-Control: public, max-age=600`)
 - `/feed.xml` — RSS 2.0 feed, newest activity first
 
-The social image is **not a hand-made asset**: GitHub renders a 1200×600 card for every public repository, so the homepage's `og:image` — and each project detail page's, via `projectOgImage()` — points at `opengraph.githubassets.com`. That keeps `og:image` at zero maintenance cost and needs no second data source. Swap it for a custom 1200×630 asset if the branding ever demands one.
+The social image is **not a hand-made asset**: GitHub renders a 1200×600 card for every public repository, so the homepage's `og:image` — and each project detail page's, via `repoOgImage()` — points at `opengraph.githubassets.com`, using the login resolved from the GitHub API. That keeps `og:image` at zero maintenance cost and needs no second data source. Swap it for a custom 1200×630 asset if the branding ever demands one.
+
+Absolute URLs are resolved per request by `resolveSiteUrl()`: an explicit `SITE_URL` wins, otherwise the origin the request arrived on is used, otherwise the built-in default. That is what keeps a preview deployment from emitting canonical tags that claim to be production.
 
 ## Deployment
 
@@ -265,7 +269,7 @@ The social image is **not a hand-made asset**: GitHub renders a 1200×600 card f
 npm run deploy        # react-router build && wrangler deploy
 ```
 
-`wrangler.toml` defines the worker, the `vmaker.xmtlz.dev` custom domain, and a `./build/client` static assets binding. `worker.ts` is the entry: it builds a request handler from the server bundle and passes Cloudflare's `env` / `ctx` into React Router's load context, so loaders read `context.cloudflare.env.GITHUB_TOKEN`.
+`wrangler.toml` defines the worker, the `vmaker.xmtlz.dev` custom domain, and a `./build/client` static assets binding. That domain is the **preview address**, not a hardcoded part of the app: canonical URLs, `og:url`, the RSS feed and the sitemap derive their origin per request from the host the request arrived on, so a `*.workers.dev` preview advertises its own address. Pin the public origin by setting `SITE_URL`; point the REST reader at a different account with `GITHUB_LOGIN`. `worker.ts` is the entry: it builds a request handler from the server bundle and passes Cloudflare's `env` / `ctx` into React Router's load context, so loaders read `context.cloudflare.env.GITHUB_TOKEN`.
 
 **Node host / Vercel**
 

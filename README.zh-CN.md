@@ -4,7 +4,7 @@
 
 [English](./README.md) · **简体中文**
 
-> 一个基于 React Router 7（SSR）的入口站，把 `xmtlzzz` 的 GitHub 公开作品整理成一个可检索、按语言分组的项目索引。
+> 一个基于 React Router 7（SSR）的入口站，把某个账号的 GitHub 公开作品整理成一个可检索、按语言分组的项目索引。这个账号由 GitHub token 在运行时决定，而不是写死的常量。
 
 ## 解决什么问题
 
@@ -19,7 +19,7 @@
 
 ## 概览
 
-`vMaker` 从 GitHub 读取仓库数据，叠加少量本地展示元信息，最终渲染为 [vmaker.xmtlz.dev](https://vmaker.xmtlz.dev) 上的可检索项目索引。
+`vMaker` 从 GitHub 读取仓库数据，叠加少量本地展示元信息，最终渲染为一个可检索项目索引。`vmaker.xmtlz.dev` 是当前部署的预览地址；它索引哪个账号、对外宣告哪个域名，都在运行时解析，因此 fork 或预览部署会用自己的账号与域名自我标识。
 
 它**不是**后台管理端，也**不**维护独立的项目数据库。GitHub 是唯一的数据源。
 
@@ -117,11 +117,13 @@ Lint 结果：**0 个 error、3 条 warning**，全部来自 `react-hooks/set-st
 GITHUB_TOKEN=your_github_token
 ```
 
-- `GITHUB_TOKEN` **强烈建议配置**。站点会逐仓库抓取语言构成与最近提交，匿名请求很容易被限流。
+- `GITHUB_TOKEN` **强烈建议配置**。站点会逐仓库抓取语言构成与最近提交，匿名请求很容易被限流。它也决定了索引**谁**的作品：GraphQL 读取器以 token 自己的 `viewer` 为根。
 - 占位符 `your_github_token` 会被 `githubHeaders()` 忽略，使用它等同于没有 token。
 - 没有真实 token 时，匿名额度（每 IP 每小时 60 次）会很快耗尽。在 Cloudflare 上共享出口 IP 几乎立刻触发，GitHub 返回 `403 Forbidden`，站点退化为只包含 `vMaker` 的数据。
 - Cloudflare：在 *Settings → Variables & Secrets* 里把 `GITHUB_TOKEN` 配成 Worker secret。
 - Node / Vercel：写进 `.env`。
+- `GITHUB_LOGIN`（可选）决定无 token 时 REST 读取器索引哪个账号，默认 `xmtlzzz`。
+- `SITE_URL`（可选）钉住 canonical 域名。不配置时按每个请求自己的域名解析，预览环境因此表现正确。
 
 ## 目录结构
 
@@ -158,7 +160,7 @@ app/
     use-reveal-on-view.ts        基于 IntersectionObserver 的进场显隐 hook
     use-site-preferences.ts      语言 / 主题 / 强调色的持久化，所有路由共用
   lib/
-    config.ts                    storage key、站点 URL、社交分享图、Theme 类型
+    config.ts                    storage key、按请求解析站点域名、Theme 类型
     feed.ts                      RSS 与 sitemap 构建器、XML / 日期工具（纯函数）
     feed.test.ts                 上述构建器的单元测试
     language.ts                  语言命名、id、导航标签、颜色
@@ -167,7 +169,7 @@ app/
     github/client.ts             token 解析与 REST / GraphQL 传输层
     github/graphql.ts            一次性 ProjectIndex 查询及其纯映射函数
     github/projects.ts           REST 读取、缓存、payload 组装、格式化
-    github/context.ts            从 Cloudflare load context 中取出 GITHUB_TOKEN
+    github/context.ts            从 Cloudflare load context 中取出 GITHUB_TOKEN / GITHUB_LOGIN / SITE_URL
     github/projects.test.ts      payload 构建的单元测试
     github/graphql.test.ts       GraphQL 映射与查询结构的单元测试
     github/rest.test.ts          REST 读取的单元测试（桩 fetch）
@@ -200,8 +202,8 @@ GitHub 是仓库元信息、主要语言、topics、star / fork、时间戳和�
 
 抓取行为 —— 两个读取器产出同一份 payload：
 
-- **GraphQL**（有 token 时优先）：一条 `ProjectIndex` 查询在**单次请求**内拿到仓库列表、语言构成、topics 以及每个仓库最近 5 条提交。GraphQL API 必须认证，所以无 token 时完全不会尝试。
-- **REST**（无 token 时的路径，也是 GraphQL 失败后的降级路径）：先 `/users/xmtlzzz/repos?sort=pushed&per_page=100`，再对每个仓库请求 `/languages` 与 `/commits?per_page=5`，并发上限 **5**。
+- **GraphQL**（有 token 时优先）：一条 `ProjectIndex` 查询在**单次请求**内拿到仓库列表、语言构成、topics 以及每个仓库最近 5 条提交。它以 `viewer` 为根，因此被索引的账号——以及页面渲染的名字、头像与主页地址——都来自 token 本身。GraphQL API 必须认证，所以无 token 时完全不会尝试。
+- **REST**（无 token 时的路径，也是 GraphQL 失败后的降级路径）：先 `/users/<login>/repos?sort=pushed&per_page=100`，再对每个仓库请求 `/languages` 与 `/commits?per_page=5`，并发上限 **5**。`<login>` 取 `GITHUB_LOGIN`，未配置时为 `xmtlzzz`。同一读取器还会请求 `/users/<login>` 拿显示名；这一步失败只损失名字，不会影响整个索引。
 - 无论走哪个读取器，结果都会归一化成 `app/lib/github/*` 里的 `GitHubRepo` + `RepoDetails`，因此 `buildProjectPayload` 仍是唯一负责塑形的纯函数。
 - GraphQL 失败会**打日志而不是被吞掉**（`[vMaker] GitHub GraphQL read failed, falling back to REST — …`）。两个读取器都只读一页、最多 **100 个仓库**，超出部分会跳过并打印告警。
 - 模块级**内存缓存，TTL 10 分钟**，用于吸收重复访问。
@@ -255,7 +257,9 @@ GitHub 是仓库元信息、主要语言、topics、star / fork、时间戳和�
 - `/sitemap.xml` —— 依实时数据生成：首页一条 + 每个项目一条，`lastmod` 取该项目的 `pushedAt`（`Cache-Control: public, max-age=600`）
 - `/feed.xml` —— 项目 RSS 2.0 订阅源，按最近活跃排序
 
-社交分享图**不是手绘素材**：GitHub 会为每个公开仓库渲染一张 1200×600 的分享卡，因此首页的 `og:image`（以及每个项目详情页的，经由 `projectOgImage()`）都直接指向 `opengraph.githubassets.com`——零维护成本，也不引入第二数据源。若将来品牌需要，可换成自制的 1200×630 素材。
+社交分享图**不是手绘素材**：GitHub 会为每个公开仓库渲染一张 1200×600 的分享卡，因此首页的 `og:image`（以及每个项目详情页的，经由 `repoOgImage()`）都直接指向 `opengraph.githubassets.com`，其中的账号取自 GitHub API 解析结果——零维护成本，也不引入第二数据源。若将来品牌需要，可换成自制的 1200×630 素材。
+
+绝对地址由 `resolveSiteUrl()` 逐请求解析：显式配置的 `SITE_URL` 优先，其次使用请求实际到达的域名，最后回退到内置默认值。正因如此，预览部署不会输出自称正式环境的 canonical 标签。
 
 ## 部署
 
@@ -265,7 +269,7 @@ GitHub 是仓库元信息、主要语言、topics、star / fork、时间戳和�
 npm run deploy        # react-router build && wrangler deploy
 ```
 
-`wrangler.toml` 定义了 worker、`vmaker.xmtlz.dev` 自定义域名，以及 `./build/client` 静态资源绑定。`worker.ts` 是入口：它用服务端 bundle 构造请求处理器，并把 Cloudflare 的 `env` / `ctx` 传入 React Router 的 load context，因此 loader 可以读到 `context.cloudflare.env.GITHUB_TOKEN`。
+`wrangler.toml` 定义了 worker、`vmaker.xmtlz.dev` 自定义域名，以及 `./build/client` 静态资源绑定。该域名是**预览地址**，并非写死在应用里的常量：canonical、`og:url`、RSS feed 与 sitemap 都按请求实际到达的域名逐次解析，所以 `*.workers.dev` 预览会宣告自己的地址。想钉住正式域名就配置 `SITE_URL`；想把 REST 读取器指向别的账号就配置 `GITHUB_LOGIN`。`worker.ts` 是入口：它用服务端 bundle 构造请求处理器，并把 Cloudflare 的 `env` / `ctx` 传入 React Router 的 load context，因此 loader 可以读到 `context.cloudflare.env.GITHUB_TOKEN`。
 
 **Node 宿主 / Vercel**
 
