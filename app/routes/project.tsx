@@ -1,6 +1,6 @@
 import { ArrowLeft, Moon, Sun } from 'lucide-react'
 import type { CSSProperties } from 'react'
-import { Link, isRouteErrorResponse } from 'react-router'
+import { Link, data, isRouteErrorResponse } from 'react-router'
 
 import { ProjectDetailAside } from '~/components/sections/project-detail-aside'
 import { RelatedProjects } from '~/components/sections/related-projects'
@@ -8,7 +8,14 @@ import { ACCENT_PRESETS } from '~/data/accents'
 import type { Locale } from '~/data/copy'
 import { useSitePreferences } from '~/hooks/use-site-preferences'
 import { SITE_URL } from '~/lib/config'
+import {
+  documentEtag,
+  documentHeaders,
+  notModifiedResponse,
+  projectSignature,
+} from '~/lib/document-cache'
 import { formatDate } from '~/lib/format'
+import { etagMatches } from '~/lib/http-cache'
 import { projectOgImage } from '~/lib/github/client'
 import { githubTokenFromContext } from '~/lib/github/context'
 import { getProjects } from '~/lib/github/projects'
@@ -17,7 +24,11 @@ import { languageColor } from '~/lib/language'
 import { getRelatedProjects } from '~/lib/projects-view'
 import type { Route } from './+types/project'
 
-export async function loader({ context, params }: Route.LoaderArgs) {
+export function headers({ loaderHeaders }: Route.HeadersArgs) {
+  return loaderHeaders
+}
+
+export async function loader({ context, params, request }: Route.LoaderArgs) {
   const payload = await getProjects(githubTokenFromContext(context))
   const project = payload.projects.find((item) => item.name === params.name)
 
@@ -28,10 +39,19 @@ export async function loader({ context, params }: Route.LoaderArgs) {
     })
   }
 
-  return {
-    project,
-    related: getRelatedProjects(payload.projects, project),
+  const etag = documentEtag(projectSignature(project))
+
+  if (etagMatches(request.headers.get('If-None-Match'), etag)) {
+    throw notModifiedResponse(etag)
   }
+
+  return data(
+    {
+      project,
+      related: getRelatedProjects(payload.projects, project),
+    },
+    { headers: documentHeaders(etag) }
+  )
 }
 
 export function meta({ data }: Route.MetaArgs) {

@@ -8,6 +8,7 @@ import {
 } from 'react-router'
 
 import type { Route } from './+types/root'
+import { forwardDocumentHeaders } from './lib/document-cache'
 import { LOCALE_STORAGE_KEY, THEME_STORAGE_KEY } from './lib/config'
 import './app.css'
 
@@ -46,6 +47,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   return <Outlet />
+}
+
+// The index route has no error boundary of its own, so a thrown 304 is handled
+// here. Its headers() is then the one react-router calls, which makes this the only
+// place the document's validators can come from.
+export function headers({ errorHeaders, loaderHeaders }: Route.HeadersArgs) {
+  return forwardDocumentHeaders({ errorHeaders, loaderHeaders })
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {

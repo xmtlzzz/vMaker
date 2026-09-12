@@ -1,7 +1,7 @@
 import { ChevronDown, Ellipsis, Moon, Palette, Search, Sun } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useLocation } from 'react-router'
+import { data, useLocation } from 'react-router'
 
 import { SiteHeader } from '~/components/layout/site-header'
 import { LogoLoop } from '~/components/react-bits/LogoLoop'
@@ -18,9 +18,15 @@ import { SITE_OG_IMAGE, SITE_URL } from '~/lib/config'
 import { githubTokenFromContext } from '~/lib/github/context'
 import { matchesQuery, parseSearchQuery, sortProjects } from '~/lib/browse'
 import type { SortKey } from '~/lib/browse'
+import {
+  documentEtag,
+  documentHeaders,
+  indexSignature,
+  notModifiedResponse,
+} from '~/lib/document-cache'
 import { formatBytes, formatDate } from '~/lib/format'
+import { etagMatches } from '~/lib/http-cache'
 import { getProjects } from '~/lib/github/projects'
-import type { ProjectPayload } from '~/lib/github/projects'
 import { indexTotals, topTopics } from '~/lib/insights'
 import { languageNavLabel } from '~/lib/language'
 import {
@@ -63,10 +69,23 @@ export function meta() {
   ]
 }
 
-export async function loader({
-  context,
-}: Route.LoaderArgs): Promise<ProjectPayload> {
-  return getProjects(githubTokenFromContext(context))
+export function headers({ loaderHeaders }: Route.HeadersArgs) {
+  return loaderHeaders
+}
+
+export async function loader({ context, request }: Route.LoaderArgs) {
+  const payload = await getProjects(githubTokenFromContext(context))
+  const etag = documentEtag(indexSignature(payload))
+  const headers = documentHeaders(etag)
+
+  // The body cannot be hashed before it is rendered, so the tag is derived from the
+  // data that produces it. A matching validator means the client's copy is still
+  // correct, and returning early skips the render entirely.
+  if (etagMatches(request.headers.get('If-None-Match'), etag)) {
+    throw notModifiedResponse(etag)
+  }
+
+  return data(payload, { headers })
 }
 
 export default function Home({ loaderData }: Route.ComponentProps) {
