@@ -9,10 +9,11 @@
     "deploy": "react-router build && wrangler deploy",
     "cf:dev": "react-router build && wrangler dev",
     "cf:types": "wrangler types",
-    "test": "vite-node app/lib/github/projects.test.ts && vite-node app/lib/github/graphql.test.ts && vite-node app/lib/github/rest.test.ts && vite-node app/lib/projects-view.test.ts && vite-node app/lib/feed.test.ts",
+    "test": "node scripts/run-tests.mjs",
     "typecheck": "react-router typegen && tsc",
     "format": "prettier --write \"app/**/*.{ts,tsx}\" \"*.{ts,js}\"",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "format:check": "prettier --check \"app/**/*.{ts,tsx}\" \"scripts/**/*.mjs\" \"*.{ts,js,cjs,mjs}\""
   },
   "dependencies": {
     "@react-router/cloudflare": "^7.15.1",
