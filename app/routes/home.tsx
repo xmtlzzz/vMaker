@@ -16,7 +16,8 @@ import { useRevealOnView } from '~/hooks/use-reveal-on-view'
 import { useSitePreferences } from '~/hooks/use-site-preferences'
 import { SITE_OG_IMAGE, SITE_URL } from '~/lib/config'
 import { githubTokenFromContext } from '~/lib/github/context'
-import { formatDate, getProjects } from '~/lib/github/projects'
+import { formatDate } from '~/lib/format'
+import { getProjects } from '~/lib/github/projects'
 import type { ProjectPayload } from '~/lib/github/projects'
 import { languageNavLabel } from '~/lib/language'
 import {
@@ -160,7 +161,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
 
   useEffect(() => {
     const formatClock = () =>
-      `CUP ${new Intl.DateTimeFormat('en-GB', {
+      `${t.localTime} ${new Intl.DateTimeFormat('en-GB', {
         hour: '2-digit',
         minute: '2-digit',
         second: '2-digit',
@@ -170,7 +171,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
     setClock(formatClock())
     const timer = window.setInterval(() => setClock(formatClock()), 1000)
     return () => window.clearInterval(timer)
-  }, [])
+  }, [t.localTime])
 
   useEffect(() => {
     setIsMenuOpen(false)
@@ -483,7 +484,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                   <Metric
                     isDark={isDark}
                     label={t.latest}
-                    value={formatDate(summary.latestActivity)}
+                    value={formatDate(summary.latestActivity, locale)}
                   />
                 </div>
                 {error && (
@@ -506,7 +507,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                       target="_blank"
                     >
                       <span className="project-timeline-date">
-                        {formatDate(item.date)}
+                        {formatDate(item.date, locale)}
                       </span>
                       <span className="project-timeline-copy">
                         <span className="project-timeline-title">
@@ -520,9 +521,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                     </a>
                   ))
                 ) : (
-                  <p className="project-empty-copy">
-                    No commit activity available yet.
-                  </p>
+                  <p className="project-empty-copy">{t.latestCommitEmpty}</p>
                 )}
               </div>
               <div className="project-stack-loop-wrap">
@@ -562,7 +561,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                         onClick={() => setIsMoreMenuOpen((open) => !open)}
                         type="button"
                       >
-                        <span>More</span>
+                        <span>{t.more}</span>
                         <ChevronDown className="size-3.5" />
                       </button>
                       {isMoreMenuOpen && (
@@ -612,6 +611,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                       hoveredProjectId={hoveredProjectId}
                       isDark={isDark}
                       key={group.language}
+                      locale={locale}
                       onProjectHover={setHoveredProjectId}
                       t={t}
                     />
@@ -699,7 +699,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
             }}
             type="button"
           >
-            <span>Top</span>
+            <span>{t.top}</span>
           </button>
         </div>
       )}

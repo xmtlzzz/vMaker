@@ -5,8 +5,10 @@ import { Link, isRouteErrorResponse } from 'react-router'
 import { ProjectDetailAside } from '~/components/sections/project-detail-aside'
 import { RelatedProjects } from '~/components/sections/related-projects'
 import { ACCENT_PRESETS } from '~/data/accents'
+import type { Locale } from '~/data/copy'
 import { useSitePreferences } from '~/hooks/use-site-preferences'
 import { SITE_URL } from '~/lib/config'
+import { formatDate } from '~/lib/format'
 import { projectOgImage } from '~/lib/github/client'
 import { githubTokenFromContext } from '~/lib/github/context'
 import { getProjects } from '~/lib/github/projects'
@@ -97,6 +99,47 @@ function LanguageComposition({
               style={{ background: languageColor(share.name) }}
             />
             {share.name} {share.percent}%
+          </li>
+        ))}
+      </ul>
+    </section>
+  )
+}
+
+function Releases({
+  project,
+  locale,
+  t,
+}: {
+  project: Project
+  locale: Locale
+  t: Record<string, string>
+}) {
+  if (project.releases.length === 0) {
+    return null
+  }
+
+  return (
+    <section>
+      <h2 className="detail-section-label">{t.releases}</h2>
+      <ul className="detail-releases">
+        {project.releases.map((release) => (
+          <li
+            className="detail-release-item"
+            key={release.tagName || release.url}
+          >
+            <a
+              className="detail-release-link"
+              href={release.url}
+              rel="noreferrer"
+              target="_blank"
+            >
+              <span className="detail-release-name">{release.name}</span>
+              <span className="detail-release-tag">{release.tagName}</span>
+            </a>
+            <span className="detail-release-date">
+              {formatDate(release.publishedAt, locale)}
+            </span>
           </li>
         ))}
       </ul>
@@ -210,6 +253,8 @@ export default function ProjectRoute({ loaderData }: Route.ComponentProps) {
 
             <LanguageComposition project={project} t={t} />
 
+            <Releases locale={locale} project={project} t={t} />
+
             {project.topics.length > 0 && (
               <section>
                 <h2 className="detail-section-label">{t.topics}</h2>
@@ -223,7 +268,7 @@ export default function ProjectRoute({ loaderData }: Route.ComponentProps) {
           </div>
 
           <div className="detail-aside">
-            <ProjectDetailAside project={project} t={t} />
+            <ProjectDetailAside locale={locale} project={project} t={t} />
           </div>
         </div>
 

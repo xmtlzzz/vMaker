@@ -1,4 +1,5 @@
 import { languageIconConfig } from '~/components/language-badges'
+import type { Locale } from '~/data/copy'
 import { ProjectPanel } from '~/components/sections/project-panel'
 import type { ProjectGroup } from '~/lib/projects-view'
 
@@ -6,12 +7,14 @@ export function ProjectLanguageSection({
   group,
   hoveredProjectId,
   isDark,
+  locale,
   onProjectHover,
   t,
 }: {
   group: ProjectGroup
   hoveredProjectId: string | null
   isDark: boolean
+  locale: Locale
   onProjectHover: (projectId: string | null) => void
   t: Record<string, string>
 }) {
@@ -27,7 +30,7 @@ export function ProjectLanguageSection({
       <div className="mb-4 flex items-end justify-between gap-4">
         <div>
           <p className="project-group-count">
-            {group.projects.length} projects
+            {group.projects.length} {t.projectCount}
           </p>
           <div className="mt-2 flex items-center gap-3">
             <span
@@ -50,6 +53,7 @@ export function ProjectLanguageSection({
             isActive={hoveredProjectId === project.name}
             isDark={isDark}
             key={project.name}
+            locale={locale}
             onHover={onProjectHover}
             project={project}
             t={t}

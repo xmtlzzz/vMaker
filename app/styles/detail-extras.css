@@ -1,0 +1,82 @@
+/* Extends the project detail page with the release list. Kept in its own file so
+   the detail styles in app.css stay untouched; the naming, surfaces and theme
+   overrides follow the same conventions as every other `.detail-` class. */
+.detail-releases {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.detail-release-item {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 1.1rem;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+}
+
+.detail-release-link {
+  align-items: baseline;
+  color: inherit;
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  min-width: 0;
+  text-decoration: none;
+}
+
+.detail-release-name {
+  font-size: 0.9rem;
+  font-weight: 650;
+}
+
+.detail-release-tag {
+  background: rgb(var(--vmaker-accent-rgb) / 16%);
+  border: 1px solid rgb(var(--vmaker-accent-rgb) / 40%);
+  border-radius: 999px;
+  color: white;
+  font-size: 0.68rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  padding: 0.16rem 0.6rem;
+}
+
+.detail-release-link:hover .detail-release-name {
+  color: white;
+}
+
+.detail-release-date {
+  color: rgba(255, 255, 255, 0.5);
+  flex: none;
+  font-size: 0.78rem;
+}
+
+.detail-release-link:focus-visible {
+  outline: 2px solid rgb(var(--vmaker-accent-rgb) / 70%);
+  outline-offset: 2px;
+}
+
+.theme-light .detail-release-item {
+  background: rgba(17, 17, 20, 0.03);
+  border-color: rgba(17, 17, 20, 0.08);
+}
+
+.theme-light .detail-release-tag {
+  background: rgb(var(--vmaker-accent-rgb) / 14%);
+  border-color: rgb(var(--vmaker-accent-rgb) / 34%);
+  color: #111114;
+}
+
+.theme-light .detail-release-link:hover .detail-release-name {
+  color: #111114;
+}
+
+.theme-light .detail-release-date {
+  color: rgba(17, 17, 20, 0.5);
+}

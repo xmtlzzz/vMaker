@@ -2,19 +2,22 @@ import { ExternalLink, GitFork, HardDrive, Star } from 'lucide-react'
 import { Link } from 'react-router'
 
 import { BorderGlow } from '~/components/react-bits/BorderGlow'
-import { formatBytes, formatDate } from '~/lib/github/projects'
+import { formatBytes, formatDate } from '~/lib/format'
+import type { Locale } from '~/data/copy'
 import type { Project } from '~/lib/github/projects'
 import { languageColor } from '~/lib/language'
 
 export function ProjectPanel({
   isActive,
   isDark,
+  locale,
   onHover,
   project,
   t,
 }: {
   isActive: boolean
   isDark: boolean
+  locale: Locale
   onHover: (projectId: string | null) => void
   project: Project
   t: Record<string, string>
@@ -102,7 +105,7 @@ export function ProjectPanel({
             rel="noreferrer"
             target="_blank"
           >
-            Repository
+            {t.repositoryLabel}
           </a>
           {project.homepage && (
             <a
@@ -111,11 +114,12 @@ export function ProjectPanel({
               rel="noreferrer"
               target="_blank"
             >
-              Demo
+              {t.demoLabel}
             </a>
           )}
           <span className="project-updated">
-            {t.updated} {formatDate(project.pushedAt ?? project.updatedAt)}
+            {t.updated}{' '}
+            {formatDate(project.pushedAt ?? project.updatedAt, locale)}
           </span>
         </div>
       </article>

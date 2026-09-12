@@ -2110,3 +2110,5 @@ html.theme-light {
     grid-template-columns: 1fr;
   }
 }
+
+@import "./styles/detail-extras.css";

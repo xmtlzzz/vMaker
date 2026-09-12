@@ -368,27 +368,3 @@ export async function getProjects(token?: string): Promise<ProjectPayload> {
     return createFallbackPayload(message)
   }
 }
-
-export function formatBytes(bytes: number) {
-  if (bytes < 1024) {
-    return `${bytes} B`
-  }
-
-  if (bytes < 1024 * 1024) {
-    return `${Math.round(bytes / 102.4) / 10} KB`
-  }
-
-  return `${Math.round(bytes / 1024 / 102.4) / 10} MB`
-}
-
-export function formatDate(value: string | null) {
-  if (!value) {
-    return '暂无记录'
-  }
-
-  return new Intl.DateTimeFormat('zh-CN', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  }).format(new Date(value))
-}

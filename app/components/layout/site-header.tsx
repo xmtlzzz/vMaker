@@ -86,7 +86,7 @@ export function SiteHeader({
               {locale === 'en' ? '中' : 'EN'}
             </button>
             <button
-              aria-label="Toggle theme"
+              aria-label={t.changeTheme}
               className="hero-icon-button"
               onClick={onThemeToggle}
               type="button"
@@ -99,7 +99,7 @@ export function SiteHeader({
             </button>
             <div className="hero-accent-picker">
               <button
-                aria-label="Change accent color"
+                aria-label={t.changeAccent}
                 className="hero-icon-button"
                 onClick={onAccentMenuToggle}
                 type="button"
@@ -132,7 +132,7 @@ export function SiteHeader({
               {locale === 'en' ? '中' : 'EN'}
             </button>
             <button
-              aria-label="Toggle theme"
+              aria-label={t.changeTheme}
               className="hero-icon-button"
               onClick={onThemeToggle}
               type="button"
@@ -172,7 +172,7 @@ export function SiteHeader({
               onClick={onMenuToggle}
               type="button"
             >
-              <span>{isMenuOpen ? 'Close' : t.menu}</span>
+              <span>{isMenuOpen ? t.close : t.menu}</span>
               {isMenuOpen ? (
                 <X className="size-4" />
               ) : (
