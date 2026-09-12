@@ -2,6 +2,7 @@ import { GITHUB_USER, githubGraphql } from '~/lib/github/client'
 import type {
   CommitSummary,
   GitHubRepo,
+  ProjectRelease,
   RepoDetails,
   RepoIndex,
 } from '~/lib/github/types'
@@ -10,7 +11,7 @@ import type {
 // and commits per repo). GraphQL requires a token, so the caller only uses this
 // reader when one is available.
 export const REPO_INDEX_QUERY = `
-query ProjectIndex($login: String!, $repos: Int!, $topics: Int!, $languages: Int!, $commits: Int!) {
+query ProjectIndex($login: String!, $repos: Int!, $topics: Int!, $languages: Int!, $commits: Int!, $releases: Int!) {
   user(login: $login) {
     repositories(
       first: $repos
@@ -30,6 +31,12 @@ query ProjectIndex($login: String!, $repos: Int!, $topics: Int!, $languages: Int
         isFork
         stargazerCount
         forkCount
+        issues(states: OPEN) { totalCount }
+        pullRequests(states: OPEN) { totalCount }
+        releases(first: $releases, orderBy: { field: CREATED_AT, direction: DESC }) {
+          totalCount
+          nodes { name tagName publishedAt url }
+        }
         createdAt
         updatedAt
         pushedAt
@@ -42,7 +49,13 @@ query ProjectIndex($login: String!, $repos: Int!, $topics: Int!, $languages: Int
           target {
             ... on Commit {
               history(first: $commits) {
-                nodes { abbreviatedOid committedDate messageHeadline url }
+                nodes {
+                  abbreviatedOid
+                  committedDate
+                  messageHeadline
+                  url
+                  author { name }
+                }
               }
             }
           }
@@ -56,12 +69,14 @@ query ProjectIndex($login: String!, $repos: Int!, $topics: Int!, $languages: Int
 export const REPO_INDEX_LIMITS = {
   commits: 5,
   languages: 25,
+  releases: 5,
   repos: 100,
   topics: 20,
 }
 
 type GraphqlCommitNode = {
   abbreviatedOid?: string | null
+  author?: { name?: string | null } | null
   committedDate?: string | null
   messageHeadline?: string | null
   url?: string | null
@@ -79,6 +94,7 @@ export type GraphqlRepositoryNode = {
   homepageUrl?: string | null
   isArchived?: boolean | null
   isFork?: boolean | null
+  issues?: { totalCount?: number | null } | null
   languages?: {
     edges?: Array<{
       node?: { name?: string | null } | null
@@ -88,7 +104,17 @@ export type GraphqlRepositoryNode = {
   name: string
   nameWithOwner?: string | null
   primaryLanguage?: { name?: string | null } | null
+  pullRequests?: { totalCount?: number | null } | null
   pushedAt?: string | null
+  releases?: {
+    nodes?: Array<{
+      name?: string | null
+      publishedAt?: string | null
+      tagName?: string | null
+      url?: string | null
+    } | null> | null
+    totalCount?: number | null
+  } | null
   repositoryTopics?: {
     nodes?: Array<{ topic?: { name?: string | null } | null } | null> | null
   } | null
@@ -121,6 +147,7 @@ export function mapGraphqlRepository(node: GraphqlRepositoryNode) {
   )
     .filter((commit): commit is GraphqlCommitNode => Boolean(commit))
     .map((commit) => ({
+      ...(commit.author?.name ? { author: commit.author.name } : {}),
       date: commit.committedDate ?? '',
       message: commit.messageHeadline || 'Update project',
       sha: (commit.abbreviatedOid ?? '').slice(0, 7),
@@ -146,7 +173,25 @@ export function mapGraphqlRepository(node: GraphqlRepositoryNode) {
     updated_at: node.updatedAt ?? '',
   }
 
-  const details: RepoDetails = { commits, languages }
+  const releases: ProjectRelease[] = (node.releases?.nodes ?? [])
+    .filter((release): release is NonNullable<typeof release> =>
+      Boolean(release)
+    )
+    .map((release) => ({
+      name: release.name || release.tagName || 'Release',
+      publishedAt: release.publishedAt ?? '',
+      tagName: release.tagName ?? '',
+      url: release.url ?? '',
+    }))
+
+  const details: RepoDetails = {
+    commits,
+    languages,
+    openIssues: node.issues?.totalCount ?? 0,
+    openPullRequests: node.pullRequests?.totalCount ?? 0,
+    releaseCount: node.releases?.totalCount ?? 0,
+    releases,
+  }
 
   return { details, repo }
 }

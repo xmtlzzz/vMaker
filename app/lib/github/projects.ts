@@ -6,13 +6,13 @@ import {
 } from '~/lib/github/client'
 import { fetchRepoIndexFromGraphql } from '~/lib/github/graphql'
 import type {
-  CommitSummary,
   GitHubCommit,
   GitHubRepo,
   Project,
   ProjectPayload,
   ProjectSummary,
   RepoDetailMap,
+  RepoDetails,
   RepoIndex,
 } from '~/lib/github/types'
 
@@ -47,6 +47,28 @@ async function getRepoLanguages(repo: string, token?: string) {
   }
 }
 
+async function getRepoReleases(repo: string, token?: string) {
+  try {
+    const releases = await githubFetch<
+      Array<{
+        name: string | null
+        published_at: string | null
+        tag_name: string
+        html_url: string
+      }>
+    >(`/repos/${GITHUB_USER}/${repo}/releases?per_page=5`, token)
+
+    return releases.map((release) => ({
+      name: release.name || release.tag_name || 'Release',
+      publishedAt: release.published_at ?? '',
+      tagName: release.tag_name,
+      url: release.html_url,
+    }))
+  } catch {
+    return []
+  }
+}
+
 async function getRepoCommits(repo: string, token?: string) {
   let commits: GitHubCommit[] = []
 
@@ -60,6 +82,7 @@ async function getRepoCommits(repo: string, token?: string) {
   }
 
   return commits.map((item) => ({
+    ...(item.commit.author?.name ? { author: item.commit.author.name } : {}),
     date: item.commit.author?.date ?? '',
     message: item.commit.message.split('\n')[0] ?? 'Update project',
     sha: item.sha.slice(0, 7),
@@ -113,12 +136,22 @@ export async function fetchRepoIndexFromRest(
     visibleRepos,
     DETAIL_FETCH_CONCURRENCY,
     async (repo) => {
-      const [languages, commits] = await Promise.all([
+      const [languages, commits, releases] = await Promise.all([
         getRepoLanguages(repo.name, token),
         getRepoCommits(repo.name, token),
+        getRepoReleases(repo.name, token),
       ])
 
-      return [repo.name, { commits, languages }] as const
+      return [
+        repo.name,
+        {
+          commits,
+          languages,
+          openIssues: repo.open_issues_count ?? 0,
+          releaseCount: releases.length,
+          releases,
+        },
+      ] as const
     }
   )
 
@@ -163,10 +196,11 @@ function getLanguageShares(languages: Record<string, number>) {
 
 function toProject(
   repo: GitHubRepo,
-  languages: Record<string, number> = {},
-  commits: CommitSummary[] = []
+  details: Partial<RepoDetails> = {}
 ): Project {
   const override = projectOverrides[repo.name] ?? {}
+  const languages = details.languages ?? {}
+  const commits = details.commits ?? []
 
   return {
     archived: repo.archived,
@@ -183,9 +217,14 @@ function toProject(
     homepage: repo.homepage || null,
     languages,
     languageShares: getLanguageShares(languages),
+    lastCommitAuthor: commits[0]?.author ?? null,
     name: repo.name,
+    openIssues: details.openIssues ?? repo.open_issues_count ?? 0,
+    openPullRequests: details.openPullRequests ?? 0,
     primaryLanguage: repo.language,
     pushedAt: repo.pushed_at,
+    releaseCount: details.releaseCount ?? details.releases?.length ?? 0,
+    releases: details.releases ?? [],
     stars: repo.stargazers_count,
     topics: repo.topics ?? [],
     updatedAt: repo.updated_at,
@@ -227,8 +266,17 @@ function summarize(projects: Project[]): ProjectSummary {
     .slice(0, 4)
     .map(([language]) => language)
 
+  // The array is sorted featured-first, so projects[0] is not necessarily the most
+  // recent. Take the maximum timestamp across every project instead.
+  const latestActivity =
+    projects
+      .map((project) => project.pushedAt || project.updatedAt || '')
+      .filter((value) => value && !Number.isNaN(new Date(value).getTime()))
+      .sort()
+      .at(-1) || null
+
   return {
-    latestActivity: projects[0]?.pushedAt || projects[0]?.updatedAt || null,
+    latestActivity,
     primaryLanguages,
     totalCodeSize: projects.reduce((sum, project) => sum + project.codeSize, 0),
     totalProjects: projects.length,
@@ -243,9 +291,7 @@ export function buildProjectPayload(
     (repo) => !repo.fork && !projectOverrides[repo.name]?.hidden
   )
   const projects = visibleRepos.map((repo) => {
-    const details = detailsByRepo[repo.name]
-
-    return toProject(repo, details?.languages ?? {}, details?.commits ?? [])
+    return toProject(repo, detailsByRepo[repo.name] ?? {})
   })
   const sortedProjects = sortProjects(projects)
 

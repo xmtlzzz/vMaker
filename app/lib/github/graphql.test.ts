@@ -16,6 +16,7 @@ const fullNode: GraphqlRepositoryNode = {
         nodes: [
           {
             abbreviatedOid: 'abc1234',
+            author: { name: 'xmtlzzz' },
             committedDate: '2026-03-01T00:00:00Z',
             messageHeadline: 'Add the feed',
             url: 'https://github.com/xmtlzzz/vMaker/commit/abc1234',
@@ -76,6 +77,7 @@ async function testMapFullRepository() {
 
   assert.equal(details.commits.length, 1)
   assert.deepEqual(details.commits[0], {
+    author: 'xmtlzzz',
     date: '2026-03-01T00:00:00Z',
     message: 'Add the feed',
     sha: 'abc1234',
@@ -162,7 +164,14 @@ async function testQueryAndVariablesStayInSync() {
   )
   const unique = [...new Set(declared)].sort()
 
-  assert.deepEqual(unique, ['commits', 'languages', 'login', 'repos', 'topics'])
+  assert.deepEqual(unique, [
+    'commits',
+    'languages',
+    'login',
+    'releases',
+    'repos',
+    'topics',
+  ])
   assert.deepEqual(
     ['login', ...Object.keys(REPO_INDEX_LIMITS)].sort(),
     unique,

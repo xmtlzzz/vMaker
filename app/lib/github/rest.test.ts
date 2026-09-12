@@ -94,6 +94,17 @@ async function testReadsEveryEndpoint() {
       ])
     }
 
+    if (url.includes('/vMaker/releases?per_page=5')) {
+      return json([
+        {
+          html_url: 'https://github.com/xmtlzzz/vMaker/releases/tag/v1.0.0',
+          name: 'v1.0.0',
+          published_at: '2026-02-01T00:00:00Z',
+          tag_name: 'v1.0.0',
+        },
+      ])
+    }
+
     return undefined
   })
 
@@ -107,9 +118,12 @@ async function testReadsEveryEndpoint() {
 
     // forks and hidden repositories never get a detail request
     const detailCalls = calls.filter(
-      (url) => url.includes('/languages') || url.includes('/commits')
+      (url) =>
+        url.includes('/languages') ||
+        url.includes('/commits') ||
+        url.includes('/releases')
     )
-    assert.equal(detailCalls.length, 2)
+    assert.equal(detailCalls.length, 3)
     assert.ok(
       detailCalls.every((url) => url.includes('/vMaker/')),
       `unexpected detail calls: ${detailCalls.join(', ')}`
@@ -128,6 +142,7 @@ async function testReadsEveryEndpoint() {
     // only the first line of the message survives, and the sha is shortened
     assert.deepEqual(index.details.vMaker?.commits, [
       {
+        author: 'xmtlzzz',
         date: '2026-03-01T00:00:00Z',
         message: 'Add the feed',
         sha: 'abcdef1',

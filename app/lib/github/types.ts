@@ -13,6 +13,7 @@ export type GitHubRepo = {
   html_url: string
   language: string | null
   name: string
+  open_issues_count?: number
   pushed_at: string | null
   stargazers_count: number
   topics?: string[]
@@ -32,9 +33,17 @@ export type GitHubCommit = {
 }
 
 export type CommitSummary = {
+  author?: string
   date: string
   message: string
   sha: string
+  url: string
+}
+
+export type ProjectRelease = {
+  name: string
+  publishedAt: string
+  tagName: string
   url: string
 }
 
@@ -52,9 +61,14 @@ export type Project = {
   homepage: string | null
   languages: Record<string, number>
   languageShares: Array<{ name: string; bytes: number; percent: number }>
+  lastCommitAuthor: string | null
   name: string
+  openIssues: number
+  openPullRequests: number
   primaryLanguage: string | null
   pushedAt: string | null
+  releaseCount: number
+  releases: ProjectRelease[]
   stars: number
   topics: string[]
   updatedAt: string
@@ -77,6 +91,10 @@ export type ProjectPayload = {
 export type RepoDetails = {
   commits: CommitSummary[]
   languages: Record<string, number>
+  openIssues?: number
+  openPullRequests?: number
+  releaseCount?: number
+  releases?: ProjectRelease[]
 }
 
 export type RepoDetailMap = Record<string, Partial<RepoDetails> | undefined>
