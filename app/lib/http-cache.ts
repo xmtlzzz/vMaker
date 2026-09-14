@@ -15,9 +15,13 @@ function fnv1a(bytes: Uint8Array) {
   return hash >>> 0
 }
 
+// Weak by format, not just by name: Cloudflare strips strong ETags from
+// compressed responses, so only a W/ tag survives the edge and lets browsers
+// revalidate HTML with If-None-Match at all. etagMatches() normalises the
+// prefix away, so both forms compare equal on the server.
 export function weakEtag(body: string) {
   const hash = fnv1a(new TextEncoder().encode(body))
-  return `"${hash.toString(16).padStart(8, '0')}"`
+  return `W/"${hash.toString(16).padStart(8, '0')}"`
 }
 
 function normalizeEtag(value: string) {

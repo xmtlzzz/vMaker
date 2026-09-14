@@ -206,9 +206,11 @@ GitHub 是仓库元信息、主要语言、topics、star / fork、时间戳和�
 - **REST**（无 token 时的路径，也是 GraphQL 失败后的降级路径）：先 `/users/<login>/repos?sort=pushed&per_page=100`，再对每个仓库请求 `/languages` 与 `/commits?per_page=5`，并发上限 **5**。`<login>` 取 `GITHUB_LOGIN`，未配置时为 `xmtlzzz`。同一读取器还会请求 `/users/<login>` 拿显示名；这一步失败只损失名字，不会影响整个索引。
 - 无论走哪个读取器，结果都会归一化成 `app/lib/github/*` 里的 `GitHubRepo` + `RepoDetails`，因此 `buildProjectPayload` 仍是唯一负责塑形的纯函数。
 - GraphQL 失败会**打日志而不是被吞掉**（`[vMaker] GitHub GraphQL read failed, falling back to REST — …`）。两个读取器都只读一页、最多 **100 个仓库**，超出部分会跳过并打印告警。
-- 模块级**内存缓存，TTL 10 分钟**，用于吸收重复访问。
+- **三层缓存**（`getProjects`）：① 模块级**内存缓存，TTL 10 分钟**，命中即零 IO；② Workers 环境下把 payload **持久化到 KV**（`CACHE` 绑定，键 `github:index:v1`），跨 isolate / 跨机房共享，冷实例命中只需几毫秒——Workers 的 isolate 短暂且负载均衡，纯内存缓存命中率很低；③ 两层都过期才拉取 GitHub。
+- **stale-while-revalidate**：缓存过期时立即返回旧数据，用 `ctx.waitUntil` 在后台刷新（每 isolate 节流 1 次/分钟，避免 GitHub 故障时被每个请求打爆），访客永远不用等 GitHub。
+- KV 写入前会**复查远端 `fetchedAt`（租约检查）**：多个 isolate 同时刷新时只有一个真正落盘，把写次数约束在约 1 次/保鲜窗口，远低于免费额度（读 10 万/天、写 1 千/天）。KV 读写失败只打日志，自动退化为纯内存行为。
 - fork 一律排除；在 overrides 中标记 `hidden` 的仓库也排除。
-- 任何 GitHub 失败都会退化为由 overrides 派生的数据；若已存在缓存，则复用旧缓存。
+- 任何 GitHub 失败都会退化为由 overrides 派生的数据；若已存在缓存（内存或 KV，无论多旧），则先复用旧缓存再后台刷新。
 
 详情页读取的是同一份缓存 payload，因此**不产生任何额外请求**。
 

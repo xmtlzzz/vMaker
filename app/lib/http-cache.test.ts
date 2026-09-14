@@ -11,9 +11,14 @@ async function testWeakEtagIsStableAndQuoted() {
   const etag = weakEtag('hello world')
 
   assert.equal(weakEtag('hello world'), etag, 'identical input is stable')
-  assert.match(etag, /^"[0-9a-f]{1,8}"$/, 'quoted lowercase hex')
+  // W/ 前缀必须保留：Cloudflare 会剥离强 ETag，弱格式才能穿过边缘
+  assert.match(etag, /^W\/"[0-9a-f]{1,8}"$/, 'weak quoted lowercase hex')
   assert.notEqual(weakEtag('hello world!'), etag, 'changed body changes tag')
-  assert.match(weakEtag(''), /^"[0-9a-f]{1,8}"$/, 'empty body is still quoted')
+  assert.match(
+    weakEtag(''),
+    /^W\/"[0-9a-f]{1,8}"$/,
+    'empty body is still quoted'
+  )
 
   // UTF-8 bytes, not code units: these must not collide
   assert.notEqual(weakEtag('\u00e9'), weakEtag('e'))
@@ -23,8 +28,8 @@ async function testEtagMatches() {
   const etag = weakEtag('body')
 
   assert.equal(etagMatches(etag, etag), true, 'exact match')
-  assert.equal(etagMatches(`W/${etag}`, etag), true, 'weak request prefix')
-  assert.equal(etagMatches(etag, `W/${etag}`), true, 'weak stored prefix')
+  assert.equal(etagMatches(etag.slice(2), etag), true, 'strong request form')
+  assert.equal(etagMatches(etag, etag.slice(2)), true, 'strong stored form')
   assert.equal(etagMatches('*', etag), true, 'wildcard')
   assert.equal(etagMatches(`"other", ${etag}`, etag), true, 'comma list')
   assert.equal(etagMatches(`"other" , ${etag} ,"third"`, etag), true, 'spaced')

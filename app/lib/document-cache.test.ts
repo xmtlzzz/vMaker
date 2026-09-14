@@ -70,7 +70,8 @@ function testEtagIsStableForIdenticalInput() {
 
 function testEtagIsAQuotedHeaderValue() {
   const etag = documentEtag('x')
-  assert.match(etag, /^"[0-9a-f]+"$/)
+  // 必须是弱格式：Cloudflare 会剥离强 ETag，弱格式才能穿过边缘到达浏览器
+  assert.match(etag, /^W\/"[0-9a-f]+"$/)
 }
 
 // The whole point of the tag: any change that could alter the rendered page must

@@ -206,9 +206,11 @@ Fetching behaviour — two readers feed the same payload builder:
 - **REST** (the unauthenticated path, and the fallback if the GraphQL read fails): `/users/<login>/repos?sort=pushed&per_page=100`, then `/languages` and `/commits?per_page=5` per repository, capped at **5 concurrent**. `<login>` is `GITHUB_LOGIN` when set, otherwise `xmtlzzz`. The same reader also reads `/users/<login>` for the display name; if that call fails it costs only the name, not the index.
 - Whichever reader runs, results are normalised into `GitHubRepo` + `RepoDetails` in `app/lib/github/*`, so `buildProjectPayload` stays the single place that shapes the data.
 - A GraphQL failure is logged (`[vMaker] GitHub GraphQL read failed, falling back to REST — …`) rather than swallowed. Both readers read one page of at most **100 repositories**; the remainder is skipped with a warning.
-- A module-level **in-memory cache with a 10 minute TTL** absorbs repeat loads.
+- **Three cache layers** (`getProjects`): ① a module-level **in-memory cache with a 10 minute TTL** that costs zero IO on a hit; ② on Workers the payload is **persisted to KV** (the `CACHE` binding, key `github:index:v1`) and shared across isolates and colos, so a cold isolate hits it in a few milliseconds — Workers isolates are ephemeral and load-balanced, so a memory-only cache rarely stays warm; ③ GitHub is only fetched when both layers are stale.
+- **Stale-while-revalidate**: when the cache expires the stale payload is served immediately and a refresh runs in the background via `ctx.waitUntil` (throttled to one attempt per minute per isolate so an outage is not hammered by every request); visitors never wait on GitHub.
+- Before writing to KV the refreshed payload **re-reads the remote `fetchedAt` (a lease check)**, so when several isolates refresh concurrently only one write lands — roughly one write per freshness window, far below the free-tier quota (100k reads/day, 1k writes/day). KV read/write failures are logged and degrade to the memory-only behaviour.
 - Forks are always excluded; repositories marked `hidden` in the overrides are excluded too.
-- Any GitHub failure falls back to the overrides-derived payload, and a stale cache entry is reused if one exists.
+- Any GitHub failure falls back to the overrides-derived payload, and a stale cache entry (memory or KV, however old) is served first while the refresh retries in the background.
 
 The detail page reads the same cached payload, so it costs no additional GitHub requests.
 

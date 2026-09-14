@@ -19,6 +19,7 @@ import { resolveSiteUrl, SITE_REPO } from '~/lib/config'
 import { repoOgImage } from '~/lib/github/client'
 import {
   githubTokenFromContext,
+  projectsCacheFromContext,
   siteUrlFromContext,
 } from '~/lib/github/context'
 import { matchesQuery, parseSearchQuery, sortProjects } from '~/lib/browse'
@@ -84,7 +85,10 @@ export function headers({ loaderHeaders }: Route.HeadersArgs) {
 }
 
 export async function loader({ context, request }: Route.LoaderArgs) {
-  const payload = await getProjects(githubTokenFromContext(context))
+  const payload = await getProjects(
+    githubTokenFromContext(context),
+    projectsCacheFromContext(context)
+  )
   const etag = documentEtag(indexSignature(payload))
   const headers = documentHeaders(etag)
 

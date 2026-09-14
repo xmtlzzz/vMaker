@@ -2,13 +2,17 @@ import { resolveSiteUrl } from '~/lib/config'
 import { buildSitemap, projectTimestamp, toDateOnly } from '~/lib/feed'
 import {
   githubTokenFromContext,
+  projectsCacheFromContext,
   siteUrlFromContext,
 } from '~/lib/github/context'
 import { getProjects } from '~/lib/github/projects'
 import type { Route } from './+types/sitemap'
 
 export async function loader({ context, request }: Route.LoaderArgs) {
-  const { projects } = await getProjects(githubTokenFromContext(context))
+  const { projects } = await getProjects(
+    githubTokenFromContext(context),
+    projectsCacheFromContext(context)
+  )
   const siteUrl = resolveSiteUrl({
     configured: siteUrlFromContext(context),
     request,

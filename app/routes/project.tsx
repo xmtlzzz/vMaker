@@ -19,6 +19,7 @@ import { etagMatches } from '~/lib/http-cache'
 import { repoOgImage } from '~/lib/github/client'
 import {
   githubTokenFromContext,
+  projectsCacheFromContext,
   siteUrlFromContext,
 } from '~/lib/github/context'
 import { getProjects, ownerLabel } from '~/lib/github/projects'
@@ -32,7 +33,10 @@ export function headers({ loaderHeaders }: Route.HeadersArgs) {
 }
 
 export async function loader({ context, params, request }: Route.LoaderArgs) {
-  const payload = await getProjects(githubTokenFromContext(context))
+  const payload = await getProjects(
+    githubTokenFromContext(context),
+    projectsCacheFromContext(context)
+  )
   const project = payload.projects.find((item) => item.name === params.name)
 
   if (!project) {

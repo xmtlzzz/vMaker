@@ -2,13 +2,17 @@ import { resolveSiteUrl } from '~/lib/config'
 import { buildRssFeed } from '~/lib/feed'
 import {
   githubTokenFromContext,
+  projectsCacheFromContext,
   siteUrlFromContext,
 } from '~/lib/github/context'
 import { getProjects, ownerLabel } from '~/lib/github/projects'
 import type { Route } from './+types/feed'
 
 export async function loader({ context, request }: Route.LoaderArgs) {
-  const { owner, projects } = await getProjects(githubTokenFromContext(context))
+  const { owner, projects } = await getProjects(
+    githubTokenFromContext(context),
+    projectsCacheFromContext(context)
+  )
   const siteUrl = resolveSiteUrl({
     configured: siteUrlFromContext(context),
     request,

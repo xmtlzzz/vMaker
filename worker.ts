@@ -1,7 +1,7 @@
 import { createRequestHandler } from 'react-router'
 import type { ServerBuild } from 'react-router'
 import * as build from './build/server'
-import type { ExecutionContext } from '@cloudflare/workers-types'
+import type { ExecutionContext, KVNamespace } from '@cloudflare/workers-types'
 
 // Cloudflare Workers 环境变量绑定
 // 正式环境的 GITHUB_TOKEN 请在 Cloudflare 面板 Settings → Variables 中配置为 Secret；
@@ -13,6 +13,8 @@ interface Env {
   GITHUB_LOGIN?: string
   GITHUB_TOKEN?: string
   SITE_URL?: string
+  // GitHub 索引的持久化缓存（wrangler.toml 的 kv_namespaces 绑定）
+  CACHE?: KVNamespace
 }
 
 const requestHandler = createRequestHandler(
