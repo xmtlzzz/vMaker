@@ -121,9 +121,9 @@ export default function Home({ loaderData }: Route.ComponentProps) {
     locale,
     setAccentId,
     setLocale,
-    setTheme,
     t,
     theme,
+    toggleTheme,
   } = useSitePreferences(ownerLabel(owner))
   const [activeIndex, setActiveIndex] = useState(0)
   const [clock, setClock] = useState('')
@@ -372,7 +372,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
   }, [hoveredProjectId])
 
   function handleThemeToggle() {
-    setTheme((currentTheme) => (currentTheme === 'light' ? 'dark' : 'light'))
+    toggleTheme()
   }
 
   return (

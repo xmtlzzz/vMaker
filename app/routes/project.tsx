@@ -188,9 +188,8 @@ export default function ProjectRoute({ loaderData }: Route.ComponentProps) {
     locale,
     setAccentId,
     setLocale,
-    setTheme,
     t,
-    theme,
+    toggleTheme,
   } = useSitePreferences(ownerLabel(owner))
 
   // overrides.cover wins; otherwise reuse GitHub's own per-repository social card
@@ -236,7 +235,7 @@ export default function ProjectRoute({ loaderData }: Route.ComponentProps) {
             <button
               aria-label={t.changeTheme}
               className="detail-control"
-              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              onClick={() => toggleTheme()}
               type="button"
             >
               {isDark ? (

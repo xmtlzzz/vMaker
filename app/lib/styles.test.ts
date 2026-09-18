@@ -1,4 +1,4 @@
-﻿import assert from 'node:assert/strict'
+import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 
@@ -91,9 +91,33 @@ async function testFocusVisibleRingUsesAccentToken() {
   assert.match(match[1], /rgb\(var\(--vmaker-accent-rgb\)/)
 }
 
+// The theme switch must change the page in one frame, or fade every surface at
+// the same speed. Fading each element with its own timing is what made the switch
+// stutter and change colour unevenly, so `theme-switching` has to disable the
+// blanket colour transitions, both view transition snapshots have to share one
+// duration, and the fade fallback has to share one duration and property list.
+async function testThemeSwitchIsAtomic() {
+  assert.match(
+    appCss,
+    /html\.theme-switching[\s\S]*?transition:\s*none/,
+    'theme-switching must turn the per-element colour transitions off'
+  )
+  assert.match(
+    appCss,
+    /::view-transition-old\(root\),\s*::view-transition-new\(root\)\s*\{[^}]*animation-duration:\s*240ms/,
+    'both view transition snapshots must share one duration'
+  )
+  assert.match(
+    appCss,
+    /html\.theme-fading \.theme-shell \* \{[^}]*transition-duration:\s*240ms[^}]*transition-property:\s*background-color,\s*border-color,\s*color/,
+    'the fade fallback must give every surface one duration and property list'
+  )
+}
+
 await testReducedMotionDisablesRevealAnimations()
 await testReducedMotionRestoresRevealVisibility()
 await testSkipLinkIsHiddenUntilFocused()
 await testFocusVisibleRingUsesAccentToken()
+await testThemeSwitchIsAtomic()
 
 console.log('styles.test.ts: ok')

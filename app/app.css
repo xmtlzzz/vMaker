@@ -220,10 +220,49 @@
   opacity: 1;
 }
 
+/* Colour affordance: the same 260ms fade on every theme-coloured surface keeps
+   hover and small state changes consistent across components. This is NOT the
+   theme-switch mechanism — see `html.theme-switching` below. */
 .theme-shell,
 .theme-shell * {
   transition-duration: 260ms;
   transition-property: background-color, border-color, color, fill, stroke;
+  transition-timing-function: ease;
+}
+
+/* Switching themes repaints the whole page, so where a view transition is
+   available it must commit in a single frame: `use-site-preferences` puts
+   `theme-switching` on <html> for the length of the crossfade so no element
+   animates its own colours behind the snapshot. Fading every element
+   individually repainted thousands of properties at once, and because later
+   component rules (`.project-panel`, `.projects-sort-select`, …) replaced the
+   blanket property list, surfaces and their text changed at different speeds. */
+html.theme-switching,
+html.theme-switching .theme-shell,
+html.theme-switching .theme-shell * {
+  transition: none;
+}
+
+/* One crossfade for the whole viewport: gradients, backdrop blur and text all
+   change at the same speed, and the fade runs on the compositor instead of
+   repainting every element. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 240ms;
+  animation-timing-function: ease;
+}
+
+/* Fade fallback for browsers without view transitions: same duration, easing and
+   property list for every themed surface, so the switch reads as one fade rather
+   than surfaces and their text finishing at different times. Present only while
+   `theme-fading` is on <html> (see use-site-preferences); `fill`/`stroke` are
+   deliberately left out because icons follow `currentColor` anyway. */
+html.theme-fading,
+html.theme-fading .theme-shell,
+html.theme-fading .theme-shell * {
+  transition-delay: 0ms;
+  transition-duration: 240ms;
+  transition-property: background-color, border-color, color;
   transition-timing-function: ease;
 }
 
