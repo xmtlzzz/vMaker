@@ -48,8 +48,8 @@
 }
 
 :root {
-    --vmaker-accent: #F598F2;
-    --vmaker-accent-rgb: 245 152 242;
+    --vmaker-accent: #b82b9e;
+    --vmaker-accent-rgb: 184 43 158;
     --background: oklch(1 0 0);
     --foreground: oklch(0.145 0 0);
     --card: oklch(1 0 0);
@@ -86,6 +86,8 @@
 }
 
 .dark {
+    --vmaker-accent: #F598F2;
+    --vmaker-accent-rgb: 245 152 242;
     --background: oklch(0.145 0 0);
     --foreground: oklch(0.985 0 0);
     --card: oklch(0.205 0 0);

@@ -43,8 +43,11 @@ export function ProjectLanguageSection({
             </h3>
           </div>
         </div>
-        <a className="project-back-link" href="#projects">
-          {t.projectsTop}
+        <a
+          className="project-back-link text-xs transition-colors hover:text-foreground inline-flex items-center gap-1 px-2.5 py-1 rounded-full border border-border/50 hover:border-border"
+          href="#projects"
+        >
+          <span>↑</span> {t.projectsTop}
         </a>
       </div>
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">

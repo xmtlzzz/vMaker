@@ -6,6 +6,7 @@ import {
 } from '~/lib/github/client'
 import { fetchRepoIndexFromGraphql } from '~/lib/github/graphql'
 import type {
+  CommitSummary,
   GitHubCommit,
   GitHubOwner,
   GitHubRepo,
@@ -339,6 +340,30 @@ function getLanguageShares(languages: Record<string, number>) {
     .sort((a, b) => b.bytes - a.bytes)
 }
 
+function resolveProjectDescription(
+  repo: GitHubRepo,
+  summary?: string,
+  commits: CommitSummary[] = []
+): string {
+  if (summary?.trim()) {
+    return summary.trim()
+  }
+  if (repo.description?.trim()) {
+    return repo.description.trim()
+  }
+  if (commits.length > 0 && commits[0].message?.trim()) {
+    const msg = commits[0].message.trim().split('\n')[0].trim()
+    if (
+      msg.length > 3 &&
+      !/^update\s*(readme)?$/i.test(msg) &&
+      !/^modify\s*(readme)?$/i.test(msg)
+    ) {
+      return `最新动态: ${msg.slice(0, 70)}`
+    }
+  }
+  return `${repo.language ? repo.language + ' ' : ''}开源实用工具与实验项目`
+}
+
 function toProject(
   repo: GitHubRepo,
   details: Partial<RepoDetails> = {}
@@ -353,8 +378,7 @@ function toProject(
     commits,
     cover: override.cover,
     createdAt: repo.created_at,
-    description:
-      override.summary ?? repo.description ?? '这个项目还没有 GitHub 描述。',
+    description: resolveProjectDescription(repo, override.summary, commits),
     displayName: override.displayName ?? repo.name,
     featured: override.featured ?? false,
     forks: repo.forks_count,
@@ -455,7 +479,7 @@ function fallbackRepo(name: string): GitHubRepo {
   return {
     archived: false,
     created_at: '',
-    description: override.summary ?? null,
+    description: override.summary ?? `${name} 开源实用项目`,
     fork: false,
     forks_count: 0,
     full_name: `${login}/${name}`,

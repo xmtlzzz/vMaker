@@ -157,8 +157,19 @@ export function useSitePreferences(ownerLabel = '') {
     window.localStorage.setItem(ACCENT_STORAGE_KEY, accentId)
   }, [accentId])
 
-  const activeAccent =
+  const rawAccent =
     ACCENT_PRESETS.find((preset) => preset.id === accentId) ?? ACCENT_PRESETS[0]
+
+  const activeAccent = useMemo(() => {
+    if (theme === 'light' && rawAccent.lightColor && rawAccent.lightRgb) {
+      return {
+        ...rawAccent,
+        color: rawAccent.lightColor,
+        rgb: rawAccent.lightRgb,
+      }
+    }
+    return rawAccent
+  }, [rawAccent, theme])
 
   // Theme changes go through the atomic switch instead of a bare setTheme: see
   // commitThemeSwitch above.

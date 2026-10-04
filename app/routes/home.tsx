@@ -697,7 +697,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                   </select>
                 </label>
                 <label className="projects-search">
-                  <Search className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-white/45" />
+                  <Search className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-muted-foreground dark:text-white/45" />
                   <input
                     aria-label={t.search}
                     onChange={(event) => setQuery(event.target.value)}
