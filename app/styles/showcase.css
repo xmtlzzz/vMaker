@@ -15,7 +15,7 @@
 }
 .projects-layout {
   display: grid;
-  grid-template-columns: 280px minmax(0, 1fr);
+  grid-template-columns: 380px minmax(0, 1fr);
   gap: 3rem;
   align-items: start;
 }
@@ -74,7 +74,9 @@
   color: var(--showcase-muted);
 }
 .project-timeline {
-  overflow: visible;
+  max-height: clamp(12rem, 32vh, 22rem);
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
 }
 .project-timeline-copy,
 .project-panel-title,

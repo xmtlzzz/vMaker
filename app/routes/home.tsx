@@ -486,7 +486,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
               <p className="project-meta-label mt-8">{t.recentActivity}</p>
               <div className="project-timeline mt-4" ref={timelineContainerRef}>
                 {commitTimeline.length > 0 ? (
-                  commitTimeline.slice(0, 5).map((item) => (
+                  commitTimeline.map((item) => (
                     <a
                       className={`project-timeline-item ${hoveredProjectId === item.projectId ? 'is-active' : ''}`}
                       href={item.url}
