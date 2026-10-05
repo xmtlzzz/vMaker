@@ -569,13 +569,13 @@ html.theme-light {
 }
 
 .projects-intro {
+  min-width: 0;
   align-self: start;
   display: flex;
   flex-direction: column;
   gap: 0;
-  max-height: calc(100vh - 8rem);
-  overflow: hidden;
-  padding-bottom: 5.5rem;
+  max-height: none;
+  padding-bottom: 0;
   position: sticky;
   top: 1.5rem;
 }
@@ -652,12 +652,11 @@ html.theme-light {
 }
 
 .project-stack-loop-wrap {
-  bottom: 1.3rem;
+  margin-top: 1.5rem;
   flex: none;
   overflow: hidden;
-  position: absolute;
-  right: 0;
-  width: calc(100% - 0.35rem);
+  position: relative;
+  width: 100%;
 }
 
 .project-timeline-item {

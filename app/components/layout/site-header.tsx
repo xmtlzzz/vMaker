@@ -10,7 +10,6 @@ import type { GitHubOwner } from '~/lib/github/types'
 export type SiteHeaderProps = {
   accentId: AccentPreset['id']
   accentPresets: AccentPreset[]
-  clock: string
   isAccentMenuOpen: boolean
   isMenuOpen: boolean
   locale: Locale
@@ -27,7 +26,6 @@ export type SiteHeaderProps = {
 export function SiteHeader({
   accentId,
   accentPresets,
-  clock,
   isAccentMenuOpen,
   isMenuOpen,
   locale,
@@ -81,10 +79,8 @@ export function SiteHeader({
             >
               GitHub / {ownerName}
             </a>
-            <span className="text-xs font-medium tracking-[-0.12px] text-white/58 uppercase">
-              {clock}
-            </span>
             <button
+              aria-label={t.changeLocale}
               className="hero-icon-button"
               onClick={() => setLocale(locale === 'en' ? 'zh' : 'en')}
               type="button"
@@ -113,6 +109,7 @@ export function SiteHeader({
                 <Palette className="size-4" />
               </button>
               <div
+                hidden={!isAccentMenuOpen}
                 className={`hero-accent-menu ${isAccentMenuOpen ? 'open' : ''}`}
               >
                 {accentPresets.map((preset) => (
@@ -131,6 +128,7 @@ export function SiteHeader({
 
           <div className="hero-mobile-actions">
             <button
+              aria-label={t.changeLocale}
               className="hero-icon-button"
               onClick={() => setLocale(locale === 'en' ? 'zh' : 'en')}
               type="button"
@@ -151,7 +149,7 @@ export function SiteHeader({
             </button>
             <div className="hero-accent-picker">
               <button
-                aria-label="Change accent color"
+                aria-label={t.changeAccent}
                 className="hero-icon-button"
                 onClick={onAccentMenuToggle}
                 type="button"
@@ -159,6 +157,7 @@ export function SiteHeader({
                 <Palette className="size-4" />
               </button>
               <div
+                hidden={!isAccentMenuOpen}
                 className={`hero-accent-menu ${isAccentMenuOpen ? 'open' : ''}`}
               >
                 {accentPresets.map((preset) => (
@@ -174,6 +173,8 @@ export function SiteHeader({
               </div>
             </div>
             <button
+              aria-expanded={isMenuOpen}
+              aria-controls="hero-mobile-navigation"
               className="hero-menu-button"
               onClick={onMenuToggle}
               type="button"
@@ -188,7 +189,11 @@ export function SiteHeader({
           </div>
         </div>
 
-        <div className={`hero-mobile-panel ${isMenuOpen ? 'open' : ''}`}>
+        <div
+          id="hero-mobile-navigation"
+          hidden={!isMenuOpen}
+          className={`hero-mobile-panel ${isMenuOpen ? 'open' : ''}`}
+        >
           <div className="hero-mobile-panel-inner">
             <div className="mt-6 flex flex-col gap-5">
               {navItems.map((item) => (
@@ -205,7 +210,6 @@ export function SiteHeader({
               <a href={ownerHref} rel="noreferrer" target="_blank">
                 GitHub / {ownerName}
               </a>
-              <span>{clock}</span>
             </div>
           </div>
         </div>

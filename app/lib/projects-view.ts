@@ -5,6 +5,7 @@ export type ProjectGroup = {
   id: string
   language: string
   projects: Project[]
+  featured?: boolean
 }
 
 export type CommitTimelineItem = {
@@ -16,15 +17,22 @@ export type CommitTimelineItem = {
   url: string
 }
 
-export function groupProjectsByLanguage(projects: Project[]): ProjectGroup[] {
+export function groupProjectsByLanguage(
+  projects: Project[],
+  featuredFirst = false
+): ProjectGroup[] {
   const groups = new Map<string, Project[]>()
+  const featured = featuredFirst
+    ? projects.filter((project) => project.featured)
+    : []
 
   for (const project of projects) {
+    if (featuredFirst && project.featured) continue
     const language = languageName(project)
     groups.set(language, [...(groups.get(language) ?? []), project])
   }
 
-  return [...groups.entries()]
+  const languageGroups = [...groups.entries()]
     .map(([language, groupedProjects]) => ({
       id: languageId(language),
       language,
@@ -35,6 +43,17 @@ export function groupProjectsByLanguage(projects: Project[]): ProjectGroup[] {
       if (b.language === 'Other') return -1
       return a.language.localeCompare(b.language)
     })
+  return featured.length
+    ? [
+        {
+          id: 'featured',
+          language: 'Featured',
+          featured: true,
+          projects: featured,
+        },
+        ...languageGroups,
+      ]
+    : languageGroups
 }
 
 export function getLatestCommitTimeline(

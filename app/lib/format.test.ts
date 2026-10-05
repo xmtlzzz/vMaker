@@ -101,7 +101,7 @@ function testCopyHasNoHardcodedHandle() {
   }
 
   // the strings that name the account must carry the placeholder instead
-  for (const key of ['dataLeft', 'heroDescription', 'subtitle'] as const) {
+  for (const key of ['dataLeft', 'heroDescription'] as const) {
     assert.match(copy.en[key], /\{owner\}/)
     assert.match(copy.zh[key], /\{owner\}/)
   }

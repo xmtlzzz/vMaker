@@ -11,6 +11,7 @@ import type { Route } from './+types/root'
 import { forwardDocumentHeaders } from './lib/document-cache'
 import { LOCALE_STORAGE_KEY, THEME_STORAGE_KEY } from './lib/config'
 import './app.css'
+import './styles/showcase.css'
 
 // Runs before hydration so a dark-theme visitor never sees the light first paint.
 // The theme classes live on <html>; the route shell only carries theme-shell/home-canvas.

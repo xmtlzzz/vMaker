@@ -1,5 +1,6 @@
 export type ProjectOverride = {
   cover?: string
+  homepage?: string
   displayName?: string
   featured?: boolean
   hidden?: boolean
@@ -9,9 +10,19 @@ export type ProjectOverride = {
 
 export const projectOverrides: Record<string, ProjectOverride> = {
   vMaker: {
+    cover: '/previews/vmaker.jpg',
+    homepage: 'https://vmaker.xmtlz.dev',
     featured: true,
     order: 1,
-    summary: '用于集中展示个人项目的现代化作品集网站。',
+    summary: '集中浏览个人开源项目，搜索作品、查看技术栈和最近进展。',
+  },
+  'vBlog-Core': {
+    cover: '/previews/vblog.jpg',
+    featured: true,
+    order: 2,
+    homepage: 'https://vblog.xmtlz.dev',
+    summary:
+      '用于发布技术文章与开发记录的个人博客，支持 Markdown、标签与全文阅读。',
   },
   'astro-blog-starter-template': {
     summary: '基于 Astro 的现代化博客起步模板与静态站点脚手架。',
@@ -47,4 +58,3 @@ export const projectOverrides: Record<string, ProjectOverride> = {
     summary: '全栈开发技术演练与日常编程学习实践库。',
   },
 }
-

@@ -5,6 +5,7 @@ import { Link, data, isRouteErrorResponse } from 'react-router'
 import { ProjectDetailAside } from '~/components/sections/project-detail-aside'
 import { RelatedProjects } from '~/components/sections/related-projects'
 import { ACCENT_PRESETS } from '~/data/accents'
+import { projectShowcases } from '~/data/project-showcases'
 import type { Locale } from '~/data/copy'
 import { useSitePreferences } from '~/hooks/use-site-preferences'
 import { resolveSiteUrl } from '~/lib/config'
@@ -55,6 +56,7 @@ export async function loader({ context, params, request }: Route.LoaderArgs) {
   return data(
     {
       owner: payload.owner,
+      error: payload.error,
       project,
       related: getRelatedProjects(payload.projects, project),
       siteUrl: resolveSiteUrl({
@@ -74,7 +76,9 @@ export function meta({ data }: Route.MetaArgs) {
   const { owner, project } = data
   const title = `${project.displayName} · vMaker`
   const canonical = `${resolveSiteUrl({ configured: data.siteUrl })}/projects/${project.name}`
-  const image = repoOgImage(owner.login, project.name)
+  const image = project.cover
+    ? new URL(project.cover, resolveSiteUrl({ configured: data.siteUrl })).href
+    : repoOgImage(owner.login, project.name)
 
   return [
     { title },
@@ -88,8 +92,12 @@ export function meta({ data }: Route.MetaArgs) {
     { property: 'og:locale', content: 'zh_CN' },
     { property: 'og:locale:alternate', content: 'en_US' },
     { property: 'og:image', content: image },
-    { property: 'og:image:width', content: '1200' },
-    { property: 'og:image:height', content: '600' },
+    ...(project.cover
+      ? []
+      : [
+          { property: 'og:image:width', content: '1200' },
+          { property: 'og:image:height', content: '600' },
+        ]),
     { property: 'og:image:alt', content: title },
     { name: 'twitter:card', content: 'summary_large_image' },
     { name: 'twitter:title', content: title },
@@ -180,7 +188,7 @@ function Releases({
 }
 
 export default function ProjectRoute({ loaderData }: Route.ComponentProps) {
-  const { owner, project, related } = loaderData
+  const { owner, project, related, error } = loaderData
   const {
     accentId,
     activeAccent,
@@ -192,7 +200,8 @@ export default function ProjectRoute({ loaderData }: Route.ComponentProps) {
     toggleTheme,
   } = useSitePreferences(ownerLabel(owner))
 
-  // overrides.cover wins; otherwise reuse GitHub's own per-repository social card
+  const showcase = projectShowcases[project.name]?.[locale]
+  // Product screenshots take precedence over repository social cards.
   const cover = project.cover ?? repoOgImage(owner.login, project.name)
 
   function cycleAccent() {
@@ -272,15 +281,41 @@ export default function ProjectRoute({ loaderData }: Route.ComponentProps) {
               )}
             </div>
             <p className="detail-summary">{project.description}</p>
+            {error && (
+              <p className="detail-data-note" role="status">
+                {t.tokenHelp}
+              </p>
+            )}
 
-            <img
-              alt={`${project.displayName} preview`}
-              className="detail-preview"
-              decoding="async"
-              loading="lazy"
-              referrerPolicy="no-referrer"
-              src={cover}
-            />
+            {showcase && (
+              <section className="detail-use-case">
+                <h2 className="detail-section-label">{t.useCase}</h2>
+                <p>{showcase.introduction}</p>
+                <ul>
+                  {showcase.features.map((feature) => (
+                    <li key={feature}>{feature}</li>
+                  ))}
+                </ul>
+              </section>
+            )}
+
+            <figure>
+              <img
+                alt={
+                  showcase?.previewCaption || `${project.displayName} preview`
+                }
+                className="detail-preview"
+                decoding="async"
+                loading="lazy"
+                referrerPolicy="no-referrer"
+                src={cover}
+              />
+              {showcase && (
+                <figcaption className="detail-preview-caption">
+                  {showcase.previewCaption}
+                </figcaption>
+              )}
+            </figure>
 
             <LanguageComposition project={project} t={t} />
 
@@ -299,7 +334,12 @@ export default function ProjectRoute({ loaderData }: Route.ComponentProps) {
           </div>
 
           <div className="detail-aside">
-            <ProjectDetailAside locale={locale} project={project} t={t} />
+            <ProjectDetailAside
+              locale={locale}
+              project={project}
+              t={t}
+              unavailable={Boolean(error)}
+            />
           </div>
         </div>
 

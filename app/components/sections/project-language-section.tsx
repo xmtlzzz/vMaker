@@ -10,6 +10,7 @@ export function ProjectLanguageSection({
   locale,
   onProjectHover,
   t,
+  unavailable = false,
 }: {
   group: ProjectGroup
   hoveredProjectId: string | null
@@ -17,6 +18,7 @@ export function ProjectLanguageSection({
   locale: Locale
   onProjectHover: (projectId: string | null) => void
   t: Record<string, string>
+  unavailable?: boolean
 }) {
   const { accentClassName, icon: LanguageIcon } = languageIconConfig(
     group.language
@@ -39,18 +41,18 @@ export function ProjectLanguageSection({
               <LanguageIcon className="size-5" />
             </span>
             <h3 className="language-section-title project-group-title">
-              {group.language}
+              {group.featured ? t.featured : group.language}
             </h3>
           </div>
         </div>
         <a
-          className="project-back-link text-xs transition-colors hover:text-foreground inline-flex items-center gap-1 px-2.5 py-1 rounded-full border border-border/50 hover:border-border"
+          className="project-back-link inline-flex items-center gap-1 rounded-full border border-border/50 px-2.5 py-1 text-xs transition-colors hover:border-border hover:text-foreground"
           href="#projects"
         >
           <span>↑</span> {t.projectsTop}
         </a>
       </div>
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <div className="project-card-grid">
         {group.projects.map((project) => (
           <ProjectPanel
             isActive={hoveredProjectId === project.name}
@@ -60,6 +62,7 @@ export function ProjectLanguageSection({
             onHover={onProjectHover}
             project={project}
             t={t}
+            unavailable={unavailable}
           />
         ))}
       </div>

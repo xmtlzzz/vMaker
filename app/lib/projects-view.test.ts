@@ -1,7 +1,10 @@
 import assert from 'node:assert/strict'
 
 import type { Project } from '~/lib/github/projects'
-import { getRelatedProjects } from '~/lib/projects-view'
+import {
+  getRelatedProjects,
+  groupProjectsByLanguage,
+} from '~/lib/projects-view'
 
 function project(name: string, overrides: Partial<Project> = {}): Project {
   return {
@@ -34,6 +37,25 @@ function project(name: string, overrides: Partial<Project> = {}): Project {
 }
 
 const names = (list: Project[]) => list.map((item) => item.name)
+
+const showcase = groupProjectsByLanguage(
+  [
+    project('template', { primaryLanguage: 'Astro' }),
+    project('vBlog-Core', { featured: true, primaryLanguage: 'Vue' }),
+    project('vMaker', { featured: true }),
+  ],
+  true
+)
+assert.deepEqual(
+  names(showcase[0].projects),
+  ['vBlog-Core', 'vMaker'],
+  'representative projects must appear before language groups'
+)
+assert.equal(
+  showcase.flatMap((group) => group.projects).length,
+  3,
+  'featured projects must not be duplicated'
+)
 
 async function testSelfIsNeverRelated() {
   const target = project('vMaker', { topics: ['portfolio'] })

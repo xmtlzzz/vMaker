@@ -9,10 +9,12 @@ export function ProjectDetailAside({
   project,
   locale,
   t,
+  unavailable = false,
 }: {
   project: Project
   locale: Locale
   t: Record<string, string>
+  unavailable?: boolean
 }) {
   const metrics = [
     { label: t.primaryLanguage, value: languageName(project) },
@@ -33,7 +35,9 @@ export function ProjectDetailAside({
         {metrics.map((metric) => (
           <div className="detail-metric" key={metric.label}>
             <span className="detail-metric-label">{metric.label}</span>
-            <span className="detail-metric-value">{metric.value}</span>
+            <span className="detail-metric-value">
+              {unavailable ? '—' : metric.value}
+            </span>
           </div>
         ))}
       </div>

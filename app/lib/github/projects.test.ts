@@ -70,8 +70,9 @@ async function testBuildProjectPayload() {
   )
   assert.equal(
     payload.projects[0].description,
-    '用于集中展示个人项目的现代化作品集网站。'
+    '集中浏览个人开源项目，搜索作品、查看技术栈和最近进展。'
   )
+  assert.equal(payload.projects[0].homepage, 'https://vmaker.xmtlz.dev')
   assert.equal(payload.summary.totalProjects, 2)
   assert.equal(payload.summary.totalCodeSize, 1000)
   assert.deepEqual(payload.summary.primaryLanguages, [
@@ -163,7 +164,7 @@ async function testGithubHeadersIgnorePlaceholderToken() {
 
 // ── getProjects 分层缓存（内存 → KV → GitHub，SWR + 写租约）────────────────
 
-const CACHE_KEY = 'github:index:v1'
+const CACHE_KEY = 'github:index:v2'
 const FRESH_FOR_MS = 10_000
 
 const GRAPHQL_INDEX_FIXTURE = {

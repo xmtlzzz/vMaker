@@ -12,7 +12,6 @@ import { Metric } from '~/components/sections/project-metric'
 import { ACCENT_PRESETS } from '~/data/accents'
 import { HERO_SLIDES } from '~/data/hero-slides'
 import { STACK_LOGOS } from '~/data/stack-logos'
-import { formatCopy } from '~/data/copy'
 import { useRevealOnView } from '~/hooks/use-reveal-on-view'
 import { useSitePreferences } from '~/hooks/use-site-preferences'
 import { resolveSiteUrl, SITE_REPO } from '~/lib/config'
@@ -126,7 +125,6 @@ export default function Home({ loaderData }: Route.ComponentProps) {
     toggleTheme,
   } = useSitePreferences(ownerLabel(owner))
   const [activeIndex, setActiveIndex] = useState(0)
-  const [clock, setClock] = useState('')
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isAccentMenuOpen, setIsAccentMenuOpen] = useState(false)
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false)
@@ -139,11 +137,8 @@ export default function Home({ loaderData }: Route.ComponentProps) {
   const heroSectionRef = useRef<HTMLElement | null>(null)
   const projectsSectionRef = useRef<HTMLElement | null>(null)
   const moreMenuRef = useRef<HTMLDivElement | null>(null)
-  const projectScrollLockedRef = useRef(false)
-  const topNavigationRef = useRef(false)
   const location = useLocation()
 
-  const activeSlide = HERO_SLIDES[activeIndex]
   // Filtering always preserves the loader order (featured first). Only an explicit
   // sort choice reorders the list, so the default view is byte-for-byte what it was.
   const filteredProjects = useMemo(() => {
@@ -157,8 +152,8 @@ export default function Home({ loaderData }: Route.ComponentProps) {
     return sortKey === 'default' ? matched : sortProjects(matched, sortKey)
   }, [projects, query, sortKey])
   const projectGroups = useMemo(
-    () => groupProjectsByLanguage(filteredProjects),
-    [filteredProjects]
+    () => groupProjectsByLanguage(filteredProjects, sortKey === 'default'),
+    [filteredProjects, sortKey]
   )
   const languageGroups = useMemo(
     () => groupProjectsByLanguage(projects),
@@ -203,20 +198,6 @@ export default function Home({ loaderData }: Route.ComponentProps) {
   const [buttonRef, buttonVisible] = useRevealOnView<HTMLDivElement>()
 
   useEffect(() => {
-    const formatClock = () =>
-      `${t.localTime} ${new Intl.DateTimeFormat('en-GB', {
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: false,
-      }).format(new Date())}`
-
-    setClock(formatClock())
-    const timer = window.setInterval(() => setClock(formatClock()), 1000)
-    return () => window.clearInterval(timer)
-  }, [t.localTime])
-
-  useEffect(() => {
     setIsMenuOpen(false)
     setIsAccentMenuOpen(false)
     setIsMoreMenuOpen(false)
@@ -244,62 +225,14 @@ export default function Home({ loaderData }: Route.ComponentProps) {
   }, [isMoreMenuOpen])
 
   useEffect(() => {
-    if (typeof window === 'undefined') return
-
-    const handleScroll = () => {
-      const heroHeight = heroSectionRef.current?.offsetHeight ?? 0
-      const projectsTop =
-        projectsSectionRef.current?.offsetTop ?? Number.POSITIVE_INFINITY
-      const currentY = window.scrollY
-
-      if (topNavigationRef.current && currentY <= 1) {
-        topNavigationRef.current = false
-      }
-
-      if (!topNavigationRef.current && currentY >= projectsTop - 1) {
-        projectScrollLockedRef.current = true
-      }
-
-      setShowBackToTop(currentY > Math.max(heroHeight * 0.4, 280))
-    }
-
-    const handleWheel = (event: WheelEvent) => {
-      const projectsTop =
-        projectsSectionRef.current?.offsetTop ?? Number.POSITIVE_INFINITY
-      if (
-        projectScrollLockedRef.current &&
-        event.deltaY < 0 &&
-        window.scrollY + event.deltaY < projectsTop
-      ) {
-        event.preventDefault()
-        window.scrollTo({ top: projectsTop })
-      }
-    }
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      const projectsTop =
-        projectsSectionRef.current?.offsetTop ?? Number.POSITIVE_INFINITY
-      const upwardKeys = ['ArrowUp', 'PageUp', 'Home']
-      if (
-        projectScrollLockedRef.current &&
-        upwardKeys.includes(event.key) &&
-        window.scrollY <= projectsTop + 1
-      ) {
-        event.preventDefault()
-        window.scrollTo({ top: projectsTop })
-      }
-    }
-
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    window.addEventListener('wheel', handleWheel, { passive: false })
-    window.addEventListener('keydown', handleKeyDown)
-    handleScroll()
-
-    return () => {
-      window.removeEventListener('scroll', handleScroll)
-      window.removeEventListener('wheel', handleWheel)
-      window.removeEventListener('keydown', handleKeyDown)
-    }
+    const hero = heroSectionRef.current
+    if (!hero) return
+    const observer = new IntersectionObserver(
+      ([entry]) => setShowBackToTop(!entry.isIntersecting),
+      { threshold: 0 }
+    )
+    observer.observe(hero)
+    return () => observer.disconnect()
   }, [])
 
   // Arriving from a project detail page, the URL carries #<repo-name> so the index
@@ -411,7 +344,6 @@ export default function Home({ loaderData }: Route.ComponentProps) {
         <SiteHeader
           accentId={accentId}
           accentPresets={ACCENT_PRESETS}
-          clock={clock}
           isAccentMenuOpen={isAccentMenuOpen}
           isMenuOpen={isMenuOpen}
           locale={locale}
@@ -425,7 +357,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
           theme={theme}
         />
 
-        <div className="hero-layout relative z-[2] mx-auto flex min-h-svh w-full max-w-[1340px] flex-col justify-end gap-[116px] px-[15px] pt-[190px]">
+        <div className="hero-layout relative z-[2] mx-auto flex min-h-svh w-full max-w-[1340px] flex-col justify-end gap-[80px] px-[24px] pt-[128px]">
           <div className="hero-top-row flex w-full items-start justify-between gap-10">
             <div className="flex-[4]">
               <p className="hero-eyebrow mb-6">{t.heroEyebrow}</p>
@@ -433,27 +365,14 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                 {HERO_SLIDES.map((slide, index) => (
                   <button
                     className={`hero-switcher role-link text-left text-xs font-medium tracking-[-0.12px] uppercase transition-opacity ${index === activeIndex ? 'opacity-100' : 'opacity-55 hover:opacity-75'}`}
-                    key={slide.label}
+                    aria-pressed={index === activeIndex}
+                    key={slide.imageUrl}
                     onClick={() => setActiveIndex(index)}
                     type="button"
                   >
-                    {slide.label}
+                    {[t.scenePenguin, t.sceneBird, t.sceneDeer][index]}
                   </button>
                 ))}
-              </div>
-            </div>
-            <div className="flex flex-1 justify-start md:justify-end">
-              <div className="hero-availability">
-                <span
-                  className="hero-availability-dot"
-                  style={
-                    {
-                      '--dot-color': activeSlide.accent,
-                      '--dot-glow': activeSlide.accent,
-                    } as CSSProperties
-                  }
-                />
-                <span>{activeSlide.availability}</span>
               </div>
             </div>
           </div>
@@ -481,11 +400,6 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                 ref={copyRef}
               >
                 <p className="hero-description">{t.heroDescription}</p>
-                <p className="hero-slide-copy">
-                  {formatCopy(activeSlide.description, {
-                    owner: ownerLabel(owner),
-                  })}
-                </p>
               </div>
               <div
                 className={`reveal-block delay-1 ${buttonVisible ? 'is-visible reveal-right' : ''}`}
@@ -496,17 +410,6 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                 </a>
               </div>
             </div>
-          </div>
-        </div>
-
-        <div className="hero-bridge relative z-[2] mx-auto flex w-full max-w-[1340px] flex-col gap-5 px-[15px] pb-0">
-          <div
-            className="hero-bridge-meta hero-bridge-meta-standalone"
-            id="stack"
-          >
-            <span>{t.indexLead}</span>
-            <span>{t.dataLeft}</span>
-            <span>{t.dataRight}</span>
           </div>
         </div>
       </section>
@@ -520,11 +423,13 @@ export default function Home({ loaderData }: Route.ComponentProps) {
           className="relative mx-auto max-w-[1340px] px-[15px]"
           id="projects"
         >
-          <div className="grid gap-10 lg:grid-cols-[0.92fr_1.08fr]">
+          <header className="projects-heading">
+            <p className="projects-kicker">{t.works}</p>
+            <h2 className="projects-title">{t.title}</h2>
+            <p className="projects-subtitle">{t.subtitle}</p>
+          </header>
+          <div className="projects-layout">
             <div className="projects-intro">
-              <p className="projects-kicker">{t.languageNav}</p>
-              <h2 className="projects-title">{t.title}</h2>
-              <p className="projects-subtitle">{t.subtitle}</p>
               <div className="projects-side-card">
                 <p className="project-meta-label">{t.status}</p>
                 <div className="mt-5 grid grid-cols-2 gap-3">
@@ -544,12 +449,12 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                   <Metric
                     isDark={isDark}
                     label={t.stars}
-                    value={totals.totalStars.toString()}
+                    value={error ? '—' : totals.totalStars.toString()}
                   />
                   <Metric
                     isDark={isDark}
                     label={t.totalCode}
-                    value={formatBytes(totals.totalCodeSize)}
+                    value={error ? '—' : formatBytes(totals.totalCodeSize)}
                   />
                 </div>
                 {topics.length > 0 && (
@@ -578,9 +483,10 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                   <p className="project-error-note mt-4">{t.tokenHelp}</p>
                 )}
               </div>
-              <div className="project-timeline mt-8" ref={timelineContainerRef}>
+              <p className="project-meta-label mt-8">{t.recentActivity}</p>
+              <div className="project-timeline mt-4" ref={timelineContainerRef}>
                 {commitTimeline.length > 0 ? (
-                  commitTimeline.map((item) => (
+                  commitTimeline.slice(0, 5).map((item) => (
                     <a
                       className={`project-timeline-item ${hoveredProjectId === item.projectId ? 'is-active' : ''}`}
                       href={item.url}
@@ -616,7 +522,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
               </div>
             </div>
 
-            <div>
+            <div className="projects-catalog">
               <div className="projects-toolbar">
                 <div className="projects-nav-wrap">
                   <div className="projects-anchor-list">
@@ -624,7 +530,13 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                       topLanguageGroups.map((group) => (
                         <a
                           className="projects-anchor-chip"
-                          href={`#language-${group.id}`}
+                          href={
+                            projectGroups.some(
+                              (section) => section.id === group.id
+                            )
+                              ? `#language-${group.id}`
+                              : `#${group.projects[0].name}`
+                          }
                           key={group.language}
                           title={group.language}
                         >
@@ -660,7 +572,13 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                             moreLanguageGroups.map((group) => (
                               <a
                                 className="projects-anchor-dropdown-item"
-                                href={`#language-${group.id}`}
+                                href={
+                                  projectGroups.some(
+                                    (section) => section.id === group.id
+                                  )
+                                    ? `#language-${group.id}`
+                                    : `#${group.projects[0].name}`
+                                }
                                 key={group.language}
                                 onClick={() => setIsMoreMenuOpen(false)}
                                 role="menuitem"
@@ -689,7 +607,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                     }
                     value={sortKey}
                   >
-                    <option value="default">{t.latest}</option>
+                    <option value="default">{t.sortDefault}</option>
                     <option value="activity">{t.sortActivity}</option>
                     <option value="stars">{t.sortStars}</option>
                     <option value="name">{t.sortName}</option>
@@ -718,6 +636,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                       locale={locale}
                       onProjectHover={setHoveredProjectId}
                       t={t}
+                      unavailable={Boolean(error)}
                     />
                   ))}
                 </div>
@@ -732,10 +651,12 @@ export default function Home({ loaderData }: Route.ComponentProps) {
       {showBackToTop && (
         <div className="project-floating-actions">
           <div
-            className={`project-control-menu ${isProjectControlsOpen ? 'is-open' : ''}`}
+            id="project-display-controls"
+            className="project-control-menu is-open"
+            hidden={!isProjectControlsOpen}
           >
             <button
-              aria-label="Change language"
+              aria-label={t.changeLocale}
               className="project-control-button"
               onClick={() => setLocale(locale === 'en' ? 'zh' : 'en')}
               type="button"
@@ -743,7 +664,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
               {locale === 'en' ? '中' : 'EN'}
             </button>
             <button
-              aria-label="Toggle theme"
+              aria-label={t.changeTheme}
               className="project-control-button"
               onClick={handleThemeToggle}
               type="button"
@@ -756,7 +677,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
             </button>
             <div className="hero-accent-picker">
               <button
-                aria-label="Change accent color"
+                aria-label={t.changeAccent}
                 className="project-control-button"
                 onClick={() => setIsAccentMenuOpen((open) => !open)}
                 type="button"
@@ -764,6 +685,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                 <Palette className="size-4" />
               </button>
               <div
+                hidden={!isAccentMenuOpen}
                 className={`hero-accent-menu ${isAccentMenuOpen ? 'open' : ''}`}
               >
                 {ACCENT_PRESETS.map((preset) => (
@@ -784,7 +706,8 @@ export default function Home({ loaderData }: Route.ComponentProps) {
           </div>
           <button
             aria-expanded={isProjectControlsOpen}
-            aria-label="Toggle project controls"
+            aria-label={t.projectControls}
+            aria-controls="project-display-controls"
             className="project-control-button project-control-toggle"
             onClick={() => setIsProjectControlsOpen((open) => !open)}
             type="button"
@@ -792,14 +715,18 @@ export default function Home({ loaderData }: Route.ComponentProps) {
             <Ellipsis className="size-4" />
           </button>
           <button
-            aria-label="Back to top"
+            aria-label={t.top}
             className="back-to-top-button"
             onClick={() => {
-              projectScrollLockedRef.current = false
-              topNavigationRef.current = true
               setIsProjectControlsOpen(false)
               setIsAccentMenuOpen(false)
-              window.scrollTo({ top: 0, behavior: 'smooth' })
+              window.scrollTo({
+                top: 0,
+                behavior: window.matchMedia('(prefers-reduced-motion: reduce)')
+                  .matches
+                  ? 'auto'
+                  : 'smooth',
+              })
             }}
             type="button"
           >

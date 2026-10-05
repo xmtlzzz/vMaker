@@ -14,6 +14,7 @@ export function ProjectPanel({
   onHover,
   project,
   t,
+  unavailable = false,
 }: {
   isActive: boolean
   isDark: boolean
@@ -21,6 +22,7 @@ export function ProjectPanel({
   onHover: (projectId: string | null) => void
   project: Project
   t: Record<string, string>
+  unavailable?: boolean
 }) {
   return (
     <BorderGlow className="scroll-mt-24" id={project.name}>
@@ -87,15 +89,15 @@ export function ProjectPanel({
         <div className="project-panel-stats">
           <span className="project-stat" title={t.stars}>
             <Star aria-hidden="true" className="size-3.5" />
-            <span>{project.stars}</span>
+            <span>{unavailable ? '—' : project.stars}</span>
           </span>
           <span className="project-stat" title={t.forks}>
             <GitFork aria-hidden="true" className="size-3.5" />
-            <span>{project.forks}</span>
+            <span>{unavailable ? '—' : project.forks}</span>
           </span>
           <span className="project-stat" title={t.codeSize}>
             <HardDrive aria-hidden="true" className="size-3.5" />
-            <span>{formatBytes(project.codeSize)}</span>
+            <span>{unavailable ? '—' : formatBytes(project.codeSize)}</span>
           </span>
         </div>
         <div className="mt-6 flex flex-wrap gap-4 text-sm">

@@ -72,7 +72,7 @@ export type ProjectsCache = {
 
 type CachedEntry = { fetchedAt: number; payload: ProjectPayload }
 
-const CACHE_KEY = 'github:index:v1'
+const CACHE_KEY = 'github:index:v2'
 const CACHE_TTL = 1000 * 60 * 10
 const REFRESH_THROTTLE = 1000 * 60
 
@@ -383,7 +383,7 @@ function toProject(
     featured: override.featured ?? false,
     forks: repo.forks_count,
     fullName: repo.full_name,
-    homepage: repo.homepage || null,
+    homepage: override.homepage ?? (repo.homepage || null),
     languages,
     languageShares: getLanguageShares(languages),
     lastCommitAuthor: commits[0]?.author ?? null,
@@ -483,7 +483,7 @@ function fallbackRepo(name: string): GitHubRepo {
     fork: false,
     forks_count: 0,
     full_name: `${login}/${name}`,
-    homepage: null,
+    homepage: override.homepage ?? null,
     html_url: `https://github.com/${login}/${name}`,
     language: null,
     name,
