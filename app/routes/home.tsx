@@ -1,7 +1,7 @@
 import { ChevronDown, Ellipsis, Moon, Palette, Search, Sun } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { data, useLocation } from 'react-router'
+import { data, useLocation, useSearchParams } from 'react-router'
 
 import { SiteHeader } from '~/components/layout/site-header'
 import { LogoLoop } from '~/components/react-bits/LogoLoop'
@@ -112,7 +112,15 @@ export async function loader({ context, request }: Route.LoaderArgs) {
 
 export default function Home({ loaderData }: Route.ComponentProps) {
   const { error, owner, projects, summary } = loaderData
-  const [query, setQuery] = useState('')
+  const [searchParams, setSearchParams] = useSearchParams()
+  const qParam = searchParams.get('q') ?? ''
+  const sortParam = searchParams.get('sort')
+  const validSortKeys: readonly string[] = ['default', 'activity', 'stars', 'name', 'size']
+  const initialSortKey: SortKey | 'default' = validSortKeys.includes(sortParam ?? '')
+    ? (sortParam as SortKey | 'default')
+    : 'default'
+
+  const [query, setQuery] = useState(qParam)
   const {
     accentId,
     activeAccent,
@@ -131,13 +139,54 @@ export default function Home({ loaderData }: Route.ComponentProps) {
   const [isProjectControlsOpen, setIsProjectControlsOpen] = useState(false)
   const [hoveredProjectId, setHoveredProjectId] = useState<string | null>(null)
   const [showBackToTop, setShowBackToTop] = useState(false)
-  const [sortKey, setSortKey] = useState<SortKey | 'default'>('default')
+  const [sortKey, setSortKey] = useState<SortKey | 'default'>(initialSortKey)
   const timelineContainerRef = useRef<HTMLDivElement | null>(null)
   const timelineItemRefs = useRef(new Map<string, HTMLAnchorElement | null>())
   const heroSectionRef = useRef<HTMLElement | null>(null)
   const projectsSectionRef = useRef<HTMLElement | null>(null)
   const moreMenuRef = useRef<HTMLDivElement | null>(null)
   const location = useLocation()
+
+  // Sync state if URL search params change externally (e.g. browser back/forward)
+  useEffect(() => {
+    const urlQ = searchParams.get('q') ?? ''
+    const urlSort = searchParams.get('sort')
+    const nextSort: SortKey | 'default' = validSortKeys.includes(urlSort ?? '')
+      ? (urlSort as SortKey | 'default')
+      : 'default'
+
+    setQuery((prev) => (prev !== urlQ ? urlQ : prev))
+    setSortKey((prev) => (prev !== nextSort ? nextSort : prev))
+  }, [searchParams])
+
+  // Sync state back to URL search params (debounced)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev)
+          const trimmed = query.trim()
+          if (trimmed) {
+            next.set('q', trimmed)
+          } else {
+            next.delete('q')
+          }
+          if (sortKey !== 'default') {
+            next.set('sort', sortKey)
+          } else {
+            next.delete('sort')
+          }
+          if (next.toString() !== prev.toString()) {
+            return next
+          }
+          return prev
+        },
+        { replace: true }
+      )
+    }, 200)
+
+    return () => clearTimeout(timer)
+  }, [query, sortKey, setSearchParams])
 
   // Filtering always preserves the loader order (featured first). Only an explicit
   // sort choice reorders the list, so the default view is byte-for-byte what it was.

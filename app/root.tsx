@@ -31,7 +31,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           rel="preconnect"
         />
         <link
-          href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Figtree:wght@300..900&display=swap"
           rel="stylesheet"
         />
         <script dangerouslySetInnerHTML={{ __html: themeBootstrapScript }} />
