@@ -110,17 +110,34 @@ export async function loader({ context, request }: Route.LoaderArgs) {
   )
 }
 
+const VALID_SORT_KEYS: readonly (SortKey | 'default')[] = [
+  'default',
+  'activity',
+  'stars',
+  'name',
+  'size',
+]
+
 export default function Home({ loaderData }: Route.ComponentProps) {
   const { error, owner, projects, summary } = loaderData
   const [searchParams, setSearchParams] = useSearchParams()
   const qParam = searchParams.get('q') ?? ''
   const sortParam = searchParams.get('sort')
-  const validSortKeys: readonly string[] = ['default', 'activity', 'stars', 'name', 'size']
-  const initialSortKey: SortKey | 'default' = validSortKeys.includes(sortParam ?? '')
+  const sortKey: SortKey | 'default' = VALID_SORT_KEYS.includes(
+    sortParam as SortKey | 'default'
+  )
     ? (sortParam as SortKey | 'default')
     : 'default'
 
   const [query, setQuery] = useState(qParam)
+
+  // Keep query in sync when searchParams changes (e.g. browser back/forward)
+  const [prevQ, setPrevQ] = useState(qParam)
+  if (prevQ !== qParam) {
+    setPrevQ(qParam)
+    setQuery(qParam)
+  }
+
   const {
     accentId,
     activeAccent,
@@ -139,7 +156,6 @@ export default function Home({ loaderData }: Route.ComponentProps) {
   const [isProjectControlsOpen, setIsProjectControlsOpen] = useState(false)
   const [hoveredProjectId, setHoveredProjectId] = useState<string | null>(null)
   const [showBackToTop, setShowBackToTop] = useState(false)
-  const [sortKey, setSortKey] = useState<SortKey | 'default'>(initialSortKey)
   const timelineContainerRef = useRef<HTMLDivElement | null>(null)
   const timelineItemRefs = useRef(new Map<string, HTMLAnchorElement | null>())
   const heroSectionRef = useRef<HTMLElement | null>(null)
@@ -147,46 +163,44 @@ export default function Home({ loaderData }: Route.ComponentProps) {
   const moreMenuRef = useRef<HTMLDivElement | null>(null)
   const location = useLocation()
 
-  // Sync state if URL search params change externally (e.g. browser back/forward)
-  useEffect(() => {
-    const urlQ = searchParams.get('q') ?? ''
-    const urlSort = searchParams.get('sort')
-    const nextSort: SortKey | 'default' = validSortKeys.includes(urlSort ?? '')
-      ? (urlSort as SortKey | 'default')
-      : 'default'
-
-    setQuery((prev) => (prev !== urlQ ? urlQ : prev))
-    setSortKey((prev) => (prev !== nextSort ? nextSort : prev))
-  }, [searchParams])
-
-  // Sync state back to URL search params (debounced)
+  // Sync query state back to URL search params (debounced)
   useEffect(() => {
     const timer = setTimeout(() => {
-      setSearchParams(
-        (prev) => {
-          const next = new URLSearchParams(prev)
-          const trimmed = query.trim()
-          if (trimmed) {
-            next.set('q', trimmed)
-          } else {
-            next.delete('q')
-          }
-          if (sortKey !== 'default') {
-            next.set('sort', sortKey)
-          } else {
-            next.delete('sort')
-          }
-          if (next.toString() !== prev.toString()) {
+      const trimmed = query.trim()
+      const currentQ = searchParams.get('q') ?? ''
+      if (trimmed !== currentQ) {
+        setSearchParams(
+          (prev) => {
+            const next = new URLSearchParams(prev)
+            if (trimmed) {
+              next.set('q', trimmed)
+            } else {
+              next.delete('q')
+            }
             return next
-          }
-          return prev
-        },
-        { replace: true }
-      )
+          },
+          { replace: true }
+        )
+      }
     }, 200)
 
     return () => clearTimeout(timer)
-  }, [query, sortKey, setSearchParams])
+  }, [query, searchParams, setSearchParams])
+
+  const handleSortChange = (newSort: SortKey | 'default') => {
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev)
+        if (newSort === 'default') {
+          next.delete('sort')
+        } else {
+          next.set('sort', newSort)
+        }
+        return next
+      },
+      { replace: true }
+    )
+  }
 
   // Filtering always preserves the loader order (featured first). Only an explicit
   // sort choice reorders the list, so the default view is byte-for-byte what it was.
@@ -652,7 +666,9 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                     aria-label={t.sort}
                     className="projects-sort-select"
                     onChange={(event) =>
-                      setSortKey(event.target.value as SortKey | 'default')
+                      handleSortChange(
+                        event.target.value as SortKey | 'default'
+                      )
                     }
                     value={sortKey}
                   >
