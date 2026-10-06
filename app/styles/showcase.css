@@ -77,6 +77,13 @@
   max-height: clamp(12rem, 32vh, 22rem);
   overflow-y: auto;
   overscroll-behavior-y: contain;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.project-timeline::-webkit-scrollbar {
+  display: none;
+  height: 0;
+  width: 0;
 }
 .project-timeline-copy,
 .project-panel-title,

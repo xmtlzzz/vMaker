@@ -639,7 +639,7 @@ html.theme-light {
   padding-left: 1.1rem;
   position: relative;
   padding-right: 0.45rem;
-  scrollbar-width: thin;
+  scrollbar-width: none;
   -ms-overflow-style: none;
 }
 
@@ -649,6 +649,8 @@ html.theme-light {
 
 .project-timeline::-webkit-scrollbar {
   display: none;
+  height: 0;
+  width: 0;
 }
 
 .project-stack-loop-wrap {
