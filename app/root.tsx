@@ -40,7 +40,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         {children}
-        <ScrollRestoration />
+        <ScrollRestoration
+          getKey={(location) => {
+            // Restore scroll based on pathname, ignoring search param / sort changes on the same page
+            return location.pathname
+          }}
+        />
         <Scripts />
       </body>
     </html>

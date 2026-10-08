@@ -110,6 +110,17 @@ export async function loader({ context, request }: Route.LoaderArgs) {
   )
 }
 
+export function shouldRevalidate({
+  currentUrl,
+  nextUrl,
+}: {
+  currentUrl: URL
+  nextUrl: URL
+  [key: string]: unknown
+}) {
+  return currentUrl.pathname !== nextUrl.pathname
+}
+
 const VALID_SORT_KEYS: readonly (SortKey | 'default')[] = [
   'default',
   'activity',
@@ -203,7 +214,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
             }
             return next
           },
-          { replace: true }
+          { replace: true, preventScrollReset: true }
         )
       }
     }, 200)
@@ -222,7 +233,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
         }
         return next
       },
-      { replace: true }
+      { replace: true, preventScrollReset: true }
     )
   }
 
