@@ -137,7 +137,7 @@ export function SiteHeader({
               aria-label={t.changeTheme}
               isDark={theme === 'dark'}
               onToggle={onThemeToggle}
-              size="sm"
+              size="xs"
             />
             <div className="hero-accent-picker">
               <button

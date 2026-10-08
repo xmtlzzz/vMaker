@@ -1,7 +1,7 @@
 import React, { useId, useMemo } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 
-export type ThemeToggleSize = 'sm' | 'md' | 'lg'
+export type ThemeToggleSize = 'xs' | 'sm' | 'md' | 'lg'
 
 export interface ThemeToggleAnimatedProps {
   /** Current state: true for night/dark mode, false for day/light mode */
@@ -10,7 +10,7 @@ export interface ThemeToggleAnimatedProps {
   defaultDark?: boolean
   /** Callback fired when state toggles */
   onToggle?: (isDark: boolean) => void
-  /** Size preset */
+  /** Size preset: xs (50px, navbar tight), sm (60px, navbar default), md (90px), lg (120px) */
   size?: ThemeToggleSize
   /** Optional custom class name */
   className?: string
@@ -24,32 +24,41 @@ export interface ThemeToggleAnimatedProps {
 
 // Configuration dimensions per size preset
 const SIZE_CONFIG = {
+  xs: {
+    width: 50,
+    height: 26,
+    knobSize: 20,
+    padding: 3,
+    travel: 24,
+    cloudScale: 0.48,
+    starScale: 0.55,
+  },
   sm: {
-    width: 82,
-    height: 40,
-    knobSize: 30,
-    padding: 5,
-    travel: 42,
-    cloudScale: 0.72,
-    starScale: 0.75,
+    width: 60,
+    height: 30,
+    knobSize: 22,
+    padding: 4,
+    travel: 30,
+    cloudScale: 0.62,
+    starScale: 0.68,
   },
   md: {
-    width: 112,
-    height: 54,
-    knobSize: 42,
-    padding: 6,
-    travel: 58,
-    cloudScale: 1,
-    starScale: 1,
+    width: 90,
+    height: 44,
+    knobSize: 34,
+    padding: 5,
+    travel: 46,
+    cloudScale: 0.88,
+    starScale: 0.9,
   },
   lg: {
-    width: 144,
-    height: 68,
-    knobSize: 52,
-    padding: 8,
-    travel: 76,
-    cloudScale: 1.25,
-    starScale: 1.25,
+    width: 120,
+    height: 56,
+    knobSize: 44,
+    padding: 6,
+    travel: 64,
+    cloudScale: 1.15,
+    starScale: 1.15,
   },
 } as const
 

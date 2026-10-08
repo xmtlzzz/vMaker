@@ -301,7 +301,7 @@ export default function ThemeToggleDemo() {
               <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider dark:text-slate-400">
                 Size:
               </span>
-              {(['sm', 'md', 'lg'] as ThemeToggleSize[]).map((s) => (
+              {(['xs', 'sm', 'md', 'lg'] as ThemeToggleSize[]).map((s) => (
                 <button
                   key={s}
                   type="button"
@@ -312,9 +312,10 @@ export default function ThemeToggleDemo() {
                       : 'border border-black/10 bg-white/60 hover:bg-white/90 dark:border-white/10 dark:bg-slate-800/60 dark:hover:bg-slate-800'
                   }`}
                 >
-                  {s === 'sm' && 'Small (82px)'}
-                  {s === 'md' && 'Medium (112px)'}
-                  {s === 'lg' && 'Large (144px)'}
+                  {s === 'xs' && 'Compact (50px)'}
+                  {s === 'sm' && 'Small (60px)'}
+                  {s === 'md' && 'Medium (90px)'}
+                  {s === 'lg' && 'Large (120px)'}
                 </button>
               ))}
 
