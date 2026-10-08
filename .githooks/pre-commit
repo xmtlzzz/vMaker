@@ -1,0 +1,4 @@
+#!/bin/sh
+# Automatically format files with Prettier before each commit
+npm run format
+git add -u

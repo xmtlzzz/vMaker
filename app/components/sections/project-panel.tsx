@@ -1,4 +1,11 @@
-import { Check, Copy, ExternalLink, GitFork, HardDrive, Star } from 'lucide-react'
+import {
+  Check,
+  Copy,
+  ExternalLink,
+  GitFork,
+  HardDrive,
+  Star,
+} from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router'
 
@@ -127,14 +134,14 @@ export function ProjectPanel({
           <button
             type="button"
             onClick={handleCopyClone}
-            className="project-action inline-flex items-center gap-1.5 cursor-pointer"
+            className="project-action inline-flex cursor-pointer items-center gap-1.5"
             title={`git clone ${project.url}.git`}
             aria-label="Copy clone command"
           >
             {copied ? (
               <>
                 <Check className="size-3.5 text-emerald-500" />
-                <span className="text-emerald-500 font-medium">
+                <span className="font-medium text-emerald-500">
                   {locale === 'zh' ? '已复制 Clone' : 'Copied!'}
                 </span>
               </>

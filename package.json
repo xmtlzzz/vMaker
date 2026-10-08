@@ -11,9 +11,10 @@
     "cf:types": "wrangler types",
     "test": "node scripts/run-tests.mjs",
     "typecheck": "react-router typegen && tsc",
-    "format": "prettier --write \"app/**/*.{ts,tsx}\" \"*.{ts,js}\"",
+    "format": "prettier --write \"app/**/*.{ts,tsx}\" \"scripts/**/*.mjs\" \"*.{ts,js,cjs,mjs}\"",
     "lint": "eslint .",
-    "format:check": "prettier --check \"app/**/*.{ts,tsx}\" \"scripts/**/*.mjs\" \"*.{ts,js,cjs,mjs}\""
+    "format:check": "prettier --check \"app/**/*.{ts,tsx}\" \"scripts/**/*.mjs\" \"*.{ts,js,cjs,mjs}\"",
+    "prepare": "git config core.hooksPath .githooks || true"
   },
   "dependencies": {
     "@react-router/cloudflare": "^7.15.1",

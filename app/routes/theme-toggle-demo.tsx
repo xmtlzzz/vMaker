@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { Link } from 'react-router'
 import {
   ThemeToggleAnimated,
@@ -10,7 +10,6 @@ import {
   Moon,
   Sparkles,
   Cloud,
-  Layers,
   Code,
   ArrowLeft,
   Check,
@@ -233,7 +232,7 @@ export default function ThemeToggleDemo() {
           <h1 className="text-3xl font-bold tracking-tight sm:text-5xl">
             Animated Day / Night Theme Toggle
           </h1>
-          <p className="mt-3 max-w-xl text-base text-slate-600 dark:text-slate-400 sm:text-lg">
+          <p className="mt-3 max-w-xl text-base text-slate-600 sm:text-lg dark:text-slate-400">
             Soft pill capsule with shifting cumulus clouds, sparkling stars,
             procedural craters, and synchronized ambient atmosphere.
           </p>
@@ -298,7 +297,7 @@ export default function ThemeToggleDemo() {
 
             {/* Controls Bar: Size Preset Switcher */}
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider dark:text-slate-400">
+              <span className="text-xs font-semibold tracking-wider text-slate-500 uppercase dark:text-slate-400">
                 Size:
               </span>
               {(['xs', 'sm', 'md', 'lg'] as ThemeToggleSize[]).map((s) => (
@@ -330,7 +329,7 @@ export default function ThemeToggleDemo() {
           {/* ======================================================= */}
           {/* FEATURE HIGHLIGHT CARDS                                 */}
           {/* ======================================================= */}
-          <div className="mt-16 grid grid-cols-1 gap-6 sm:grid-cols-3 text-left">
+          <div className="mt-16 grid grid-cols-1 gap-6 text-left sm:grid-cols-3">
             {/* Card 1: Sliding Knob Physics */}
             <motion.div
               layout
@@ -339,12 +338,11 @@ export default function ThemeToggleDemo() {
               <div className="mb-4 inline-flex size-10 items-center justify-center rounded-xl bg-amber-500/10 text-amber-500 dark:bg-amber-400/10 dark:text-amber-300">
                 <Sun className="size-5" />
               </div>
-              <h3 className="text-base font-semibold">
-                Sun-to-Moon Morph
-              </h3>
+              <h3 className="text-base font-semibold">Sun-to-Moon Morph</h3>
               <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
-                Rotates 360° on a responsive spring. Warm solar gradient transitions
-                smoothly into pearlescent moon with 3 realistic crater indents.
+                Rotates 360° on a responsive spring. Warm solar gradient
+                transitions smoothly into pearlescent moon with 3 realistic
+                crater indents.
               </p>
             </motion.div>
 
@@ -373,9 +371,7 @@ export default function ThemeToggleDemo() {
               <div className="mb-4 inline-flex size-10 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-500 dark:bg-indigo-400/10 dark:text-indigo-300">
                 <Sparkles className="size-5" />
               </div>
-              <h3 className="text-base font-semibold">
-                Twinkling Starfield
-              </h3>
+              <h3 className="text-base font-semibold">Twinkling Starfield</h3>
               <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
                 4-point SVG sparkles and glowing star dots enter with staggered
                 delays and run continuous subtle twinkle loops.

@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react'
-import { Menu, Moon, Palette, Sun, X } from 'lucide-react'
+import { Menu, Palette, X } from 'lucide-react'
 
 import type { AccentPreset } from '~/data/accents'
 import { ThemeToggleAnimated } from '~/components/ui/theme-toggle-animated'

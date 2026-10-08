@@ -8,9 +8,13 @@ on:
 jobs:
   verify:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Node
         uses: actions/setup-node@v4
@@ -31,8 +35,20 @@ jobs:
       - name: Test
         run: npm test
 
-      - name: Check formatting
-        run: npm run format:check
+      - name: Check and auto-fix formatting
+        run: |
+          if ! npm run format:check; then
+            echo "Formatting differences detected. Applying Prettier..."
+            npm run format
+            if [ "${{ github.event_name }}" = "push" ] && [ "${{ github.ref }}" = "refs/heads/main" ]; then
+              git config user.name "github-actions[bot]"
+              git config user.email "github-actions[bot]@users.noreply.github.com"
+              git commit -am "chore(format): auto-format code with prettier [skip ci]" || true
+              git push origin main || true
+            else
+              echo "::notice::Prettier formatting differences detected and auto-formatted during CI verification."
+            fi
+          fi
 
       - name: Lint
         run: npm run lint

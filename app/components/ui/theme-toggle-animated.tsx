@@ -1,4 +1,4 @@
-import React, { useId, useMemo } from 'react'
+import React, { useId } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 
 export type ThemeToggleSize = 'xs' | 'sm' | 'md' | 'lg'
@@ -149,7 +149,7 @@ export function ThemeToggleAnimated({
       disabled={disabled}
       onClick={handleToggle}
       onKeyDown={handleKeyDown}
-      className={`group relative inline-flex shrink-0 select-none items-center rounded-full p-0 transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
+      className={`group relative inline-flex shrink-0 items-center rounded-full p-0 transition-shadow select-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
       style={{
         width: config.width,
         height: config.height,
@@ -513,7 +513,7 @@ export function ThemeToggleAnimated({
         >
           {/* Back translucent cloud layer with gentle floating drift */}
           <motion.div
-            className="absolute bottom-1 right-3.5 opacity-65"
+            className="absolute right-3.5 bottom-1 opacity-65"
             style={{
               transformOrigin: 'bottom right',
             }}
@@ -522,7 +522,11 @@ export function ThemeToggleAnimated({
                 ? {
                     x: [0, 1.5, 0],
                     y: [0, -1, 0],
-                    scale: [config.cloudScale * 0.9, config.cloudScale * 0.93, config.cloudScale * 0.9],
+                    scale: [
+                      config.cloudScale * 0.9,
+                      config.cloudScale * 0.93,
+                      config.cloudScale * 0.9,
+                    ],
                   }
                 : { scale: config.cloudScale * 0.9, x: 0, y: 0 }
             }
@@ -541,7 +545,7 @@ export function ThemeToggleAnimated({
 
           {/* Front crisp white cloud cluster with gentle floating bob */}
           <motion.div
-            className="relative bottom-0 right-0"
+            className="relative right-0 bottom-0"
             style={{
               transformOrigin: 'bottom right',
             }}
@@ -550,7 +554,11 @@ export function ThemeToggleAnimated({
                 ? {
                     x: [0, -1.2, 0],
                     y: [0, -2, 0],
-                    scale: [config.cloudScale, config.cloudScale * 1.025, config.cloudScale],
+                    scale: [
+                      config.cloudScale,
+                      config.cloudScale * 1.025,
+                      config.cloudScale,
+                    ],
                   }
                 : { scale: config.cloudScale, x: 0, y: 0 }
             }
@@ -599,23 +607,31 @@ export function ThemeToggleAnimated({
               isDark
                 ? { opacity: 0, scale: 0.75 }
                 : !prefersReducedMotion
-                ? {
-                    opacity: 1,
-                    scale: [1, 1.03, 1],
-                    boxShadow: [
-                      '0 0 14px rgba(245, 158, 11, 0.7), 0 0 24px rgba(251, 191, 36, 0.4), inset -2px -2px 4px rgba(180, 83, 9, 0.45), inset 2px 2px 4px rgba(255, 255, 255, 0.9)',
-                      '0 0 20px rgba(245, 158, 11, 0.9), 0 0 32px rgba(251, 191, 36, 0.55), inset -2px -2px 4px rgba(180, 83, 9, 0.45), inset 2px 2px 4px rgba(255, 255, 255, 0.95)',
-                      '0 0 14px rgba(245, 158, 11, 0.7), 0 0 24px rgba(251, 191, 36, 0.4), inset -2px -2px 4px rgba(180, 83, 9, 0.45), inset 2px 2px 4px rgba(255, 255, 255, 0.9)',
-                    ],
-                  }
-                : { opacity: 1, scale: 1 }
+                  ? {
+                      opacity: 1,
+                      scale: [1, 1.03, 1],
+                      boxShadow: [
+                        '0 0 14px rgba(245, 158, 11, 0.7), 0 0 24px rgba(251, 191, 36, 0.4), inset -2px -2px 4px rgba(180, 83, 9, 0.45), inset 2px 2px 4px rgba(255, 255, 255, 0.9)',
+                        '0 0 20px rgba(245, 158, 11, 0.9), 0 0 32px rgba(251, 191, 36, 0.55), inset -2px -2px 4px rgba(180, 83, 9, 0.45), inset 2px 2px 4px rgba(255, 255, 255, 0.95)',
+                        '0 0 14px rgba(245, 158, 11, 0.7), 0 0 24px rgba(251, 191, 36, 0.4), inset -2px -2px 4px rgba(180, 83, 9, 0.45), inset 2px 2px 4px rgba(255, 255, 255, 0.9)',
+                      ],
+                    }
+                  : { opacity: 1, scale: 1 }
             }
             transition={
               isDark
                 ? { duration: 0.35, ease: 'easeInOut' }
                 : {
-                    scale: { duration: 3.2, repeat: Infinity, ease: 'easeInOut' },
-                    boxShadow: { duration: 3.2, repeat: Infinity, ease: 'easeInOut' },
+                    scale: {
+                      duration: 3.2,
+                      repeat: Infinity,
+                      ease: 'easeInOut',
+                    },
+                    boxShadow: {
+                      duration: 3.2,
+                      repeat: Infinity,
+                      ease: 'easeInOut',
+                    },
                     opacity: { duration: 0.35 },
                   }
             }
@@ -632,7 +648,11 @@ export function ThemeToggleAnimated({
                   ? { opacity: [0.65, 0.95, 0.65], scale: [0.95, 1.1, 0.95] }
                   : { opacity: 0.7, scale: 1 }
               }
-              transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut' }}
+              transition={{
+                duration: 2.8,
+                repeat: Infinity,
+                ease: 'easeInOut',
+              }}
             />
           </motion.div>
 
