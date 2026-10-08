@@ -2,6 +2,7 @@ import type { CSSProperties } from 'react'
 import { Menu, Moon, Palette, Sun, X } from 'lucide-react'
 
 import type { AccentPreset } from '~/data/accents'
+import { ThemeToggleAnimated } from '~/components/ui/theme-toggle-animated'
 import type { Locale } from '~/data/copy'
 import type { Theme } from '~/lib/config'
 import { ownerLabel } from '~/lib/github/types'
@@ -38,7 +39,10 @@ export function SiteHeader({
   t,
   theme,
 }: SiteHeaderProps) {
-  const navItems = [{ href: '#projects', index: '01', label: t.works }]
+  const navItems = [
+    { href: '/#projects', index: '01', label: t.works },
+    { href: '/toggle-demo', index: '02', label: 'Theme Toggle' },
+  ]
   const ownerHref = owner.url || `https://github.com/${owner.login}`
   const ownerName = ownerLabel(owner)
 
@@ -87,18 +91,12 @@ export function SiteHeader({
             >
               {locale === 'en' ? '中' : 'EN'}
             </button>
-            <button
+            <ThemeToggleAnimated
               aria-label={t.changeTheme}
-              className="hero-icon-button"
-              onClick={onThemeToggle}
-              type="button"
-            >
-              {theme === 'light' ? (
-                <Moon className="size-4" />
-              ) : (
-                <Sun className="size-4" />
-              )}
-            </button>
+              isDark={theme === 'dark'}
+              onToggle={onThemeToggle}
+              size="sm"
+            />
             <div className="hero-accent-picker">
               <button
                 aria-label={t.changeAccent}
@@ -135,18 +133,12 @@ export function SiteHeader({
             >
               {locale === 'en' ? '中' : 'EN'}
             </button>
-            <button
+            <ThemeToggleAnimated
               aria-label={t.changeTheme}
-              className="hero-icon-button"
-              onClick={onThemeToggle}
-              type="button"
-            >
-              {theme === 'light' ? (
-                <Moon className="size-4" />
-              ) : (
-                <Sun className="size-4" />
-              )}
-            </button>
+              isDark={theme === 'dark'}
+              onToggle={onThemeToggle}
+              size="sm"
+            />
             <div className="hero-accent-picker">
               <button
                 aria-label={t.changeAccent}
