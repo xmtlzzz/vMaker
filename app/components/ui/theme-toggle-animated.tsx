@@ -185,31 +185,140 @@ export function ThemeToggleAnimated({
           transition={atmosphereTransition}
         >
           {/* Subtle concentric sun corona waves centered at the left knob */}
-          <div
-            className="pointer-events-none absolute rounded-full border border-white/20 bg-white/10"
+          <motion.div
+            className="pointer-events-none absolute rounded-full border border-white/25 bg-white/10"
             style={{
               width: config.knobSize * 1.6,
               height: config.knobSize * 1.6,
               left: config.padding - (config.knobSize * 0.6) / 2,
               top: config.padding - (config.knobSize * 0.6) / 2,
             }}
+            animate={
+              !isDark && !prefersReducedMotion
+                ? {
+                    scale: [1, 1.08, 1],
+                    opacity: [0.7, 1, 0.7],
+                  }
+                : { scale: 1, opacity: 0.8 }
+            }
+            transition={{
+              duration: 3.2,
+              repeat: Infinity,
+              ease: 'easeInOut',
+            }}
           />
-          <div
-            className="pointer-events-none absolute rounded-full border border-white/15 bg-white/5"
+          <motion.div
+            className="pointer-events-none absolute rounded-full border border-white/20 bg-white/5"
             style={{
               width: config.knobSize * 2.2,
               height: config.knobSize * 2.2,
               left: config.padding - (config.knobSize * 1.2) / 2,
               top: config.padding - (config.knobSize * 1.2) / 2,
             }}
+            animate={
+              !isDark && !prefersReducedMotion
+                ? {
+                    scale: [1, 1.1, 1],
+                    opacity: [0.5, 0.85, 0.5],
+                  }
+                : { scale: 1, opacity: 0.6 }
+            }
+            transition={{
+              duration: 4,
+              repeat: Infinity,
+              ease: 'easeInOut',
+              delay: 0.6,
+            }}
           />
-          <div
-            className="pointer-events-none absolute rounded-full border border-white/10"
+          <motion.div
+            className="pointer-events-none absolute rounded-full border border-white/15"
             style={{
               width: config.knobSize * 2.9,
               height: config.knobSize * 2.9,
               left: config.padding - (config.knobSize * 1.9) / 2,
               top: config.padding - (config.knobSize * 1.9) / 2,
+            }}
+            animate={
+              !isDark && !prefersReducedMotion
+                ? {
+                    scale: [1, 1.12, 1],
+                    opacity: [0.35, 0.7, 0.35],
+                  }
+                : { scale: 1, opacity: 0.4 }
+            }
+            transition={{
+              duration: 4.8,
+              repeat: Infinity,
+              ease: 'easeInOut',
+              delay: 1.2,
+            }}
+          />
+
+          {/* Daytime Sun Glint / Sparkle */}
+          <motion.div
+            className="absolute text-amber-100"
+            style={{
+              left: `${config.width * 0.44}px`,
+              top: `${config.height * 0.2}px`,
+            }}
+            animate={
+              !isDark && !prefersReducedMotion
+                ? {
+                    opacity: [0.25, 0.95, 0.25],
+                    scale: [0.8, 1.15, 0.8],
+                    rotate: [0, 45, 0],
+                  }
+                : { opacity: 0.8, scale: 1, rotate: 0 }
+            }
+            transition={{
+              duration: 2.8,
+              repeat: Infinity,
+              ease: 'easeInOut',
+            }}
+          >
+            <SparkleStar size={Math.round(8 * config.starScale)} />
+          </motion.div>
+
+          {/* Daytime floating sun dots */}
+          <motion.div
+            className="absolute rounded-full bg-amber-200/90 shadow-[0_0_3px_#fde68a]"
+            style={{
+              width: 2.2 * config.starScale,
+              height: 2.2 * config.starScale,
+              left: `${config.width * 0.36}px`,
+              top: `${config.height * 0.56}px`,
+            }}
+            animate={
+              !isDark && !prefersReducedMotion
+                ? { opacity: [0.2, 0.85, 0.2], scale: [0.85, 1.15, 0.85] }
+                : { opacity: 0.6 }
+            }
+            transition={{
+              duration: 2.4,
+              repeat: Infinity,
+              ease: 'easeInOut',
+              delay: 0.5,
+            }}
+          />
+
+          <motion.div
+            className="absolute rounded-full bg-white shadow-[0_0_3px_#ffffff]"
+            style={{
+              width: 1.8 * config.starScale,
+              height: 1.8 * config.starScale,
+              left: `${config.width * 0.32}px`,
+              top: `${config.height * 0.28}px`,
+            }}
+            animate={
+              !isDark && !prefersReducedMotion
+                ? { opacity: [0.15, 0.85, 0.15], scale: [0.8, 1.1, 0.8] }
+                : { opacity: 0.5 }
+            }
+            transition={{
+              duration: 2.9,
+              repeat: Infinity,
+              ease: 'easeInOut',
+              delay: 1.2,
             }}
           />
         </motion.div>
@@ -402,12 +511,25 @@ export function ThemeToggleAnimated({
           transition={atmosphereTransition}
           style={{ transformOrigin: 'bottom right' }}
         >
-          {/* Back translucent cloud layer */}
-          <div
+          {/* Back translucent cloud layer with gentle floating drift */}
+          <motion.div
             className="absolute bottom-1 right-3.5 opacity-65"
             style={{
-              transform: `scale(${config.cloudScale * 0.9})`,
               transformOrigin: 'bottom right',
+            }}
+            animate={
+              !isDark && !prefersReducedMotion
+                ? {
+                    x: [0, 1.5, 0],
+                    y: [0, -1, 0],
+                    scale: [config.cloudScale * 0.9, config.cloudScale * 0.93, config.cloudScale * 0.9],
+                  }
+                : { scale: config.cloudScale * 0.9, x: 0, y: 0 }
+            }
+            transition={{
+              duration: 4.8,
+              repeat: Infinity,
+              ease: 'easeInOut',
             }}
           >
             <div className="relative">
@@ -415,14 +537,27 @@ export function ThemeToggleAnimated({
               <div className="absolute -top-3 left-3 size-8 rounded-full bg-white/85" />
               <div className="absolute top-1 left-8 size-5 rounded-full bg-white/80" />
             </div>
-          </div>
+          </motion.div>
 
-          {/* Front crisp white cloud cluster with soft drop shadow */}
-          <div
+          {/* Front crisp white cloud cluster with gentle floating bob */}
+          <motion.div
             className="relative bottom-0 right-0"
             style={{
-              transform: `scale(${config.cloudScale})`,
               transformOrigin: 'bottom right',
+            }}
+            animate={
+              !isDark && !prefersReducedMotion
+                ? {
+                    x: [0, -1.2, 0],
+                    y: [0, -2, 0],
+                    scale: [config.cloudScale, config.cloudScale * 1.025, config.cloudScale],
+                  }
+                : { scale: config.cloudScale, x: 0, y: 0 }
+            }
+            transition={{
+              duration: 3.6,
+              repeat: Infinity,
+              ease: 'easeInOut',
             }}
           >
             <div className="relative drop-shadow-[0_2px_4px_rgba(15,23,42,0.12)]">
@@ -433,7 +568,7 @@ export function ThemeToggleAnimated({
               <div className="absolute -top-1 left-0 size-7 rounded-full bg-white" />
               <div className="absolute bottom-0 left-4 size-5 rounded-full bg-white" />
             </div>
-          </div>
+          </motion.div>
         </motion.div>
 
         {/* ========================================================= */}
@@ -456,24 +591,49 @@ export function ThemeToggleAnimated({
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.94 }}
         >
-          {/* Sun Knob Body */}
+          {/* Sun Knob Body with gentle solar radiance breathing */}
           <motion.div
             className="absolute inset-0 rounded-full"
             initial={false}
-            animate={{
-              opacity: isDark ? 0 : 1,
-              scale: isDark ? 0.75 : 1,
-            }}
-            transition={{ duration: 0.35, ease: 'easeInOut' }}
+            animate={
+              isDark
+                ? { opacity: 0, scale: 0.75 }
+                : !prefersReducedMotion
+                ? {
+                    opacity: 1,
+                    scale: [1, 1.03, 1],
+                    boxShadow: [
+                      '0 0 14px rgba(245, 158, 11, 0.7), 0 0 24px rgba(251, 191, 36, 0.4), inset -2px -2px 4px rgba(180, 83, 9, 0.45), inset 2px 2px 4px rgba(255, 255, 255, 0.9)',
+                      '0 0 20px rgba(245, 158, 11, 0.9), 0 0 32px rgba(251, 191, 36, 0.55), inset -2px -2px 4px rgba(180, 83, 9, 0.45), inset 2px 2px 4px rgba(255, 255, 255, 0.95)',
+                      '0 0 14px rgba(245, 158, 11, 0.7), 0 0 24px rgba(251, 191, 36, 0.4), inset -2px -2px 4px rgba(180, 83, 9, 0.45), inset 2px 2px 4px rgba(255, 255, 255, 0.9)',
+                    ],
+                  }
+                : { opacity: 1, scale: 1 }
+            }
+            transition={
+              isDark
+                ? { duration: 0.35, ease: 'easeInOut' }
+                : {
+                    scale: { duration: 3.2, repeat: Infinity, ease: 'easeInOut' },
+                    boxShadow: { duration: 3.2, repeat: Infinity, ease: 'easeInOut' },
+                    opacity: { duration: 0.35 },
+                  }
+            }
             style={{
               background:
                 'radial-gradient(circle at 35% 35%, #fffde7 0%, #ffeb3b 35%, #f59e0b 75%, #d97706 100%)',
-              boxShadow:
-                '0 0 16px rgba(245, 158, 11, 0.7), 0 0 30px rgba(251, 191, 36, 0.4), inset -2px -2px 4px rgba(180, 83, 9, 0.45), inset 2px 2px 4px rgba(255, 255, 255, 0.9)',
             }}
           >
-            {/* Subtle radial glare ring */}
-            <div className="absolute top-1 left-1.5 size-2.5 rounded-full bg-white/70 blur-[0.5px]" />
+            {/* Subtle radial glare ring with gentle breathing */}
+            <motion.div
+              className="absolute top-1 left-1.5 size-2.5 rounded-full bg-white/70 blur-[0.5px]"
+              animate={
+                !isDark && !prefersReducedMotion
+                  ? { opacity: [0.65, 0.95, 0.65], scale: [0.95, 1.1, 0.95] }
+                  : { opacity: 0.7, scale: 1 }
+              }
+              transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut' }}
+            />
           </motion.div>
 
           {/* Moon Knob Body with Craters */}
