@@ -706,7 +706,12 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                   ))}
                 </div>
               ) : (
-                <EmptyProjects error={error} isDark={isDark} t={t} />
+                <EmptyProjects
+                  error={error}
+                  isDark={isDark}
+                  t={t}
+                  onClear={query ? () => setQuery('') : undefined}
+                />
               )}
             </div>
           </div>

@@ -7,6 +7,26 @@
 .theme-light .theme-shell {
   --showcase-muted: #5e5867;
 }
+.theme-light .hero-shell::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 96px;
+  background: linear-gradient(to bottom, transparent, #ebe8ee);
+  pointer-events: none;
+  z-index: 2;
+}
+@media (max-width: 768px) {
+  .hero-icon-button,
+  .hero-menu-button {
+    min-height: 44px !important;
+  }
+  .hero-icon-button {
+    min-width: 44px !important;
+  }
+}
 .projects-heading {
   margin-bottom: 2.5rem;
 }
