@@ -1,4 +1,5 @@
-import { ExternalLink, GitFork, HardDrive, Star } from 'lucide-react'
+import { Check, Copy, ExternalLink, GitFork, HardDrive, Star } from 'lucide-react'
+import { useState } from 'react'
 import { Link } from 'react-router'
 
 import { BorderGlow } from '~/components/react-bits/BorderGlow'
@@ -24,6 +25,20 @@ export function ProjectPanel({
   t: Record<string, string>
   unavailable?: boolean
 }) {
+  const [copied, setCopied] = useState(false)
+
+  const handleCopyClone = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    const cloneCmd = `git clone ${project.url}.git`
+    try {
+      navigator.clipboard.writeText(cloneCmd)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // fallback
+    }
+  }
   return (
     <BorderGlow className="scroll-mt-24" id={project.name}>
       <article
@@ -100,7 +115,7 @@ export function ProjectPanel({
             <span>{unavailable ? '—' : formatBytes(project.codeSize)}</span>
           </span>
         </div>
-        <div className="mt-6 flex flex-wrap gap-4 text-sm">
+        <div className="mt-6 flex flex-wrap items-center gap-4 text-sm">
           <a
             className="project-action"
             href={project.url}
@@ -109,6 +124,27 @@ export function ProjectPanel({
           >
             {t.repositoryLabel}
           </a>
+          <button
+            type="button"
+            onClick={handleCopyClone}
+            className="project-action inline-flex items-center gap-1.5 cursor-pointer"
+            title={`git clone ${project.url}.git`}
+            aria-label="Copy clone command"
+          >
+            {copied ? (
+              <>
+                <Check className="size-3.5 text-emerald-500" />
+                <span className="text-emerald-500 font-medium">
+                  {locale === 'zh' ? '已复制 Clone' : 'Copied!'}
+                </span>
+              </>
+            ) : (
+              <>
+                <Copy className="size-3.5 opacity-70" />
+                <span>Clone</span>
+              </>
+            )}
+          </button>
           {project.homepage && (
             <a
               className="project-action"

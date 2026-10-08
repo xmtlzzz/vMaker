@@ -156,12 +156,36 @@ export default function Home({ loaderData }: Route.ComponentProps) {
   const [isProjectControlsOpen, setIsProjectControlsOpen] = useState(false)
   const [hoveredProjectId, setHoveredProjectId] = useState<string | null>(null)
   const [showBackToTop, setShowBackToTop] = useState(false)
+  const searchInputRef = useRef<HTMLInputElement | null>(null)
   const timelineContainerRef = useRef<HTMLDivElement | null>(null)
   const timelineItemRefs = useRef(new Map<string, HTMLAnchorElement | null>())
   const heroSectionRef = useRef<HTMLElement | null>(null)
   const projectsSectionRef = useRef<HTMLElement | null>(null)
   const moreMenuRef = useRef<HTMLDivElement | null>(null)
   const location = useLocation()
+
+  // Global keyboard shortcuts: "/" focuses search, "Escape" clears & blurs
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === '/' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        const activeTag = document.activeElement?.tagName.toLowerCase()
+        const isEditable = (document.activeElement as HTMLElement)?.isContentEditable
+        if (activeTag !== 'input' && activeTag !== 'textarea' && !isEditable) {
+          e.preventDefault()
+          searchInputRef.current?.focus()
+          searchInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        }
+      } else if (e.key === 'Escape') {
+        if (document.activeElement === searchInputRef.current || query) {
+          setQuery('')
+          searchInputRef.current?.blur()
+        }
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [query])
 
   // Sync query state back to URL search params (debounced)
   useEffect(() => {
@@ -679,15 +703,42 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                     <option value="size">{t.sortSize}</option>
                   </select>
                 </label>
-                <label className="projects-search">
+                <label className="projects-search relative">
                   <Search className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-muted-foreground dark:text-white/45" />
                   <input
+                    ref={searchInputRef}
                     aria-label={t.search}
                     onChange={(event) => setQuery(event.target.value)}
                     placeholder={t.search}
                     value={query}
                   />
+                  <div className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 hidden items-center gap-1 sm:flex">
+                    {query ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setQuery('')
+                          searchInputRef.current?.focus()
+                        }}
+                        className="pointer-events-auto rounded p-0.5 text-muted-foreground hover:text-foreground"
+                        aria-label="Clear search"
+                      >
+                        <span className="text-xs">✕</span>
+                      </button>
+                    ) : (
+                      <kbd className="inline-flex h-5 select-none items-center rounded border border-current/20 bg-black/5 dark:bg-white/10 px-1.5 font-mono text-[10px] font-medium opacity-60">
+                        /
+                      </kbd>
+                    )}
+                  </div>
                 </label>
+              </div>
+
+              {/* Accessible live region for filter announcements */}
+              <div className="sr-only" aria-live="polite" aria-atomic="true">
+                {filteredProjects.length === 0
+                  ? (error ? `${error}. ${t.tokenHelp}` : t.tryAnother)
+                  : `${filteredProjects.length} ${t.works || 'projects'}`}
               </div>
 
               {projectGroups.length > 0 ? (

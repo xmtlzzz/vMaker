@@ -234,3 +234,19 @@ a:focus-visible {
     margin-block: 1.5rem;
   }
 }
+
+/* Card hover tactile feedback & micro-interactions */
+.project-panel {
+  transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 200ms cubic-bezier(0.16, 1, 0.3, 1), border-color 200ms ease;
+}
+.project-panel:hover {
+  transform: translateY(-2px);
+}
+.project-panel-dark:hover {
+  border-color: rgb(var(--vmaker-accent-rgb) / 30%);
+  box-shadow: 0 24px 70px -40px rgb(var(--vmaker-accent-rgb) / 25%);
+}
+.project-panel-light:hover {
+  border-color: rgb(var(--vmaker-accent-rgb) / 24%);
+  box-shadow: 0 24px 70px -40px rgb(var(--vmaker-accent-rgb) / 22%);
+}
