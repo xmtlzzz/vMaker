@@ -107,34 +107,39 @@ async function commitThemeSwitch(
 // than imported so the account is whatever the loader resolved from GitHub, not a
 // build-time constant.
 export function useSitePreferences(ownerLabel = '') {
-  const [locale, setLocale] = useState<Locale>('zh')
-  const [theme, setTheme] = useState<Theme>('light')
-  const [accentId, setAccentId] = useState<AccentPreset['id']>(
-    ACCENT_PRESETS[0].id
-  )
-  // React replays a click that lands before hydration finishes, so the toggle can
-  // run before this mount effect seeds from localStorage. Seeding must not undo
-  // the visitor's own choice.
-  const pickedTheme = useRef(false)
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-
-    if (!pickedTheme.current) {
-      const storedTheme = window.localStorage.getItem(THEME_STORAGE_KEY)
-      if (storedTheme === 'light' || storedTheme === 'dark') {
-        setTheme(storedTheme)
+  const [locale, setLocale] = useState<Locale>(() => {
+    if (typeof window === 'undefined') return 'zh'
+    try {
+      const stored = window.localStorage.getItem(LOCALE_STORAGE_KEY)
+      if (stored === 'en' || stored === 'zh') return stored
+    } catch {
+      // ignore storage access error
+    }
+    return 'zh'
+  })
+  const [theme, setTheme] = useState<Theme>(() => {
+    if (typeof window === 'undefined') return 'light'
+    try {
+      const stored = window.localStorage.getItem(THEME_STORAGE_KEY)
+      if (stored === 'light' || stored === 'dark') return stored
+    } catch {
+      // ignore storage access error
+    }
+    return 'light'
+  })
+  const [accentId, setAccentId] = useState<AccentPreset['id']>(() => {
+    if (typeof window === 'undefined') return ACCENT_PRESETS[0].id
+    try {
+      const stored = window.localStorage.getItem(ACCENT_STORAGE_KEY)
+      if (ACCENT_PRESETS.some((preset) => preset.id === stored)) {
+        return stored as AccentPreset['id']
       }
+    } catch {
+      // ignore storage access error
     }
-
-    const storedAccent = window.localStorage.getItem(ACCENT_STORAGE_KEY)
-    if (ACCENT_PRESETS.some((preset) => preset.id === storedAccent)) {
-      setAccentId(storedAccent as AccentPreset['id'])
-    }
-
-    const storedLocale = window.localStorage.getItem(LOCALE_STORAGE_KEY)
-    if (storedLocale === 'en' || storedLocale === 'zh') setLocale(storedLocale)
-  }, [])
+    return ACCENT_PRESETS[0].id
+  })
+  const pickedTheme = useRef(false)
 
   useEffect(() => {
     if (typeof window === 'undefined') return

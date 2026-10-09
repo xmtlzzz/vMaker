@@ -165,6 +165,18 @@ export default function Home({ loaderData }: Route.ComponentProps) {
   const [isAccentMenuOpen, setIsAccentMenuOpen] = useState(false)
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false)
   const [isProjectControlsOpen, setIsProjectControlsOpen] = useState(false)
+
+  // Reset menus during render when active index or locale changes
+  const [prevNavState, setPrevNavState] = useState({ activeIndex, locale })
+  if (
+    prevNavState.activeIndex !== activeIndex ||
+    prevNavState.locale !== locale
+  ) {
+    setPrevNavState({ activeIndex, locale })
+    setIsMenuOpen(false)
+    setIsAccentMenuOpen(false)
+    setIsMoreMenuOpen(false)
+  }
   const [hoveredProjectId, setHoveredProjectId] = useState<string | null>(null)
   const [showBackToTop, setShowBackToTop] = useState(false)
   const searchInputRef = useRef<HTMLInputElement | null>(null)
@@ -298,12 +310,6 @@ export default function Home({ loaderData }: Route.ComponentProps) {
   const [titleRef, titleVisible] = useRevealOnView<HTMLDivElement>()
   const [copyRef, copyVisible] = useRevealOnView<HTMLDivElement>()
   const [buttonRef, buttonVisible] = useRevealOnView<HTMLDivElement>()
-
-  useEffect(() => {
-    setIsMenuOpen(false)
-    setIsAccentMenuOpen(false)
-    setIsMoreMenuOpen(false)
-  }, [activeIndex, locale])
 
   useEffect(() => {
     if (!isMoreMenuOpen || typeof window === 'undefined') return
