@@ -461,19 +461,29 @@ export default function Home({ loaderData }: Route.ComponentProps) {
         className="hero-shell relative min-h-svh overflow-hidden bg-black text-white"
         ref={heroSectionRef}
       >
-        <div className="absolute inset-0 z-0">
+        <div className="pointer-events-none absolute inset-0 z-0">
           {HERO_SLIDES.map((slide, index) => {
-            const currentImg =
-              theme === 'light' ? slide.imageUrlDay : slide.imageUrl
+            const isCurrentSlide = index === activeIndex
             return (
-              <img
-                alt=""
-                className={`hero-background-image ${index === activeIndex ? 'is-active' : ''}`}
-                decoding={index === activeIndex ? 'sync' : 'async'}
-                fetchPriority={index === 0 ? 'high' : 'low'}
-                key={`${slide.imageUrl}-${theme === 'light' ? 'day' : 'night'}`}
-                src={currentImg}
-              />
+              <div
+                className={`hero-slide-layer ${isCurrentSlide ? 'is-active' : ''}`}
+                key={slide.imageUrl}
+              >
+                <img
+                  alt=""
+                  className="hero-background-image hero-bg-night"
+                  decoding={isCurrentSlide ? 'sync' : 'async'}
+                  fetchPriority={index === 0 ? 'high' : 'low'}
+                  src={slide.imageUrl}
+                />
+                <img
+                  alt=""
+                  className="hero-background-image hero-bg-day"
+                  decoding={isCurrentSlide ? 'sync' : 'async'}
+                  fetchPriority={index === 0 ? 'high' : 'low'}
+                  src={slide.imageUrlDay}
+                />
+              </div>
             )
           })}
         </div>
