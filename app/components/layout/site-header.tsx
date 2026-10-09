@@ -39,9 +39,11 @@ export function SiteHeader({
   t,
   theme,
 }: SiteHeaderProps) {
+  const blogUrl = `https://vblog.xmtlz.dev?theme=${theme}`
   const navItems = [
     { href: '/#projects', index: '01', label: t.works },
-    { href: '/toggle-demo', index: '02', label: 'Theme Toggle' },
+    { href: blogUrl, index: '02', label: locale === 'zh' ? '博客' : 'Blog', external: true },
+    { href: '/toggle-demo', index: '03', label: 'Theme Toggle' },
   ]
   const ownerHref = owner.url || `https://github.com/${owner.login}`
   const ownerName = ownerLabel(owner)
@@ -63,6 +65,8 @@ export function SiteHeader({
                 className="nav-link-underline group flex items-center gap-2 text-white/88"
                 href={item.href}
                 key={item.label}
+                rel={item.external ? 'noreferrer' : undefined}
+                target={item.external ? '_blank' : undefined}
               >
                 <span className="text-[8px] leading-3 font-medium tracking-[-0.08px] uppercase">
                   {item.index}
@@ -193,6 +197,8 @@ export function SiteHeader({
                   className="text-[28px] leading-8 font-medium tracking-[-0.84px] text-white uppercase"
                   href={item.href}
                   key={item.label}
+                  rel={item.external ? 'noreferrer' : undefined}
+                  target={item.external ? '_blank' : undefined}
                 >
                   {item.label}
                 </a>

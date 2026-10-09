@@ -1,4 +1,5 @@
-﻿import { ExternalLink } from 'lucide-react'
+import { Check, Copy, ExternalLink } from 'lucide-react'
+import { useState } from 'react'
 
 import type { Locale } from '~/data/copy'
 import { formatBytes, formatDate } from '~/lib/format'
@@ -16,6 +17,20 @@ export function ProjectDetailAside({
   t: Record<string, string>
   unavailable?: boolean
 }) {
+  const [copied, setCopied] = useState(false)
+
+  const handleCopyClone = (e: React.MouseEvent) => {
+    e.preventDefault()
+    const cloneCmd = `git clone ${project.url}.git`
+    try {
+      navigator.clipboard.writeText(cloneCmd)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // fallback
+    }
+  }
+
   const metrics = [
     { label: t.primaryLanguage, value: languageName(project) },
     { label: t.stars, value: String(project.stars) },
@@ -69,14 +84,38 @@ export function ProjectDetailAside({
           {t.repository}
           <ExternalLink aria-hidden="true" className="size-3.5" />
         </a>
+        <button
+          className="detail-action detail-action-secondary cursor-pointer"
+          onClick={handleCopyClone}
+          title={`git clone ${project.url}.git`}
+          type="button"
+        >
+          {copied ? (
+            <>
+              <Check className="size-3.5 text-emerald-500" />
+              <span className="text-emerald-500">
+                {locale === 'zh' ? '已复制 Clone' : 'Copied!'}
+              </span>
+            </>
+          ) : (
+            <>
+              <Copy className="size-3.5 opacity-70" />
+              <span>Clone</span>
+            </>
+          )}
+        </button>
         {project.homepage && (
           <a
-            className="detail-action detail-action-secondary"
+            className="detail-action detail-action-secondary inline-flex items-center gap-1.5 font-medium text-emerald-600 dark:text-emerald-400"
             href={project.homepage}
             rel="noreferrer"
             target="_blank"
           >
-            {t.demo}
+            <span className="relative flex size-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex size-2 rounded-full bg-emerald-500"></span>
+            </span>
+            <span>{t.demo}</span>
             <ExternalLink aria-hidden="true" className="size-3.5" />
           </a>
         )}

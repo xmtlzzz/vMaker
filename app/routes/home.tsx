@@ -1,4 +1,4 @@
-import { ChevronDown, Ellipsis, Moon, Palette, Search, Sun } from 'lucide-react'
+import { ChevronDown, Ellipsis, Palette, Search } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { data, useLocation, useSearchParams } from 'react-router'
@@ -33,7 +33,7 @@ import { formatBytes, formatDate } from '~/lib/format'
 import { etagMatches } from '~/lib/http-cache'
 import { getProjects, ownerLabel } from '~/lib/github/projects'
 import { indexTotals, topTopics } from '~/lib/insights'
-import { languageNavLabel } from '~/lib/language'
+import { languageId, languageNavLabel } from '~/lib/language'
 import {
   getLatestCommitTimeline,
   groupProjectsByLanguage,
@@ -238,6 +238,23 @@ export default function Home({ loaderData }: Route.ComponentProps) {
     return () => clearTimeout(timer)
   }, [query, searchParams, setSearchParams])
 
+  const langParam = searchParams.get('lang') ?? ''
+
+  const handleLangToggle = (langId: string) => {
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev)
+        if (next.get('lang') === langId) {
+          next.delete('lang')
+        } else {
+          next.set('lang', langId)
+        }
+        return next
+      },
+      { replace: true, preventScrollReset: true }
+    )
+  }
+
   const handleSortChange = (newSort: SortKey | 'default') => {
     setSearchParams(
       (prev) => {
@@ -256,15 +273,23 @@ export default function Home({ loaderData }: Route.ComponentProps) {
   // Filtering always preserves the loader order (featured first). Only an explicit
   // sort choice reorders the list, so the default view is byte-for-byte what it was.
   const filteredProjects = useMemo(() => {
+    let matched = projects
+    if (langParam) {
+      matched = matched.filter(
+        (project) =>
+          languageId(project.primaryLanguage) === langParam.toLowerCase() ||
+          project.primaryLanguage.toLowerCase() === langParam.toLowerCase()
+      )
+    }
     const trimmed = query.trim()
-    const matched = trimmed
-      ? projects.filter((project) =>
-          matchesQuery(project, parseSearchQuery(trimmed))
-        )
-      : projects
+    if (trimmed) {
+      matched = matched.filter((project) =>
+        matchesQuery(project, parseSearchQuery(trimmed))
+      )
+    }
 
     return sortKey === 'default' ? matched : sortProjects(matched, sortKey)
-  }, [projects, query, sortKey])
+  }, [langParam, projects, query, sortKey])
   const projectGroups = useMemo(
     () => groupProjectsByLanguage(filteredProjects, sortKey === 'default'),
     [filteredProjects, sortKey]
@@ -635,22 +660,24 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                 <div className="projects-nav-wrap">
                   <div className="projects-anchor-list">
                     {topLanguageGroups.length > 0 ? (
-                      topLanguageGroups.map((group) => (
-                        <a
-                          className="projects-anchor-chip"
-                          href={
-                            projectGroups.some(
-                              (section) => section.id === group.id
-                            )
-                              ? `#language-${group.id}`
-                              : `#${group.projects[0].name}`
-                          }
-                          key={group.language}
-                          title={group.language}
-                        >
-                          {languageNavLabel(group.language)}
-                        </a>
-                      ))
+                      topLanguageGroups.map((group) => {
+                        const isActive =
+                          langParam.toLowerCase() === group.id.toLowerCase()
+                        return (
+                          <button
+                            className={`projects-anchor-chip cursor-pointer ${isActive ? 'is-active ring-1 ring-emerald-500/50 bg-emerald-500/10 font-semibold' : ''}`}
+                            key={group.language}
+                            onClick={() => handleLangToggle(group.id)}
+                            title={`${group.language} (${group.projects.length})`}
+                            type="button"
+                          >
+                            <span>{languageNavLabel(group.language)}</span>
+                            {isActive && (
+                              <span className="ml-1 text-[10px] opacity-70">✕</span>
+                            )}
+                          </button>
+                        )
+                      })
                     ) : (
                       <span className="projects-anchor-chip opacity-60">
                         {t.projectsUnavailable}
@@ -677,24 +704,26 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                           role="menu"
                         >
                           {moreLanguageGroups.length > 0 ? (
-                            moreLanguageGroups.map((group) => (
-                              <a
-                                className="projects-anchor-dropdown-item"
-                                href={
-                                  projectGroups.some(
-                                    (section) => section.id === group.id
-                                  )
-                                    ? `#language-${group.id}`
-                                    : `#${group.projects[0].name}`
-                                }
-                                key={group.language}
-                                onClick={() => setIsMoreMenuOpen(false)}
-                                role="menuitem"
-                              >
-                                <span>{group.language}</span>
-                                <span>{group.projects.length}</span>
-                              </a>
-                            ))
+                            moreLanguageGroups.map((group) => {
+                              const isActive =
+                                langParam.toLowerCase() ===
+                                group.id.toLowerCase()
+                              return (
+                                <button
+                                  className={`projects-anchor-dropdown-item w-full cursor-pointer text-left ${isActive ? 'is-active font-semibold text-emerald-500' : ''}`}
+                                  key={group.language}
+                                  onClick={() => {
+                                    handleLangToggle(group.id)
+                                    setIsMoreMenuOpen(false)
+                                  }}
+                                  role="menuitem"
+                                  type="button"
+                                >
+                                  <span>{group.language}</span>
+                                  <span>{group.projects.length}</span>
+                                </button>
+                              )
+                            })
                           ) : (
                             <span className="projects-anchor-dropdown-empty">
                               {t.projectsUnavailable}

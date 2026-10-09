@@ -485,11 +485,11 @@ function fallbackRepo(name: string): GitHubRepo {
     full_name: `${login}/${name}`,
     homepage: override.homepage ?? null,
     html_url: `https://github.com/${login}/${name}`,
-    language: null,
+    language: override.primaryLanguage ?? null,
     name,
     pushed_at: null,
     stargazers_count: 0,
-    topics: [],
+    topics: override.topics ?? [],
     updated_at: '',
   }
 }

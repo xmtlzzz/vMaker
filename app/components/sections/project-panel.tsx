@@ -154,12 +154,16 @@ export function ProjectPanel({
           </button>
           {project.homepage && (
             <a
-              className="project-action"
+              className="project-action inline-flex items-center gap-1.5 font-medium text-emerald-600 dark:text-emerald-400"
               href={project.homepage}
               rel="noreferrer"
               target="_blank"
             >
-              {t.demoLabel}
+              <span className="relative flex size-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex size-2 rounded-full bg-emerald-500"></span>
+              </span>
+              <span>{t.demoLabel}</span>
             </a>
           )}
           <span className="project-updated">
