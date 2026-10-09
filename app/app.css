@@ -2039,6 +2039,18 @@ html.theme-light {
   border-color: rgba(17, 17, 20, 0.08);
 }
 
+.theme-light .detail-wordmark {
+  color: #111114;
+}
+
+.theme-light .detail-title {
+  color: #111114;
+}
+
+.theme-light .detail-use-case {
+  color: rgba(17, 17, 20, 0.75);
+}
+
 .theme-light .detail-back {
   color: rgba(17, 17, 20, 0.66);
 }

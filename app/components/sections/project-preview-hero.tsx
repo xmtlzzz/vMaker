@@ -956,11 +956,11 @@ export function ProjectPreviewHero({
         </div>
 
         {/* Code Editor Body */}
-        <div className="overflow-x-auto p-4 font-mono text-[12.5px] leading-relaxed sm:p-5">
+        <div className="touch-pan-x [scrollbar-width:thin] overflow-x-auto p-4 font-mono text-[12.5px] leading-relaxed sm:p-5">
           <table className="border-collapse">
             <tbody>
               {snippet.lines.map((line, lineIdx) => (
-                <tr key={lineIdx} className="hover:bg-white/[0.02]">
+                <tr key={lineIdx} className="hover:bg-zinc-500/5">
                   {/* Line Number */}
                   <td
                     aria-hidden="true"

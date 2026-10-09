@@ -1,4 +1,5 @@
 import {
+  Link,
   Links,
   Meta,
   Outlet,
@@ -6,6 +7,7 @@ import {
   ScrollRestoration,
   isRouteErrorResponse,
 } from 'react-router'
+import { ArrowLeft, RotateCcw } from 'lucide-react'
 
 import type { Route } from './+types/root'
 import { forwardDocumentHeaders } from './lib/document-cache'
@@ -31,6 +33,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
         />
         <meta name="apple-mobile-web-app-title" content="vMaker" />
         <link href="/site.webmanifest" rel="manifest" />
+        <link
+          href="/feed.xml"
+          rel="alternate"
+          title="vMaker RSS Feed"
+          type="application/rss+xml"
+        />
         <link href="https://fonts.googleapis.com" rel="preconnect" />
         <link
           crossOrigin=""
@@ -71,30 +79,70 @@ export function headers({ errorHeaders, loaderHeaders }: Route.HeadersArgs) {
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
-  let message = 'Oops!'
-  let details = 'An unexpected error occurred.'
+  let code = 'Error'
+  let message = '遇到了一些问题'
+  let details = '页面加载时发生了未预期的错误，请刷新或返回首页。'
   let stack: string | undefined
 
   if (isRouteErrorResponse(error)) {
-    message = error.status === 404 ? '404' : 'Error'
-    details =
-      error.status === 404
-        ? 'The requested page could not be found.'
-        : error.statusText || details
-  } else if (import.meta.env.DEV && error && error instanceof Error) {
-    details = error.message
-    stack = error.stack
+    code = String(error.status)
+    if (error.status === 404) {
+      message = '页面未找到'
+      details = '您访问的项目或页面可能不存在，或者已经被移除。'
+    } else {
+      message = error.statusText || '请求异常'
+      details = `HTTP 状态代码: ${error.status}`
+    }
+  } else if (error && error instanceof Error) {
+    message = '应用渲染错误'
+    details = error.message || details
+    if (import.meta.env.DEV) {
+      stack = error.stack
+    }
   }
 
   return (
-    <main className="container mx-auto p-4 pt-16">
-      <h1>{message}</h1>
-      <p>{details}</p>
-      {stack && (
-        <pre className="w-full overflow-x-auto p-4">
-          <code>{stack}</code>
-        </pre>
-      )}
+    <main className="theme-shell home-canvas flex min-h-svh items-center justify-center p-6 text-zinc-900 select-none dark:text-white">
+      <div className="relative mx-auto w-full max-w-lg rounded-2xl border border-zinc-200/80 bg-white/80 p-8 text-center shadow-xl backdrop-blur-md dark:border-white/10 dark:bg-zinc-950/70 dark:shadow-2xl">
+        <div className="inline-flex items-center rounded-full border border-purple-500/20 bg-purple-500/10 px-3 py-1 font-mono text-xs font-semibold tracking-wider text-purple-600 uppercase dark:text-purple-400">
+          {code}
+        </div>
+        <h1 className="mt-4 text-2xl font-bold tracking-tight sm:text-3xl">
+          {message}
+        </h1>
+        <p className="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+          {details}
+        </p>
+
+        <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+          <Link
+            className="inline-flex items-center gap-1.5 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-all hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
+            to="/"
+          >
+            <ArrowLeft className="size-4" />
+            返回首页
+          </Link>
+          <button
+            className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-700 transition-all hover:bg-zinc-50 dark:border-white/10 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
+            onClick={() => window.location.reload()}
+            type="button"
+          >
+            <RotateCcw className="size-4" />
+            重新加载
+          </button>
+        </div>
+
+        {stack && (
+          <details className="mt-6 text-left">
+            <summary className="cursor-pointer font-mono text-xs text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200">
+              展开错误调用栈 (Debug Stack)
+            </summary>
+            <pre className="mt-2 max-h-48 w-full overflow-x-auto rounded-lg bg-zinc-900 p-3 font-mono text-[11px] text-zinc-300 select-text">
+              <code>{stack}</code>
+            </pre>
+          </details>
+        )}
+      </div>
     </main>
   )
 }

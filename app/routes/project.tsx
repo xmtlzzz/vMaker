@@ -212,7 +212,7 @@ export default function ProjectRoute({ loaderData }: Route.ComponentProps) {
 
   return (
     <main
-      className="detail-page theme-shell home-canvas text-white"
+      className="detail-page theme-shell home-canvas text-zinc-900 dark:text-white"
       lang={locale === 'zh' ? 'zh-CN' : 'en'}
       style={
         {
@@ -346,7 +346,7 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
   const isNotFound = isRouteErrorResponse(error) && error.status === 404
 
   return (
-    <main className="detail-page theme-shell home-canvas text-white">
+    <main className="detail-page theme-shell home-canvas text-zinc-900 dark:text-white">
       <div className="detail-container detail-notfound">
         <h1 className="detail-title">
           {isNotFound ? t.projectNotFound : t.unavailable}

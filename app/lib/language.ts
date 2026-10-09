@@ -32,13 +32,15 @@ const LANGUAGE_COLORS: Record<string, string> = {
 
 const LANGUAGE_FALLBACK_COLOR = '#94A3B8'
 
-export function languageColor(language: string) {
+export function languageColor(language?: string | null) {
+  if (!language) return LANGUAGE_FALLBACK_COLOR
   return (
     LANGUAGE_COLORS[language.trim().toLowerCase()] ?? LANGUAGE_FALLBACK_COLOR
   )
 }
 
-export function languageId(language: string) {
+export function languageId(language?: string | null) {
+  if (!language) return 'other'
   return language.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'other'
 }
 
