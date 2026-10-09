@@ -462,16 +462,20 @@ export default function Home({ loaderData }: Route.ComponentProps) {
         ref={heroSectionRef}
       >
         <div className="absolute inset-0 z-0">
-          {HERO_SLIDES.map((slide, index) => (
-            <img
-              alt=""
-              className={`hero-background-image ${index === activeIndex ? 'is-active' : ''}`}
-              decoding={index === activeIndex ? 'sync' : 'async'}
-              fetchPriority={index === 0 ? 'high' : 'low'}
-              key={slide.imageUrl}
-              src={slide.imageUrl}
-            />
-          ))}
+          {HERO_SLIDES.map((slide, index) => {
+            const currentImg =
+              theme === 'light' ? slide.imageUrlDay : slide.imageUrl
+            return (
+              <img
+                alt=""
+                className={`hero-background-image ${index === activeIndex ? 'is-active' : ''}`}
+                decoding={index === activeIndex ? 'sync' : 'async'}
+                fetchPriority={index === 0 ? 'high' : 'low'}
+                key={`${slide.imageUrl}-${theme === 'light' ? 'day' : 'night'}`}
+                src={currentImg}
+              />
+            )
+          })}
         </div>
         <div className="absolute inset-0 z-[1] bg-black/10" />
         <div className="hero-scrim absolute inset-0 z-[1]" />

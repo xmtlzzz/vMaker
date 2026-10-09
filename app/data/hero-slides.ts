@@ -4,6 +4,7 @@ export type HeroSlide = {
   description: string
   label: string
   imageUrl: string
+  imageUrlDay: string
 }
 
 export const HERO_SLIDES: HeroSlide[] = [
@@ -14,6 +15,7 @@ export const HERO_SLIDES: HeroSlide[] = [
       'A curated gateway to projects, websites, experiments, and the systems that hold them together.',
     label: 'PROJECT INDEX',
     imageUrl: '/hero-penguin.svg',
+    imageUrlDay: '/hero-penguin-day.svg',
   },
   {
     accent: '#FFFFFF',
@@ -22,6 +24,7 @@ export const HERO_SLIDES: HeroSlide[] = [
       'Structured around real repositories from GitHub, with language grouping, fast search, and direct project access.',
     label: 'WEB SYSTEMS',
     imageUrl: '/hero-bird.svg',
+    imageUrlDay: '/hero-bird-day.svg',
   },
   {
     accent: '#FFFFFF',
@@ -30,5 +33,6 @@ export const HERO_SLIDES: HeroSlide[] = [
       'Made for browsing the full spread of {owner} work without flattening it into a static portfolio screenshot.',
     label: 'CREATIVE DEV',
     imageUrl: '/hero-deer.svg',
+    imageUrlDay: '/hero-deer-day.svg',
   },
 ]

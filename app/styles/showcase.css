@@ -14,9 +14,10 @@
   left: 0;
   right: 0;
   height: 96px;
-  background: linear-gradient(to bottom, transparent, #ebe8ee);
+  background: linear-gradient(to bottom, transparent, #faf9fc);
   pointer-events: none;
   z-index: 2;
+  transition: background 260ms ease;
 }
 @media (max-width: 768px) {
   .hero-icon-button,
