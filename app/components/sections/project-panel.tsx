@@ -111,15 +111,15 @@ export function ProjectPanel({
         <div className="project-panel-stats">
           <span className="project-stat" title={t.stars}>
             <Star aria-hidden="true" className="size-3.5" />
-            <span>{unavailable ? '—' : project.stars}</span>
+            <span>{unavailable ? '-' : project.stars}</span>
           </span>
           <span className="project-stat" title={t.forks}>
             <GitFork aria-hidden="true" className="size-3.5" />
-            <span>{unavailable ? '—' : project.forks}</span>
+            <span>{unavailable ? '-' : project.forks}</span>
           </span>
           <span className="project-stat" title={t.codeSize}>
             <HardDrive aria-hidden="true" className="size-3.5" />
-            <span>{unavailable ? '—' : formatBytes(project.codeSize)}</span>
+            <span>{unavailable ? '-' : formatBytes(project.codeSize)}</span>
           </span>
         </div>
         <div className="mt-6 flex flex-wrap items-center gap-4 text-sm">
@@ -159,10 +159,7 @@ export function ProjectPanel({
               rel="noreferrer"
               target="_blank"
             >
-              <span className="relative flex size-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex size-2 rounded-full bg-emerald-500"></span>
-              </span>
+              <span className="size-1.5 rounded-full bg-emerald-500" />
               <span>{t.demoLabel}</span>
             </a>
           )}

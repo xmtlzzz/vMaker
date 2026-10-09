@@ -51,7 +51,7 @@ export function ProjectDetailAside({
           <div className="detail-metric" key={metric.label}>
             <span className="detail-metric-label">{metric.label}</span>
             <span className="detail-metric-value">
-              {unavailable ? '—' : metric.value}
+              {unavailable ? '-' : metric.value}
             </span>
           </div>
         ))}

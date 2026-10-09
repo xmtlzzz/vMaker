@@ -47,7 +47,6 @@ export function SiteHeader({
       label: locale === 'zh' ? '博客' : 'Blog',
       external: true,
     },
-    { href: '/toggle-demo', label: 'Theme Toggle' },
   ]
   const ownerHref = owner.url || `https://github.com/${owner.login}`
   const ownerName = ownerLabel(owner)
@@ -198,6 +197,7 @@ export function SiteHeader({
                   className="text-[28px] leading-8 font-medium tracking-[-0.84px] text-white uppercase"
                   href={item.href}
                   key={item.label}
+                  onClick={onMenuToggle}
                   rel={item.external ? 'noreferrer' : undefined}
                   target={item.external ? '_blank' : undefined}
                 >
@@ -206,7 +206,12 @@ export function SiteHeader({
               ))}
             </div>
             <div className="mt-8 flex flex-col gap-2 text-sm text-white/58">
-              <a href={ownerHref} rel="noreferrer" target="_blank">
+              <a
+                href={ownerHref}
+                onClick={onMenuToggle}
+                rel="noreferrer"
+                target="_blank"
+              >
                 GitHub / {ownerName}
               </a>
             </div>

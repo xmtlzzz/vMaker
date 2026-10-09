@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react'
-import { motion } from 'framer-motion'
 import { Link } from 'react-router'
 import {
   ThemeToggleAnimated,
@@ -67,26 +66,17 @@ export default function ThemeToggleDemo() {
   }
 
   return (
-    <motion.div
-      className="relative min-h-screen overflow-x-hidden font-sans transition-colors duration-700 select-none"
-      animate={{
-        backgroundColor: isDark ? '#080d1a' : '#f0f7ff',
-        color: isDark ? '#f1f5f9' : '#0f172a',
-      }}
-      transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+    <div
+      className={`relative min-h-screen overflow-x-hidden font-sans transition-colors duration-700 select-none ${
+        isDark ? 'bg-[#080d1a] text-slate-100' : 'bg-[#f0f7ff] text-slate-900'
+      }`}
     >
-      {/* ========================================================= */}
-      {/* AMBIENT BACKGROUND SCENE (Fluid Day & Night Atmosphere)  */}
-      {/* ========================================================= */}
-
       {/* Daylight Atmospheric Ambient Glow */}
-      <motion.div
-        className="pointer-events-none absolute inset-0 overflow-hidden"
-        initial={false}
-        animate={{ opacity: isDark ? 0 : 1 }}
-        transition={{ duration: 0.8 }}
+      <div
+        className={`pointer-events-none absolute inset-0 overflow-hidden transition-opacity duration-700 ${
+          isDark ? 'opacity-0' : 'opacity-100'
+        }`}
       >
-        {/* Soft Golden Sunbeam Halo */}
         <div
           className="absolute -top-32 left-1/2 -translate-x-1/2 rounded-full blur-3xl"
           style={{
@@ -96,7 +86,6 @@ export default function ThemeToggleDemo() {
               'radial-gradient(circle, rgba(254, 240, 138, 0.45) 0%, rgba(186, 230, 253, 0.4) 45%, transparent 75%)',
           }}
         />
-        {/* Sky gradient drift */}
         <div
           className="absolute inset-0 opacity-40"
           style={{
@@ -104,8 +93,6 @@ export default function ThemeToggleDemo() {
               'radial-gradient(circle at 50% 100%, rgba(224, 242, 254, 0.8) 0%, transparent 60%)',
           }}
         />
-
-        {/* Ambient floating cloud silhouettes in the distance */}
         <div className="absolute top-20 left-10 opacity-30 blur-[1px]">
           <div className="relative">
             <div className="size-16 rounded-full bg-white" />
@@ -120,16 +107,14 @@ export default function ThemeToggleDemo() {
             <div className="absolute top-4 left-24 size-16 rounded-full bg-white" />
           </div>
         </div>
-      </motion.div>
+      </div>
 
       {/* Midnight Atmospheric Ambient Glow */}
-      <motion.div
-        className="pointer-events-none absolute inset-0 overflow-hidden"
-        initial={false}
-        animate={{ opacity: isDark ? 1 : 0 }}
-        transition={{ duration: 0.8 }}
+      <div
+        className={`pointer-events-none absolute inset-0 overflow-hidden transition-opacity duration-700 ${
+          isDark ? 'opacity-100' : 'opacity-0'
+        }`}
       >
-        {/* Celestial Indigo & Violet Nebula Glow */}
         <div
           className="absolute -top-40 left-1/2 -translate-x-1/2 rounded-full blur-3xl"
           style={{
@@ -148,42 +133,24 @@ export default function ThemeToggleDemo() {
               'radial-gradient(circle, rgba(56, 189, 248, 0.08) 0%, transparent 70%)',
           }}
         />
-
-        {/* Ambient procedural starfield */}
         {BACKGROUND_STARS.map((star) => (
-          <motion.div
+          <div
             key={star.id}
-            className="absolute rounded-full bg-white"
+            className="absolute rounded-full bg-white transition-opacity duration-500"
             style={{
               top: star.top,
               left: star.left,
               width: star.size,
               height: star.size,
               boxShadow: '0 0 6px rgba(255, 255, 255, 0.8)',
-            }}
-            animate={
-              isDark
-                ? {
-                    opacity: [0.2, 0.95, 0.2],
-                    scale: [0.9, 1.25, 0.9],
-                  }
-                : { opacity: 0 }
-            }
-            transition={{
-              duration: 2.4 + (star.id % 3) * 0.5,
-              repeat: Infinity,
-              ease: 'easeInOut',
-              delay: star.delay,
+              opacity: isDark ? 0.75 : 0,
             }}
           />
         ))}
-      </motion.div>
+      </div>
 
-      {/* ========================================================= */}
-      {/* PAGE CONTENT CONTAINER                                    */}
-      {/* ========================================================= */}
+      {/* Page Content Container */}
       <div className="relative z-10 mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
-        {/* Top Navigation Bar */}
         <header className="mb-12 flex items-center justify-between">
           <Link
             to="/"
@@ -218,16 +185,11 @@ export default function ThemeToggleDemo() {
           </div>
         </header>
 
-        {/* Hero Section */}
         <div className="flex flex-col items-center text-center">
-          {/* Feature Badge */}
-          <motion.div
-            layout
-            className="mb-4 inline-flex items-center gap-2 rounded-full border border-black/10 bg-white/80 px-4 py-1.5 text-xs font-semibold tracking-wide uppercase shadow-sm backdrop-blur-md dark:border-white/15 dark:bg-slate-800/80"
-          >
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-black/10 bg-white/80 px-4 py-1.5 text-xs font-semibold tracking-wide uppercase shadow-sm backdrop-blur-md dark:border-white/15 dark:bg-slate-800/80">
             <Sparkles className="size-3.5 text-amber-500 dark:text-amber-300" />
-            <span>Framer Motion • Zero Image Assets</span>
-          </motion.div>
+            <span>Pure CSS GPU • Zero Image Assets</span>
+          </div>
 
           <h1 className="text-3xl font-bold tracking-tight sm:text-5xl">
             Animated Day / Night Theme Toggle
@@ -237,46 +199,27 @@ export default function ThemeToggleDemo() {
             procedural craters, and synchronized ambient atmosphere.
           </p>
 
-          {/* ======================================================= */}
-          {/* THE MAIN TOGGLE STAGE                                   */}
-          {/* ======================================================= */}
           <div className="mt-12 flex flex-col items-center justify-center">
-            {/* Soft Ambient Radial Pad */}
-            <motion.div
-              className="relative flex items-center justify-center rounded-3xl p-10 backdrop-blur-xl transition-all"
-              animate={{
-                backgroundColor: isDark
-                  ? 'rgba(15, 23, 42, 0.75)'
-                  : 'rgba(255, 255, 255, 0.75)',
-                boxShadow: isDark
-                  ? '0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.1)'
-                  : '0 25px 50px -12px rgba(56, 189, 248, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.8)',
-                borderColor: isDark
-                  ? 'rgba(255, 255, 255, 0.12)'
-                  : 'rgba(255, 255, 255, 0.6)',
-              }}
-              style={{
-                borderWidth: '1px',
-                borderStyle: 'solid',
-              }}
+            <div
+              className={`relative flex items-center justify-center rounded-3xl border p-10 backdrop-blur-xl transition-all duration-500 ${
+                isDark
+                  ? 'border-white/10 bg-slate-900/75 shadow-2xl shadow-black/50'
+                  : 'border-white/60 bg-white/75 shadow-2xl shadow-sky-500/20'
+              }`}
             >
               <ThemeToggleAnimated
                 isDark={isDark}
                 onToggle={handleToggle}
                 size={size}
               />
-            </motion.div>
+            </div>
 
-            {/* Current State Status Pill */}
-            <motion.div
-              layout
-              className="mt-6 flex items-center gap-2.5 rounded-full border border-black/10 bg-white/70 px-5 py-2 text-sm font-medium backdrop-blur-md dark:border-white/10 dark:bg-slate-900/70"
-            >
+            <div className="mt-6 flex items-center gap-2.5 rounded-full border border-black/10 bg-white/70 px-5 py-2 text-sm font-medium backdrop-blur-md dark:border-white/10 dark:bg-slate-900/70">
               {isDark ? (
                 <>
                   <Moon className="size-4 text-indigo-400" />
                   <span>
-                    Midnight Mode —{' '}
+                    Midnight Mode:{' '}
                     <span className="text-slate-500 dark:text-slate-400">
                       Twinkling stars & lunar craters
                     </span>
@@ -286,16 +229,15 @@ export default function ThemeToggleDemo() {
                 <>
                   <Sun className="size-4 text-amber-500" />
                   <span>
-                    Daylight Mode —{' '}
+                    Daylight Mode:{' '}
                     <span className="text-slate-500 dark:text-slate-400">
                       Solar radiance & drifting clouds
                     </span>
                   </span>
                 </>
               )}
-            </motion.div>
+            </div>
 
-            {/* Controls Bar: Size Preset Switcher */}
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
               <span className="text-xs font-semibold tracking-wider text-slate-500 uppercase dark:text-slate-400">
                 Size:
@@ -311,10 +253,10 @@ export default function ThemeToggleDemo() {
                       : 'border border-black/10 bg-white/60 hover:bg-white/90 dark:border-white/10 dark:bg-slate-800/60 dark:hover:bg-slate-800'
                   }`}
                 >
-                  {s === 'xs' && 'Compact (50px)'}
-                  {s === 'sm' && 'Small (60px)'}
-                  {s === 'md' && 'Medium (90px)'}
-                  {s === 'lg' && 'Large (120px)'}
+                  {s === 'xs' && 'Compact (48px)'}
+                  {s === 'sm' && 'Small (54px)'}
+                  {s === 'md' && 'Medium (66px)'}
+                  {s === 'lg' && 'Large (84px)'}
                 </button>
               ))}
 
@@ -326,31 +268,20 @@ export default function ThemeToggleDemo() {
             </div>
           </div>
 
-          {/* ======================================================= */}
-          {/* FEATURE HIGHLIGHT CARDS                                 */}
-          {/* ======================================================= */}
           <div className="mt-16 grid grid-cols-1 gap-6 text-left sm:grid-cols-3">
-            {/* Card 1: Sliding Knob Physics */}
-            <motion.div
-              layout
-              className="rounded-2xl border border-black/10 bg-white/60 p-6 backdrop-blur-md transition-shadow dark:border-white/10 dark:bg-slate-900/60"
-            >
+            <div className="rounded-2xl border border-black/10 bg-white/60 p-6 backdrop-blur-md transition-shadow dark:border-white/10 dark:bg-slate-900/60">
               <div className="mb-4 inline-flex size-10 items-center justify-center rounded-xl bg-amber-500/10 text-amber-500 dark:bg-amber-400/10 dark:text-amber-300">
                 <Sun className="size-5" />
               </div>
               <h3 className="text-base font-semibold">Sun-to-Moon Morph</h3>
               <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
-                Rotates 360° on a responsive spring. Warm solar gradient
-                transitions smoothly into pearlescent moon with 3 realistic
-                crater indents.
+                Rotates 360° smoothly on CSS transforms. Warm solar radiance
+                transitions into pearlescent moon with 3 realistic crater
+                indents.
               </p>
-            </motion.div>
+            </div>
 
-            {/* Card 2: Shifting Clouds */}
-            <motion.div
-              layout
-              className="rounded-2xl border border-black/10 bg-white/60 p-6 backdrop-blur-md transition-shadow dark:border-white/10 dark:bg-slate-900/60"
-            >
+            <div className="rounded-2xl border border-black/10 bg-white/60 p-6 backdrop-blur-md transition-shadow dark:border-white/10 dark:bg-slate-900/60">
               <div className="mb-4 inline-flex size-10 items-center justify-center rounded-xl bg-sky-500/10 text-sky-500 dark:bg-sky-400/10 dark:text-sky-300">
                 <Cloud className="size-5" />
               </div>
@@ -358,16 +289,12 @@ export default function ThemeToggleDemo() {
                 Layered Shifting Clouds
               </h3>
               <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
-                Multi-layered cumulus puffs settle gently at the bottom-right in
-                light mode and slide downward into the horizon on dark toggle.
+                Multi-layered cumulus puffs settle gently in light mode and
+                slide smoothly downward into the horizon on dark toggle.
               </p>
-            </motion.div>
+            </div>
 
-            {/* Card 3: Twinkling Stars */}
-            <motion.div
-              layout
-              className="rounded-2xl border border-black/10 bg-white/60 p-6 backdrop-blur-md transition-shadow dark:border-white/10 dark:bg-slate-900/60"
-            >
+            <div className="rounded-2xl border border-black/10 bg-white/60 p-6 backdrop-blur-md transition-shadow dark:border-white/10 dark:bg-slate-900/60">
               <div className="mb-4 inline-flex size-10 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-500 dark:bg-indigo-400/10 dark:text-indigo-300">
                 <Sparkles className="size-5" />
               </div>
@@ -376,12 +303,9 @@ export default function ThemeToggleDemo() {
                 4-point SVG sparkles and glowing star dots enter with staggered
                 delays and run continuous subtle twinkle loops.
               </p>
-            </motion.div>
+            </div>
           </div>
 
-          {/* ======================================================= */}
-          {/* CODE USAGE SNIPPET                                      */}
-          {/* ======================================================= */}
           <div className="mt-12 w-full text-left">
             <div className="rounded-2xl border border-black/10 bg-slate-950 p-6 text-slate-100 shadow-xl dark:border-white/10">
               <div className="flex items-center justify-between border-b border-slate-800 pb-4">
@@ -417,7 +341,7 @@ export function AppHeader() {
     <ThemeToggleAnimated
       isDark={isDark}
       onToggle={(dark) => setIsDark(dark)}
-      size="${size}" // 'sm' | 'md' | 'lg'
+      size="${size}" // 'xs' | 'sm' | 'md' | 'lg'
     />
   )
 }`}</code>
@@ -426,6 +350,6 @@ export function AppHeader() {
           </div>
         </div>
       </div>
-    </motion.div>
+    </div>
   )
 }

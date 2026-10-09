@@ -584,12 +584,12 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                   <Metric
                     isDark={isDark}
                     label={t.stars}
-                    value={error ? '—' : totals.totalStars.toString()}
+                    value={error ? '-' : totals.totalStars.toString()}
                   />
                   <Metric
                     isDark={isDark}
                     label={t.totalCode}
-                    value={error ? '—' : formatBytes(totals.totalCodeSize)}
+                    value={error ? '-' : formatBytes(totals.totalCodeSize)}
                   />
                 </div>
                 {topics.length > 0 && (

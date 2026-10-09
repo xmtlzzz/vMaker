@@ -1,5 +1,5 @@
-﻿import type { MouseEvent, ReactNode } from 'react'
-import { useState } from 'react'
+import type { MouseEvent, ReactNode } from 'react'
+import { useRef } from 'react'
 
 import { cn } from '~/lib/utils'
 
@@ -10,14 +10,16 @@ type BorderGlowProps = {
 }
 
 export function BorderGlow({ children, className, id }: BorderGlowProps) {
-  const [position, setPosition] = useState({ x: 50, y: 50 })
+  const containerRef = useRef<HTMLDivElement | null>(null)
 
   function handlePointerMove(event: MouseEvent<HTMLDivElement>) {
-    const rect = event.currentTarget.getBoundingClientRect()
-    setPosition({
-      x: ((event.clientX - rect.left) / rect.width) * 100,
-      y: ((event.clientY - rect.top) / rect.height) * 100,
-    })
+    const el = containerRef.current
+    if (!el) return
+    const rect = el.getBoundingClientRect()
+    const x = ((event.clientX - rect.left) / rect.width) * 100
+    const y = ((event.clientY - rect.top) / rect.height) * 100
+    el.style.setProperty('--glow-x', `${x}%`)
+    el.style.setProperty('--glow-y', `${y}%`)
   }
 
   return (
@@ -28,10 +30,11 @@ export function BorderGlow({ children, className, id }: BorderGlowProps) {
       )}
       id={id}
       onMouseMove={handlePointerMove}
+      ref={containerRef}
       style={
         {
-          '--glow-x': `${position.x}%`,
-          '--glow-y': `${position.y}%`,
+          '--glow-x': '50%',
+          '--glow-y': '50%',
         } as React.CSSProperties
       }
     >

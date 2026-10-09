@@ -2186,3 +2186,4 @@ html.theme-light {
 @import "./styles/motion.css";
 @import "./styles/index-extras.css";
 @import "./styles/detail-extras.css";
+@import "./styles/theme-toggle.css";
