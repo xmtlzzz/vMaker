@@ -42,7 +42,12 @@ export function SiteHeader({
   const blogUrl = `https://vblog.xmtlz.dev?theme=${theme}`
   const navItems = [
     { href: '/#projects', index: '01', label: t.works },
-    { href: blogUrl, index: '02', label: locale === 'zh' ? '博客' : 'Blog', external: true },
+    {
+      href: blogUrl,
+      index: '02',
+      label: locale === 'zh' ? '博客' : 'Blog',
+      external: true,
+    },
     { href: '/toggle-demo', index: '03', label: 'Theme Toggle' },
   ]
   const ownerHref = owner.url || `https://github.com/${owner.login}`

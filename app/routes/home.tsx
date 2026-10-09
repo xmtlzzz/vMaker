@@ -1,4 +1,4 @@
-import { ChevronDown, Ellipsis, Palette, Search } from 'lucide-react'
+import { ChevronDown, Ellipsis, Moon, Palette, Search, Sun } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { data, useLocation, useSearchParams } from 'react-router'
@@ -275,11 +275,13 @@ export default function Home({ loaderData }: Route.ComponentProps) {
   const filteredProjects = useMemo(() => {
     let matched = projects
     if (langParam) {
-      matched = matched.filter(
-        (project) =>
+      matched = matched.filter((project) => {
+        if (!project.primaryLanguage) return false
+        return (
           languageId(project.primaryLanguage) === langParam.toLowerCase() ||
           project.primaryLanguage.toLowerCase() === langParam.toLowerCase()
-      )
+        )
+      })
     }
     const trimmed = query.trim()
     if (trimmed) {
@@ -665,7 +667,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                           langParam.toLowerCase() === group.id.toLowerCase()
                         return (
                           <button
-                            className={`projects-anchor-chip cursor-pointer ${isActive ? 'is-active ring-1 ring-emerald-500/50 bg-emerald-500/10 font-semibold' : ''}`}
+                            className={`projects-anchor-chip cursor-pointer ${isActive ? 'is-active bg-emerald-500/10 font-semibold ring-1 ring-emerald-500/50' : ''}`}
                             key={group.language}
                             onClick={() => handleLangToggle(group.id)}
                             title={`${group.language} (${group.projects.length})`}
@@ -673,7 +675,9 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                           >
                             <span>{languageNavLabel(group.language)}</span>
                             {isActive && (
-                              <span className="ml-1 text-[10px] opacity-70">✕</span>
+                              <span className="ml-1 text-[10px] opacity-70">
+                                ✕
+                              </span>
                             )}
                           </button>
                         )
