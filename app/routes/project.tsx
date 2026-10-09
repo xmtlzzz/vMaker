@@ -3,6 +3,7 @@ import type { CSSProperties } from 'react'
 import { Link, data, isRouteErrorResponse } from 'react-router'
 
 import { ProjectDetailAside } from '~/components/sections/project-detail-aside'
+import { ProjectPreviewHero } from '~/components/sections/project-preview-hero'
 import { RelatedProjects } from '~/components/sections/related-projects'
 import { ACCENT_PRESETS } from '~/data/accents'
 import { projectShowcases } from '~/data/project-showcases'
@@ -201,8 +202,6 @@ export default function ProjectRoute({ loaderData }: Route.ComponentProps) {
   } = useSitePreferences(ownerLabel(owner))
 
   const showcase = projectShowcases[project.name]?.[locale]
-  // Product screenshots take precedence over repository social cards.
-  const cover = project.cover ?? repoOgImage(owner.login, project.name)
 
   function cycleAccent() {
     const index = ACCENT_PRESETS.findIndex((preset) => preset.id === accentId)
@@ -299,23 +298,14 @@ export default function ProjectRoute({ loaderData }: Route.ComponentProps) {
               </section>
             )}
 
-            <figure>
-              <img
-                alt={
-                  showcase?.previewCaption || `${project.displayName} preview`
-                }
-                className="detail-preview"
-                decoding="async"
-                loading="lazy"
-                referrerPolicy="no-referrer"
-                src={cover}
-              />
-              {showcase && (
-                <figcaption className="detail-preview-caption">
-                  {showcase.previewCaption}
-                </figcaption>
-              )}
-            </figure>
+            <ProjectPreviewHero
+              isDark={isDark}
+              locale={locale}
+              owner={owner}
+              project={project}
+              showcase={showcase}
+              t={t}
+            />
 
             <LanguageComposition project={project} t={t} />
 
