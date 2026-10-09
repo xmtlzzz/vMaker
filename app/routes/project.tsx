@@ -1,6 +1,8 @@
-import { ArrowLeft, Moon, Sun } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import { Link, data, isRouteErrorResponse } from 'react-router'
+
+import { ThemeToggleAnimated } from '~/components/ui/theme-toggle-animated'
 
 import { ProjectDetailAside } from '~/components/sections/project-detail-aside'
 import { ProjectPreviewHero } from '~/components/sections/project-preview-hero'
@@ -234,6 +236,14 @@ export default function ProjectRoute({ loaderData }: Route.ComponentProps) {
               <ArrowLeft aria-hidden="true" className="size-4" />
               {t.backToIndex}
             </Link>
+            <a
+              className="detail-back"
+              href={`https://vblog.xmtlz.dev?theme=${isDark ? 'dark' : 'light'}`}
+              rel="noreferrer"
+              target="_blank"
+            >
+              {locale === 'zh' ? '博客' : 'Blog'}
+            </a>
             <button
               aria-label={t.changeLocale}
               className="detail-control"
@@ -242,18 +252,12 @@ export default function ProjectRoute({ loaderData }: Route.ComponentProps) {
             >
               {locale === 'en' ? '中' : 'EN'}
             </button>
-            <button
+            <ThemeToggleAnimated
               aria-label={t.changeTheme}
-              className="detail-control"
-              onClick={() => toggleTheme()}
-              type="button"
-            >
-              {isDark ? (
-                <Sun aria-hidden="true" className="size-4" />
-              ) : (
-                <Moon aria-hidden="true" className="size-4" />
-              )}
-            </button>
+              isDark={isDark}
+              onToggle={toggleTheme}
+              size="sm"
+            />
             <button
               aria-label={t.changeAccent}
               className="detail-control"

@@ -957,7 +957,7 @@ export function ProjectPreviewHero({
 
         {/* Code Editor Body */}
         <div className="touch-pan-x [scrollbar-width:thin] overflow-x-auto p-4 font-mono text-[12.5px] leading-relaxed sm:p-5">
-          <table className="border-collapse">
+          <table className="w-full min-w-full border-collapse">
             <tbody>
               {snippet.lines.map((line, lineIdx) => (
                 <tr key={lineIdx} className="hover:bg-zinc-500/5">
