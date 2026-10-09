@@ -40,63 +40,11 @@ type ViewTransitionDocument = Document & {
 // the browser snapshots the finished DOM for the crossfade. `react-dom` is
 // imported lazily because this hook also sits in the server graph, where the
 // switch never runs.
-async function commitThemeSwitch(
-  theme: Theme,
-  setTheme: (next: Theme) => void
-) {
-  const { flushSync } = await import('react-dom')
-
-  const root = document.documentElement
-  const startViewTransition = (
-    document as ViewTransitionDocument
-  ).startViewTransition?.bind(document)
-  const reduceMotion = window.matchMedia(
-    '(prefers-reduced-motion: reduce)'
-  ).matches
-
-  if (!startViewTransition || reduceMotion) {
-    // Reduced motion, or a browser without view transitions. The latter still
-    // gets a fade — every themed surface shares one duration, so it reads as a
-    // single cross-fade instead of surfaces and text finishing at different
-    // times. Nothing is animated when the visitor asked for less motion.
-    if (reduceMotion) {
-      applyThemeClass(theme)
-      flushSync(() => setTheme(theme))
-      return
-    }
-
-    root.classList.add(THEME_FADE_CLASS)
-    // Put the class into the before-change style, so the fade starts from the
-    // old colours rather than being skipped as a same-frame change.
-    void window.getComputedStyle(root).color
-    applyThemeClass(theme)
-    flushSync(() => setTheme(theme))
-
-    window.clearTimeout(fadeTimer)
-    fadeTimer = window.setTimeout(() => {
-      fadeTimer = undefined
-      root.classList.remove(THEME_FADE_CLASS)
-    }, THEME_FADE_MS + 60)
-    return
-  }
-
-  root.classList.add(THEME_SWITCH_CLASS)
-
-  try {
-    const transition = startViewTransition(() => {
-      applyThemeClass(theme)
-      flushSync(() => setTheme(theme))
-    })
-
-    await transition.finished
-  } catch {
-    // A skipped transition still settles, but a browser that refuses to start
-    // one must not leave the page with its transitions switched off.
-    applyThemeClass(theme)
-    flushSync(() => setTheme(theme))
-  } finally {
-    root.classList.remove(THEME_SWITCH_CLASS)
-  }
+// Applies theme change directly so ThemeToggleAnimated can play its smooth
+// hardware-accelerated CSS transition in real-time, matching vBlog's fluid experience.
+function commitThemeSwitch(theme: Theme, setTheme: (next: Theme) => void) {
+  applyThemeClass(theme)
+  setTheme(theme)
 }
 
 // Theme, accent and locale are the only preferences the site keeps, and every route
