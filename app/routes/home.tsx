@@ -492,7 +492,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
           theme={theme}
         />
 
-        <div className="hero-layout relative z-[2] mx-auto flex min-h-svh w-full max-w-[1340px] flex-col justify-end gap-[80px] px-[24px] pt-[128px]">
+        <div className="hero-layout relative z-[2] mx-auto flex min-h-svh w-full max-w-[1340px] flex-col justify-end gap-[48px] px-[24px] pt-[96px] lg:gap-[64px] lg:pt-[112px]">
           <div className="hero-top-row flex w-full items-start justify-between gap-10">
             <div className="flex-[4]">
               <p className="hero-eyebrow mb-6">{t.heroEyebrow}</p>
@@ -512,7 +512,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
             </div>
           </div>
 
-          <div className="hero-bottom-row flex w-full items-end justify-between gap-10 pb-[54px]">
+          <div className="hero-bottom-row flex w-full items-end justify-between gap-10 pb-[40px] lg:pb-[54px]">
             <div className="flex-[2]" ref={titleRef}>
               <div
                 className={`reveal-block ${titleVisible ? 'is-visible reveal-up' : ''}`}

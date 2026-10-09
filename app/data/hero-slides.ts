@@ -12,7 +12,7 @@ export const HERO_SLIDES: HeroSlide[] = [
     availability: 'Available for the next build sprint',
     description:
       'A curated gateway to projects, websites, experiments, and the systems that hold them together.',
-    label: '01 / PROJECT INDEX',
+    label: 'PROJECT INDEX',
     imageUrl: '/hero-penguin.svg',
   },
   {
@@ -20,7 +20,7 @@ export const HERO_SLIDES: HeroSlide[] = [
     availability: 'Shipping websites, tools, and internal systems',
     description:
       'Structured around real repositories from GitHub, with language grouping, fast search, and direct project access.',
-    label: '02 / WEB SYSTEMS',
+    label: 'WEB SYSTEMS',
     imageUrl: '/hero-bird.svg',
   },
   {
@@ -28,7 +28,7 @@ export const HERO_SLIDES: HeroSlide[] = [
     availability: 'Open to creative dev collaborations',
     description:
       'Made for browsing the full spread of {owner} work without flattening it into a static portfolio screenshot.',
-    label: '03 / CREATIVE DEV',
+    label: 'CREATIVE DEV',
     imageUrl: '/hero-deer.svg',
   },
 ]
