@@ -439,8 +439,8 @@ export default function Home({ loaderData }: Route.ComponentProps) {
     }
   }, [hoveredProjectId])
 
-  function handleThemeToggle() {
-    toggleTheme()
+  function handleThemeToggle(nextDark?: boolean) {
+    toggleTheme(nextDark)
   }
 
   return (

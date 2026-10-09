@@ -17,7 +17,7 @@ export type SiteHeaderProps = {
   onAccentChange: (accentId: AccentPreset['id']) => void
   onAccentMenuToggle: () => void
   onMenuToggle: () => void
-  onThemeToggle: () => void
+  onThemeToggle: (isDark?: boolean) => void
   owner: GitHubOwner
   setLocale: (locale: Locale) => void
   t: Record<string, string>

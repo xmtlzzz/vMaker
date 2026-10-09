@@ -222,23 +222,55 @@
   opacity: 1;
 }
 
-/* Colour affordance: the same 260ms fade on every theme-coloured surface keeps
-   hover and small state changes consistent across components. This is NOT the
-   theme-switch mechanism — see `html.theme-switching` below. */
+/* Colour affordance: smooth 260ms transitions scoped to key theme-surfaces and text containers.
+   Eliminates the wildcard `*` selector which previously forced style recalculations
+   and repaints on 1500+ DOM nodes, causing dropped frames on theme toggle. */
+html,
+body,
 .theme-shell,
-.theme-shell * {
+.home-canvas,
+.project-panel,
+.project-card,
+.language-section,
+.detail-panel,
+.detail-page-container,
+.site-header,
+.site-footer,
+.project-control-bar,
+.project-control-button,
+.projects-heading,
+.projects-sort-select,
+.project-search-input,
+.projects-kicker,
+.hero-switcher,
+.hero-icon-button,
+.hero-menu-button,
+.hero-badge,
+.hero-eyebrow,
+.commit-timeline-track,
+.commit-item,
+.catalog-nav,
+.catalog-nav-item,
+.code-preview-card,
+.stat-card,
+input,
+select {
   transition-duration: 260ms;
   transition-property: background-color, border-color, color, fill, stroke;
   transition-timing-function: ease;
 }
 
-/* Switching themes repaints the whole page, so where a view transition is
-   available it must commit in a single frame: `use-site-preferences` puts
-   `theme-switching` on <html> for the length of the crossfade so no element
-   animates its own colours behind the snapshot. Fading every element
-   individually repainted thousands of properties at once, and because later
-   component rules (`.project-panel`, `.projects-sort-select`, …) replaced the
-   blanket property list, surfaces and their text changed at different speeds. */
+/* Explicitly exempt high-frequency animations from theme transition thrashing */
+.theme-toggle-animated,
+.theme-toggle-animated *,
+.hero-background-image,
+.logo-loop-track,
+.logo-loop-track *,
+.variable-proximity,
+.variable-proximity * {
+  /* Retain independent transforms and animations without repaint interference */
+}
+
 html.theme-switching,
 html.theme-switching .theme-shell,
 html.theme-switching .theme-shell * {
@@ -256,9 +288,7 @@ html.theme-switching .theme-shell * {
 
 /* Fade fallback for browsers without view transitions: same duration, easing and
    property list for every themed surface, so the switch reads as one fade rather
-   than surfaces and their text finishing at different times. Present only while
-   `theme-fading` is on <html> (see use-site-preferences); `fill`/`stroke` are
-   deliberately left out because icons follow `currentColor` anyway. */
+   than surfaces and their text finishing at different times. */
 html.theme-fading,
 html.theme-fading .theme-shell,
 html.theme-fading .theme-shell * {
@@ -279,18 +309,54 @@ html.theme-light {
 }
 
 .home-canvas {
+  position: relative;
+  background-color: #050505;
+  transition: background-color 260ms ease, color 260ms ease;
+}
+
+.theme-light .home-canvas {
+  background-color: #faf9fc;
+  color: #0f0f12;
+}
+
+/* Hardware-accelerated GPU opacity crossfade for multi-layer procedural gradients.
+   Running on opacity prevents expensive full-screen gradient re-rasterization on the CPU. */
+.home-canvas::before {
+  content: '';
+  position: absolute;
+  inset: 0;
   background:
     radial-gradient(circle at top, rgba(245, 152, 242, 0.14), transparent 28%),
     radial-gradient(circle at 82% 18%, rgb(var(--vmaker-accent-rgb) / 0.08), transparent 24%),
     linear-gradient(180deg, #000 0%, #040404 50%, #070707 100%);
+  pointer-events: none;
+  z-index: 0;
+  opacity: 1;
+  transition: opacity 260ms ease;
+  will-change: opacity;
 }
 
-.theme-light .home-canvas {
+.theme-light .home-canvas::before {
+  opacity: 0;
+}
+
+.home-canvas::after {
+  content: '';
+  position: absolute;
+  inset: 0;
   background:
     radial-gradient(circle at top, rgba(245, 152, 242, 0.08), transparent 24%),
     radial-gradient(circle at 82% 18%, rgb(var(--vmaker-accent-rgb) / 0.06), transparent 22%),
     linear-gradient(180deg, #faf9fc 0%, #f2eef5 44%, #ece9f0 100%);
-  color: #0f0f12;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0;
+  transition: opacity 260ms ease;
+  will-change: opacity;
+}
+
+.theme-light .home-canvas::after {
+  opacity: 1;
 }
 .hero-background-image {
   height: 100%;

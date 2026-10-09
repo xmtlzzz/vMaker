@@ -137,9 +137,16 @@ export function useSitePreferences(ownerLabel = '') {
     void commitThemeSwitch(next, setTheme)
   }, [])
 
-  const toggleTheme = useCallback(() => {
-    switchTheme(theme === 'dark' ? 'light' : 'dark')
-  }, [switchTheme, theme])
+  const toggleTheme = useCallback(
+    (forcedDark?: boolean) => {
+      if (typeof forcedDark === 'boolean') {
+        switchTheme(forcedDark ? 'dark' : 'light')
+      } else {
+        switchTheme(theme === 'dark' ? 'light' : 'dark')
+      }
+    },
+    [switchTheme, theme]
+  )
 
   // Only the owner-related strings carry a placeholder, and formatCopy leaves any
   // other text untouched, so interpolating the whole dictionary is safe.
