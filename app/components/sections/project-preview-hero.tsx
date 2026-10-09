@@ -498,6 +498,280 @@ start_service "$@"`
     return { filename: 'start.sh', lines, rawCode: raw }
   }
 
+  if (name === 'vMusic') {
+    const raw = `// 轻量级现代在线音乐播放器与音频流媒体应用
+export class AudioPlayer {
+  private ctx: AudioContext = new AudioContext()
+  private audioNode: HTMLAudioElement = new Audio()
+
+  async playTrack(url: string, title: string) {
+    console.log(\`[vMusic] Playing \${title}: \${url}\`)
+    this.audioNode.src = url
+    await this.audioNode.play()
+  }
+}`
+
+    const lines: CodeToken[][] = [
+      [
+        {
+          text: '// 轻量级现代在线音乐播放器与音频流媒体应用',
+          type: 'comment',
+        },
+      ],
+      [
+        { text: 'export class ', type: 'keyword' },
+        { text: 'AudioPlayer ', type: 'type' },
+        { text: '{', type: 'plain' },
+      ],
+      [
+        { text: '  private ctx: ', type: 'plain' },
+        { text: 'AudioContext', type: 'type' },
+        { text: ' = new ', type: 'plain' },
+        { text: 'AudioContext', type: 'type' },
+        { text: '()', type: 'plain' },
+      ],
+      [
+        { text: '  private audioNode: ', type: 'plain' },
+        { text: 'HTMLAudioElement', type: 'type' },
+        { text: ' = new ', type: 'plain' },
+        { text: 'Audio', type: 'type' },
+        { text: '()', type: 'plain' },
+      ],
+      [],
+      [
+        { text: '  async ', type: 'keyword' },
+        { text: 'playTrack', type: 'fn' },
+        { text: '(url: ', type: 'plain' },
+        { text: 'string', type: 'type' },
+        { text: ', title: ', type: 'plain' },
+        { text: 'string', type: 'type' },
+        { text: ') {', type: 'plain' },
+      ],
+      [
+        { text: '    console.', type: 'plain' },
+        { text: 'log', type: 'fn' },
+        { text: '(`[vMusic] Playing ${title}: ${url}`)', type: 'string' },
+      ],
+      [{ text: '    this.audioNode.src = url', type: 'plain' }],
+      [
+        { text: '    await ', type: 'keyword' },
+        { text: 'this.audioNode.', type: 'plain' },
+        { text: 'play', type: 'fn' },
+        { text: '()', type: 'plain' },
+      ],
+      [{ text: '  }', type: 'plain' }],
+      [{ text: '}', type: 'plain' }],
+    ]
+
+    return { filename: 'src/player/audioEngine.ts', lines, rawCode: raw }
+  }
+
+  if (name.includes('astro')) {
+    const raw = `---
+// 基于 Astro 的现代化博客起步模板与静态站点脚手架
+import BaseLayout from '../layouts/BaseLayout.astro'
+import PostCard from '../components/PostCard.astro'
+const posts = await Astro.glob('../posts/*.md')
+---
+<BaseLayout title="My Astro Blog">
+  <main class="post-feed">
+    {posts.map((post) => <PostCard post={post} />)}
+  </main>
+</BaseLayout>`
+
+    const lines: CodeToken[][] = [
+      [{ text: '---', type: 'comment' }],
+      [
+        {
+          text: '// 基于 Astro 的现代化博客起步模板与静态站点脚手架',
+          type: 'comment',
+        },
+      ],
+      [
+        { text: 'import ', type: 'keyword' },
+        { text: 'BaseLayout', type: 'type' },
+        { text: ' from ', type: 'keyword' },
+        { text: "'../layouts/BaseLayout.astro'", type: 'string' },
+      ],
+      [
+        { text: 'import ', type: 'keyword' },
+        { text: 'PostCard', type: 'type' },
+        { text: ' from ', type: 'keyword' },
+        { text: "'../components/PostCard.astro'", type: 'string' },
+      ],
+      [
+        { text: 'const posts = await ', type: 'plain' },
+        { text: 'Astro.glob', type: 'fn' },
+        { text: "('../posts/*.md')", type: 'string' },
+      ],
+      [{ text: '---', type: 'comment' }],
+      [
+        { text: '<', type: 'tag' },
+        { text: 'BaseLayout', type: 'type' },
+        { text: ' title', type: 'attr' },
+        { text: '="My Astro Blog">', type: 'string' },
+      ],
+      [
+        { text: '  <main ', type: 'tag' },
+        { text: 'class', type: 'attr' },
+        { text: '="post-feed">', type: 'string' },
+      ],
+      [
+        { text: '    {posts.', type: 'plain' },
+        { text: 'map', type: 'fn' },
+        { text: '((post) => <', type: 'plain' },
+        { text: 'PostCard', type: 'type' },
+        { text: ' post={post} />)}', type: 'plain' },
+      ],
+      [{ text: '  </main>', type: 'tag' }],
+      [
+        { text: '</', type: 'tag' },
+        { text: 'BaseLayout', type: 'type' },
+        { text: '>', type: 'tag' },
+      ],
+    ]
+
+    return { filename: 'src/pages/index.astro', lines, rawCode: raw }
+  }
+
+  if (name.includes('Invoice') || lang === 'vue') {
+    const raw = `<template>
+  <div class="invoice-container">
+    <header class="flex justify-between items-center mb-6">
+      <h2 class="text-xl font-bold">发票开具与财务流转管理</h2>
+      <el-button type="primary">新建发票</el-button>
+    </header>
+    <el-table :data="invoices" stripe class="w-full" />
+  </div>
+</template>`
+
+    const lines: CodeToken[][] = [
+      [{ text: '<template>', type: 'tag' }],
+      [
+        { text: '  <div ', type: 'tag' },
+        { text: 'class', type: 'attr' },
+        { text: '="invoice-container">', type: 'string' },
+      ],
+      [
+        { text: '    <header ', type: 'tag' },
+        { text: 'class', type: 'attr' },
+        { text: '="flex justify-between items-center mb-6">', type: 'string' },
+      ],
+      [
+        { text: '      <h2 ', type: 'tag' },
+        { text: 'class', type: 'attr' },
+        { text: '="text-xl font-bold">', type: 'string' },
+        { text: '发票开具与财务流转管理', type: 'plain' },
+        { text: '</h2>', type: 'tag' },
+      ],
+      [
+        { text: '      <', type: 'tag' },
+        { text: 'el-button', type: 'type' },
+        { text: ' type', type: 'attr' },
+        { text: '="primary">', type: 'string' },
+        { text: '新建发票', type: 'plain' },
+        { text: '</', type: 'tag' },
+        { text: 'el-button', type: 'type' },
+        { text: '>', type: 'tag' },
+      ],
+      [{ text: '    </header>', type: 'tag' }],
+      [
+        { text: '    <', type: 'tag' },
+        { text: 'el-table', type: 'type' },
+        { text: ' :data', type: 'attr' },
+        { text: '="invoices" ', type: 'string' },
+        { text: 'stripe ', type: 'attr' },
+        { text: 'class', type: 'attr' },
+        { text: '="w-full" />', type: 'string' },
+      ],
+      [{ text: '  </div>', type: 'tag' }],
+      [{ text: '</template>', type: 'tag' }],
+    ]
+
+    return { filename: 'src/views/InvoiceList.vue', lines, rawCode: raw }
+  }
+
+  if (name.includes('rust')) {
+    const raw = `//! Rust 现代化工程脚手架与最佳实践起步模板
+
+pub fn initialize_service() -> Result<(), Box<dyn std::error::Error>> {
+    println!("[rust-template] Service initialized successfully.");
+    Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_init() {
+        assert!(initialize_service().is_ok());
+    }
+}`
+
+    const lines: CodeToken[][] = [
+      [
+        {
+          text: '//! Rust 现代化工程脚手架与最佳实践起步模板',
+          type: 'comment',
+        },
+      ],
+      [],
+      [
+        { text: 'pub fn ', type: 'keyword' },
+        { text: 'initialize_service', type: 'fn' },
+        { text: '() -> ', type: 'plain' },
+        { text: 'Result', type: 'type' },
+        { text: '<(), ', type: 'plain' },
+        { text: 'Box', type: 'type' },
+        { text: '<dyn std::error::Error>> {', type: 'plain' },
+      ],
+      [
+        { text: '    println!(', type: 'plain' },
+        {
+          text: '"[rust-template] Service initialized successfully."',
+          type: 'string',
+        },
+        { text: ');', type: 'plain' },
+      ],
+      [
+        { text: '    ', type: 'plain' },
+        { text: 'Ok', type: 'fn' },
+        { text: '(())', type: 'plain' },
+      ],
+      [{ text: '}', type: 'plain' }],
+      [],
+      [{ text: '#[cfg(test)]', type: 'attr' }],
+      [
+        { text: 'mod ', type: 'keyword' },
+        { text: 'tests', type: 'type' },
+        { text: ' {', type: 'plain' },
+      ],
+      [
+        { text: '    use ', type: 'keyword' },
+        { text: 'super::*;', type: 'plain' },
+      ],
+      [],
+      [{ text: '    #[test]', type: 'attr' }],
+      [
+        { text: '    fn ', type: 'keyword' },
+        { text: 'test_init', type: 'fn' },
+        { text: '() {', type: 'plain' },
+      ],
+      [
+        { text: '        assert!(', type: 'plain' },
+        { text: 'initialize_service', type: 'fn' },
+        { text: '().', type: 'plain' },
+        { text: 'is_ok', type: 'fn' },
+        { text: '());', type: 'plain' },
+      ],
+      [{ text: '    }', type: 'plain' }],
+      [{ text: '}', type: 'plain' }],
+    ]
+
+    return { filename: 'src/lib.rs', lines, rawCode: raw }
+  }
+
   // Generic TypeScript / JavaScript fallback
   const raw = `// ${desc || project.displayName}
 import { defineConfig } from 'vite'

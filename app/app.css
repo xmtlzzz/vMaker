@@ -1692,9 +1692,16 @@ html.theme-light {
 }
 
 .detail-wordmark {
+  color: inherit;
   font-size: 1.05rem;
   font-weight: 650;
   letter-spacing: -0.01em;
+  text-decoration: none;
+  transition: opacity 180ms ease;
+}
+
+.detail-wordmark:hover {
+  opacity: 0.8;
 }
 
 .detail-header-nav {

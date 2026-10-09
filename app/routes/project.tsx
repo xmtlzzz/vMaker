@@ -223,7 +223,9 @@ export default function ProjectRoute({ loaderData }: Route.ComponentProps) {
     >
       <div className="detail-container">
         <header className="detail-header">
-          <span className="detail-wordmark">vMaker</span>
+          <Link className="detail-wordmark" to="/">
+            vMaker
+          </Link>
           <nav className="detail-header-nav">
             <Link
               className="detail-back"
