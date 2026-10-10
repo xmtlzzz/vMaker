@@ -15,9 +15,7 @@ import { LOCALE_STORAGE_KEY, THEME_STORAGE_KEY } from './lib/config'
 import './app.css'
 import './styles/showcase.css'
 
-// Runs before hydration so a dark-theme visitor never sees the light first paint.
-// The theme classes live on <html>; the route shell only carries theme-shell/home-canvas.
-const themeBootstrapScript = `(function(){var el=document.documentElement;var t=null;try{t=window.localStorage.getItem('${THEME_STORAGE_KEY}')}catch(e){}if(t==='dark'){el.classList.add('dark','theme-dark')}else{el.classList.add('theme-light')}try{if(window.localStorage.getItem('${LOCALE_STORAGE_KEY}')==='en'){el.lang='en'}}catch(e){}})()`
+const themeBootstrapScript = `(function(){var el=document.documentElement;var t=null;try{var p=new URLSearchParams(window.location.search);var pt=p.get('theme');if(pt==='dark'||pt==='light'){t=pt;window.localStorage.setItem('${THEME_STORAGE_KEY}',pt)}else{t=window.localStorage.getItem('${THEME_STORAGE_KEY}')}var pl=p.get('lang');if(pl==='en'||pl==='zh'){window.localStorage.setItem('${LOCALE_STORAGE_KEY}',pl);if(pl==='en'){el.lang='en'}}}catch(e){}var isDark=t==='dark'||(!t&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches);if(isDark){el.classList.add('dark','theme-dark');el.classList.remove('theme-light')}else{el.classList.add('theme-light');el.classList.remove('dark','theme-dark')}try{if(window.localStorage.getItem('${LOCALE_STORAGE_KEY}')==='en'){el.lang='en'}}catch(e){}})()`
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (

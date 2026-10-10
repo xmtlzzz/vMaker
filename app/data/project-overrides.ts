@@ -8,6 +8,10 @@ export type ProjectOverride = {
   summary?: string
   primaryLanguage?: string
   topics?: string[]
+  stars?: number
+  languages?: Record<string, number>
+  releaseCount?: number
+  latestReleaseTag?: string
 }
 
 export const projectOverrides: Record<string, ProjectOverride> = {
@@ -19,6 +23,10 @@ export const projectOverrides: Record<string, ProjectOverride> = {
     summary: '集中浏览个人开源项目，搜索作品、查看技术栈和最近进展。',
     primaryLanguage: 'TypeScript',
     topics: ['react', 'remix', 'react-router', 'tailwind', 'portfolio'],
+    stars: 1,
+    languages: { TypeScript: 85000, CSS: 25000, HTML: 2000 },
+    latestReleaseTag: 'v1.0.0',
+    releaseCount: 1,
   },
   'vBlog-Core': {
     cover: '/previews/vblog.jpg',
@@ -29,6 +37,10 @@ export const projectOverrides: Record<string, ProjectOverride> = {
       '用于发布技术文章与开发记录的个人博客，支持 Markdown、标签与全文阅读。',
     primaryLanguage: 'Go',
     topics: ['blog', 'go', 'vue', 'cloudflare', 'sqlite', 'd1'],
+    stars: 1,
+    languages: { Go: 95000, Vue: 65000, TypeScript: 20000, CSS: 15000 },
+    latestReleaseTag: 'v1.2.0',
+    releaseCount: 1,
   },
   'astro-blog-starter-template': {
     summary: '基于 Astro 的现代化博客起步模板与静态站点脚手架。',

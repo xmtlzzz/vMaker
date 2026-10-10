@@ -21,25 +21,6 @@ function applyThemeClass(theme: Theme) {
   root.classList.toggle('theme-light', !isDark)
 }
 
-// Only present on <html> for the length of a switch: `theme-switching` turns the
-// blanket colour transitions off so a view transition snapshots finished colours
-// (see app.css), while `theme-fading` is the fallback that fades every themed
-// surface at one shared speed.
-const THEME_SWITCH_CLASS = 'theme-switching'
-const THEME_FADE_CLASS = 'theme-fading'
-const THEME_FADE_MS = 240
-
-// Re-armed on every switch so a rapid toggle cannot cut the previous fade short.
-let fadeTimer: number | undefined
-
-type ViewTransitionDocument = Document & {
-  startViewTransition?: (update: () => void) => { finished: Promise<void> }
-}
-
-// A theme switch repaints the whole page, so it has to commit synchronously —
-// the browser snapshots the finished DOM for the crossfade. `react-dom` is
-// imported lazily because this hook also sits in the server graph, where the
-// switch never runs.
 // Applies theme change directly so ThemeToggleAnimated can play its smooth
 // hardware-accelerated CSS transition in real-time, matching vBlog's fluid experience.
 function commitThemeSwitch(theme: Theme, setTheme: (next: Theme) => void) {
@@ -58,6 +39,11 @@ export function useSitePreferences(ownerLabel = '') {
   const [locale, setLocale] = useState<Locale>(() => {
     if (typeof window === 'undefined') return 'zh'
     try {
+      const urlLang = new URLSearchParams(window.location.search).get('lang')
+      if (urlLang === 'en' || urlLang === 'zh') {
+        window.localStorage.setItem(LOCALE_STORAGE_KEY, urlLang)
+        return urlLang
+      }
       const stored = window.localStorage.getItem(LOCALE_STORAGE_KEY)
       if (stored === 'en' || stored === 'zh') return stored
     } catch {
@@ -68,8 +54,16 @@ export function useSitePreferences(ownerLabel = '') {
   const [theme, setTheme] = useState<Theme>(() => {
     if (typeof window === 'undefined') return 'light'
     try {
+      const urlTheme = new URLSearchParams(window.location.search).get('theme')
+      if (urlTheme === 'light' || urlTheme === 'dark') {
+        window.localStorage.setItem(THEME_STORAGE_KEY, urlTheme)
+        return urlTheme
+      }
       const stored = window.localStorage.getItem(THEME_STORAGE_KEY)
       if (stored === 'light' || stored === 'dark') return stored
+      if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        return 'dark'
+      }
     } catch {
       // ignore storage access error
     }

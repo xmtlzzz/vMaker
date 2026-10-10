@@ -276,10 +276,10 @@ export default function Home({ loaderData }: Route.ComponentProps) {
     let matched = projects
     if (langParam) {
       matched = matched.filter((project) => {
-        if (!project.primaryLanguage) return false
+        const langName = project.primaryLanguage || 'Other'
         return (
-          languageId(project.primaryLanguage) === langParam.toLowerCase() ||
-          project.primaryLanguage.toLowerCase() === langParam.toLowerCase()
+          languageId(langName) === langParam.toLowerCase() ||
+          langName.toLowerCase() === langParam.toLowerCase()
         )
       })
     }

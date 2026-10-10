@@ -488,18 +488,50 @@ function fallbackRepo(name: string): GitHubRepo {
     language: override.primaryLanguage ?? null,
     name,
     pushed_at: null,
-    stargazers_count: 0,
+    stargazers_count: override.stars ?? 0,
     topics: override.topics ?? [],
     updated_at: '',
   }
 }
 
 export function createFallbackPayload(error?: string): ProjectPayload {
-  const fallbackRepos = Object.entries(projectOverrides)
-    .filter(([, override]) => !override.hidden)
-    .map(([name]) => fallbackRepo(name))
+  const login = resolveGithubLogin()
+  const visibleOverrides = Object.entries(projectOverrides).filter(
+    ([, override]) => !override.hidden
+  )
+  const fallbackRepos = visibleOverrides.map(([name]) => fallbackRepo(name))
 
-  const payload = buildProjectPayload(fallbackRepos)
+  const detailsByRepo: RepoDetailMap = Object.fromEntries(
+    visibleOverrides.map(([name, override]) => {
+      const fallbackLanguages =
+        override.languages ??
+        (override.primaryLanguage ? { [override.primaryLanguage]: 5000 } : {})
+      const releases = override.latestReleaseTag
+        ? [
+            {
+              name: override.latestReleaseTag,
+              publishedAt: '',
+              tagName: override.latestReleaseTag,
+              url: `https://github.com/${login}/${name}/releases/tag/${override.latestReleaseTag}`,
+            },
+          ]
+        : []
+
+      return [
+        name,
+        {
+          commits: [],
+          languages: fallbackLanguages,
+          openIssues: 0,
+          openPullRequests: 0,
+          releaseCount: override.releaseCount ?? releases.length,
+          releases,
+        },
+      ]
+    })
+  )
+
+  const payload = buildProjectPayload(fallbackRepos, detailsByRepo)
 
   return {
     ...payload,
