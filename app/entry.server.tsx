@@ -24,6 +24,9 @@ export default async function handleRequest(
   )
 
   responseHeaders.set('Content-Type', 'text/html')
+  responseHeaders.set('X-Content-Type-Options', 'nosniff')
+  responseHeaders.set('X-Frame-Options', 'SAMEORIGIN')
+  responseHeaders.set('Referrer-Policy', 'strict-origin-when-cross-origin')
 
   // 爬虫请求等待全部内容渲染完成，保证抓取到完整 HTML
   if (isbot(request.headers.get('user-agent'))) {

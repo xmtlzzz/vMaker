@@ -187,10 +187,12 @@ export default function Home({ loaderData }: Route.ComponentProps) {
   const moreMenuRef = useRef<HTMLDivElement | null>(null)
   const location = useLocation()
 
-  // Global keyboard shortcuts: "/" focuses search, "Escape" clears & blurs
+  // Global keyboard shortcuts: "⌘K / Ctrl+K" or "/" focuses search, "Escape" clears & blurs
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === '/' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      const isCmdK = (e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k'
+      const isSlash = e.key === '/' && !e.ctrlKey && !e.metaKey && !e.altKey
+      if (isCmdK || isSlash) {
         const activeTag = document.activeElement?.tagName.toLowerCase()
         const isEditable = (document.activeElement as HTMLElement)
           ?.isContentEditable
@@ -794,9 +796,14 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                         <span className="text-xs">✕</span>
                       </button>
                     ) : (
-                      <kbd className="inline-flex h-5 items-center rounded border border-current/20 bg-black/5 px-1.5 font-mono text-[10px] font-medium opacity-60 select-none dark:bg-white/10">
-                        /
-                      </kbd>
+                      <span className="flex items-center gap-1">
+                        <kbd className="inline-flex h-5 items-center rounded border border-current/20 bg-black/5 px-1.5 font-mono text-[10px] font-medium opacity-60 select-none dark:bg-white/10">
+                          ⌘K
+                        </kbd>
+                        <kbd className="inline-flex h-5 items-center rounded border border-current/20 bg-black/5 px-1 font-mono text-[10px] font-medium opacity-60 select-none dark:bg-white/10">
+                          /
+                        </kbd>
+                      </span>
                     )}
                   </div>
                 </label>
