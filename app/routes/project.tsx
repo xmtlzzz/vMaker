@@ -1,6 +1,6 @@
 import { ArrowLeft } from 'lucide-react'
-import type { CSSProperties } from 'react'
-import { Link, data, isRouteErrorResponse } from 'react-router'
+import { type CSSProperties, useEffect } from 'react'
+import { Link, useNavigate, data, isRouteErrorResponse } from 'react-router'
 
 import { ThemeToggleAnimated } from '~/components/ui/theme-toggle-animated'
 
@@ -204,6 +204,17 @@ export default function ProjectRoute({ loaderData }: Route.ComponentProps) {
   } = useSitePreferences(ownerLabel(owner))
 
   const showcase = projectShowcases[project.name]?.[locale]
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        navigate(`/#${project.name}`)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [navigate, project.name])
 
   function cycleAccent() {
     const index = ACCENT_PRESETS.findIndex((preset) => preset.id === accentId)

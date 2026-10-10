@@ -19,6 +19,10 @@ function applyThemeClass(theme: Theme) {
   root.classList.toggle('dark', isDark)
   root.classList.toggle('theme-dark', isDark)
   root.classList.toggle('theme-light', !isDark)
+  const metaTheme = document.querySelector('meta[name="theme-color"]')
+  if (metaTheme) {
+    metaTheme.setAttribute('content', isDark ? '#050505' : '#faf9fc')
+  }
 }
 
 // Applies theme change directly so ThemeToggleAnimated can play its smooth
