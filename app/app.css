@@ -1091,6 +1091,7 @@ html.theme-light .hero-background-image.hero-bg-day {
   top: calc(100% + 0.55rem);
   transform: translateY(-4px);
   transition: opacity 180ms ease, transform 180ms ease;
+  z-index: 50;
 }
 
 .hero-accent-menu.open {

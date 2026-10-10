@@ -1,5 +1,5 @@
-import { ArrowLeft } from 'lucide-react'
-import { type CSSProperties, useEffect } from 'react'
+import { ArrowLeft, Palette } from 'lucide-react'
+import { type CSSProperties, useEffect, useState } from 'react'
 import { Link, useNavigate, data, isRouteErrorResponse } from 'react-router'
 
 import { ThemeToggleAnimated } from '~/components/ui/theme-toggle-animated'
@@ -206,22 +206,33 @@ export default function ProjectRoute({ loaderData }: Route.ComponentProps) {
   const showcase = projectShowcases[project.name]?.[locale]
   const navigate = useNavigate()
 
+  const [isAccentMenuOpen, setIsAccentMenuOpen] = useState(false)
+
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === 'Escape') {
+        if (isAccentMenuOpen) {
+          setIsAccentMenuOpen(false)
+          return
+        }
         navigate(`/#${project.name}`)
       }
     }
+
+    function closeMenus(event: PointerEvent) {
+      const target = event.target as HTMLElement
+      if (!target.closest('.hero-accent-picker')) {
+        setIsAccentMenuOpen(false)
+      }
+    }
+
     window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [navigate, project.name])
-
-  function cycleAccent() {
-    const index = ACCENT_PRESETS.findIndex((preset) => preset.id === accentId)
-    const next = ACCENT_PRESETS[(index + 1) % ACCENT_PRESETS.length]
-
-    setAccentId(next.id)
-  }
+    window.addEventListener('pointerdown', closeMenus)
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+      window.removeEventListener('pointerdown', closeMenus)
+    }
+  }, [isAccentMenuOpen, navigate, project.name])
 
   return (
     <main
@@ -269,17 +280,35 @@ export default function ProjectRoute({ loaderData }: Route.ComponentProps) {
               onToggle={toggleTheme}
               size="sm"
             />
-            <button
-              aria-label={t.changeAccent}
-              className="detail-control"
-              onClick={cycleAccent}
-              type="button"
-            >
-              <span
-                className="detail-accent-swatch"
-                style={{ background: activeAccent.color }}
-              />
-            </button>
+            <div className="hero-accent-picker">
+              <button
+                aria-expanded={isAccentMenuOpen}
+                aria-label={t.changeAccent}
+                className="detail-control"
+                onClick={() => setIsAccentMenuOpen((open) => !open)}
+                type="button"
+              >
+                <Palette className="size-4" />
+              </button>
+              <div
+                hidden={!isAccentMenuOpen}
+                className={`hero-accent-menu ${isAccentMenuOpen ? 'open' : ''}`}
+              >
+                {ACCENT_PRESETS.map((preset) => (
+                  <button
+                    aria-label={preset.label}
+                    className={`hero-accent-swatch ${accentId === preset.id ? 'is-active' : ''}`}
+                    key={preset.id}
+                    onClick={() => {
+                      setAccentId(preset.id)
+                      setIsAccentMenuOpen(false)
+                    }}
+                    style={{ '--swatch-color': preset.color } as CSSProperties}
+                    type="button"
+                  />
+                ))}
+              </div>
+            </div>
           </nav>
         </header>
 
