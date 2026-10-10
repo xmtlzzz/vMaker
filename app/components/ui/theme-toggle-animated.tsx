@@ -71,9 +71,9 @@ export function ThemeToggleAnimated({
       <div className="toggle-pill-sky">
         {/* DAY ATMOSPHERE: Sun Corona Rings & Sun Glints */}
         <div aria-hidden="true" className="day-atmosphere">
-          <div className="corona-ring ring-1" />
-          <div className="corona-ring ring-2" />
-          <div className="corona-ring ring-3" />
+          <div className="corona-ring corona-ring-1" />
+          <div className="corona-ring corona-ring-2" />
+          <div className="corona-ring corona-ring-3" />
           <svg
             className="sun-glint glint-1"
             fill="currentColor"

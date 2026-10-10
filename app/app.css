@@ -1,6 +1,10 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+@import "./styles/motion.css";
+@import "./styles/index-extras.css";
+@import "./styles/detail-extras.css";
+@import "./styles/theme-toggle.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -2251,8 +2255,3 @@ html.theme-light .hero-background-image.hero-bg-day {
     grid-template-columns: 1fr;
   }
 }
-
-@import "./styles/motion.css";
-@import "./styles/index-extras.css";
-@import "./styles/detail-extras.css";
-@import "./styles/theme-toggle.css";

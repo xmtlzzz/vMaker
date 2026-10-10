@@ -115,33 +115,40 @@
   border-radius: 9999px;
   pointer-events: none;
   transform-origin: center;
+  box-shadow: none !important;
 }
 
+.corona-ring-1,
 .ring-1 {
   width: calc(var(--knob-size) * 1.5);
   height: calc(var(--knob-size) * 1.5);
   left: calc(var(--knob-pad) - (var(--knob-size) * 0.5) / 2);
   top: calc(var(--knob-pad) - (var(--knob-size) * 0.5) / 2);
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
   background: rgba(255, 255, 255, 0.08);
+  box-shadow: none !important;
   animation: coronaPulse1 3.2s infinite ease-in-out;
 }
 
+.corona-ring-2,
 .ring-2 {
   width: calc(var(--knob-size) * 2.1);
   height: calc(var(--knob-size) * 2.1);
   left: calc(var(--knob-pad) - (var(--knob-size) * 1.1) / 2);
   top: calc(var(--knob-pad) - (var(--knob-size) * 1.1) / 2);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  box-shadow: none !important;
   animation: coronaPulse2 4s infinite ease-in-out 0.6s;
 }
 
+.corona-ring-3,
 .ring-3 {
   width: calc(var(--knob-size) * 2.7);
   height: calc(var(--knob-size) * 2.7);
   left: calc(var(--knob-pad) - (var(--knob-size) * 1.7) / 2);
   top: calc(var(--knob-pad) - (var(--knob-size) * 1.7) / 2);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow: none !important;
   animation: coronaPulse3 4.8s infinite ease-in-out 1.2s;
 }
 
@@ -555,6 +562,9 @@
     transition: none !important;
   }
 
+  .corona-ring-1,
+  .corona-ring-2,
+  .corona-ring-3,
   .ring-1,
   .ring-2,
   .ring-3,
