@@ -175,7 +175,7 @@ export function SiteHeader({
               onClick={onMenuToggle}
               type="button"
             >
-              <span>{isMenuOpen ? t.close : t.menu}</span>
+              <span className="hero-menu-text">{isMenuOpen ? t.close : t.menu}</span>
               {isMenuOpen ? (
                 <X className="size-4" />
               ) : (

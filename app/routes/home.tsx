@@ -777,6 +777,11 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                   <Search className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-muted-foreground dark:text-white/45" />
                   <input
                     ref={searchInputRef}
+                    type="search"
+                    role="searchbox"
+                    autoComplete="off"
+                    autoCorrect="off"
+                    spellCheck={false}
                     aria-label={t.search}
                     onChange={(event) => setQuery(event.target.value)}
                     placeholder={t.search}

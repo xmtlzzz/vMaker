@@ -238,6 +238,21 @@ a:focus-visible {
   }
 }
 
+@media (max-width: 360px) {
+  .hero-nav-shell {
+    padding-inline: 10px;
+  }
+  .hero-mobile-actions {
+    gap: 0.25rem;
+  }
+  .hero-menu-button {
+    padding-inline: 0.5rem !important;
+  }
+  .hero-menu-button .hero-menu-text {
+    display: none;
+  }
+}
+
 /* Card hover tactile feedback & micro-interactions */
 .project-panel {
   transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 200ms cubic-bezier(0.16, 1, 0.3, 1), border-color 200ms ease;
