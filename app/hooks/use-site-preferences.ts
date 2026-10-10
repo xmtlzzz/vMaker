@@ -61,7 +61,10 @@ export function useSitePreferences(ownerLabel = '') {
       }
       const stored = window.localStorage.getItem(THEME_STORAGE_KEY)
       if (stored === 'light' || stored === 'dark') return stored
-      if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      if (
+        window.matchMedia &&
+        window.matchMedia('(prefers-color-scheme: dark)').matches
+      ) {
         return 'dark'
       }
     } catch {

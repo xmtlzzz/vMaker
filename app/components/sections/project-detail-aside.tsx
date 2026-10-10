@@ -1,4 +1,4 @@
-import { Check, Copy, ExternalLink } from 'lucide-react'
+import { Check, Copy, ExternalLink, Share2 } from 'lucide-react'
 import { useState } from 'react'
 
 import type { Locale } from '~/data/copy'
@@ -18,6 +18,7 @@ export function ProjectDetailAside({
   unavailable?: boolean
 }) {
   const [copied, setCopied] = useState(false)
+  const [copiedShare, setCopiedShare] = useState(false)
 
   const handleCopyClone = (e: React.MouseEvent) => {
     e.preventDefault()
@@ -26,6 +27,18 @@ export function ProjectDetailAside({
       navigator.clipboard.writeText(cloneCmd)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // fallback
+    }
+  }
+
+  const handleCopyShare = (e: React.MouseEvent) => {
+    e.preventDefault()
+    const shareText = `${project.displayName} - ${project.description}\n${window.location.href}`
+    try {
+      navigator.clipboard.writeText(shareText)
+      setCopiedShare(true)
+      setTimeout(() => setCopiedShare(false), 2000)
     } catch {
       // fallback
     }
@@ -101,6 +114,26 @@ export function ProjectDetailAside({
             <>
               <Copy className="size-3.5 opacity-70" />
               <span>Clone</span>
+            </>
+          )}
+        </button>
+        <button
+          className="detail-action detail-action-secondary cursor-pointer"
+          onClick={handleCopyShare}
+          title={locale === 'zh' ? '复制分享链接与描述' : 'Copy share link'}
+          type="button"
+        >
+          {copiedShare ? (
+            <>
+              <Check className="size-3.5 text-emerald-500" />
+              <span className="text-emerald-500">
+                {locale === 'zh' ? '已复制分享' : 'Copied!'}
+              </span>
+            </>
+          ) : (
+            <>
+              <Share2 className="size-3.5 opacity-70" />
+              <span>{locale === 'zh' ? '分享' : 'Share'}</span>
             </>
           )}
         </button>

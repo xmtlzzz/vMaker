@@ -864,7 +864,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
             <button
               aria-label={t.changeTheme}
               className="project-control-button"
-              onClick={handleThemeToggle}
+              onClick={() => handleThemeToggle()}
               type="button"
             >
               {theme === 'light' ? (

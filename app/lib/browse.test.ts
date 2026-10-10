@@ -1,4 +1,4 @@
-﻿import assert from 'node:assert/strict'
+import assert from 'node:assert/strict'
 
 import {
   SORT_KEYS,
@@ -6,6 +6,7 @@ import {
   matchesQuery,
   parseSearchQuery,
   sortProjects,
+  toPinyinInitials,
 } from '~/lib/browse'
 import type { Project } from '~/lib/github/projects'
 
@@ -382,10 +383,25 @@ async function testSortKeysAreStable() {
   }
 }
 
+async function testPinyinInitialsMatching() {
+  assert.equal(toPinyinInitials('项目导航'), 'xmdh')
+  assert.equal(toPinyinInitials('发票管理'), 'fpgl')
+
+  const cnProject = project('vInvoice', {
+    displayName: '发票管理系统',
+    description: '电子发票极速解析与导出',
+  })
+
+  assert.equal(matchesQuery(cnProject, { ...noQuery, text: 'fp' }), true)
+  assert.equal(matchesQuery(cnProject, { ...noQuery, text: 'js' }), true)
+  assert.equal(matchesQuery(cnProject, { ...noQuery, text: 'xyz' }), false)
+}
+
 await testParseSearchQuery()
 await testParseSearchQueryEdgeCases()
 await testMatchesQueryFields()
 await testMatchesQueryStructuredFilters()
+await testPinyinInitialsMatching()
 await testSortByActivity()
 await testSortByStarsAndSize()
 await testSortByName()

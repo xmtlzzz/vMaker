@@ -25,10 +25,53 @@ const requestHandler = createRequestHandler(
 
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext) {
-    // 把 Cloudflare 的 env / ctx 注入 React Router 的 loadContext，
-    // 路由 loader 里即可通过 context.cloudflare.env / context.cloudflare.ctx 访问
-    return requestHandler(request, {
+    const url = new URL(request.url)
+
+    // 1. 强制 HTTP -> HTTPS 301 重定向
+    const proto = request.headers.get('x-forwarded-proto')
+    if (url.protocol === 'http:' || proto === 'http') {
+      url.protocol = 'https:'
+      return Response.redirect(url.toString(), 301)
+    }
+
+    // 2. 边界守卫：Fetch 规范禁止 GET/HEAD 携带 body。
+    // PowerShell Invoke-WebRequest、.NET HttpClient 及部分可用性监控默认带有 Content-Length: 0，
+    // React Router 构造 Request 时会抛 TypeError 触发 500。在此净化入参。
+    let cleanRequest = request
+    const isGetOrHead = request.method === 'GET' || request.method === 'HEAD'
+    if (
+      isGetOrHead &&
+      (request.body || request.headers.has('content-length'))
+    ) {
+      const headers = new Headers(request.headers)
+      headers.delete('content-length')
+      headers.delete('content-type')
+      cleanRequest = new Request(request.url, {
+        method: request.method,
+        headers,
+        redirect: request.redirect,
+      })
+    }
+
+    // 3. 把 Cloudflare 的 env / ctx 注入 React Router 的 loadContext
+    const response = await requestHandler(cleanRequest, {
       cloudflare: { env, ctx },
+    })
+
+    // 4. 补齐生产安全标头与 HSTS
+    const headers = new Headers(response.headers)
+    headers.set(
+      'Strict-Transport-Security',
+      'max-age=31536000; includeSubDomains; preload'
+    )
+    headers.set('X-Content-Type-Options', 'nosniff')
+    headers.set('X-Frame-Options', 'SAMEORIGIN')
+    headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
+
+    return new Response(response.body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers,
     })
   },
 }

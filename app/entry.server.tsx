@@ -28,6 +28,27 @@ export default async function handleRequest(
   responseHeaders.set('X-Frame-Options', 'SAMEORIGIN')
   responseHeaders.set('Referrer-Policy', 'strict-origin-when-cross-origin')
 
+  // 恢复路由 loader 返回的 ETag 与 Cache-Control（避免根路由空 headers() 覆写导致 ETag 丢失）
+  if (
+    !responseHeaders.has('ETag') &&
+    routerContext.staticHandlerContext?.matches
+  ) {
+    for (const match of routerContext.staticHandlerContext.matches) {
+      const routeHeaders =
+        routerContext.staticHandlerContext.loaderHeaders[match.route.id]
+      if (routeHeaders?.has('ETag')) {
+        responseHeaders.set('ETag', routeHeaders.get('ETag')!)
+        if (routeHeaders.has('Cache-Control')) {
+          responseHeaders.set(
+            'Cache-Control',
+            routeHeaders.get('Cache-Control')!
+          )
+        }
+        break
+      }
+    }
+  }
+
   // 爬虫请求等待全部内容渲染完成，保证抓取到完整 HTML
   if (isbot(request.headers.get('user-agent'))) {
     await stream.allReady

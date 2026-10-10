@@ -1,4 +1,4 @@
-﻿import type { Project } from '~/lib/github/projects'
+import type { Project } from '~/lib/github/projects'
 
 export type SortKey = 'activity' | 'stars' | 'name' | 'size'
 
@@ -73,6 +73,51 @@ function searchableText(project: Project) {
     .toLowerCase()
 }
 
+const PINYIN_BOUNDARIES: [string, string][] = [
+  ['a', '啊'],
+  ['b', '芭'],
+  ['c', '擦'],
+  ['d', '搭'],
+  ['e', '蛾'],
+  ['f', '发'],
+  ['g', '噶'],
+  ['h', '哈'],
+  ['j', '击'],
+  ['k', '喀'],
+  ['l', '垃'],
+  ['m', '妈'],
+  ['n', '拿'],
+  ['o', '哦'],
+  ['p', '啪'],
+  ['q', '期'],
+  ['r', '然'],
+  ['s', '撒'],
+  ['t', '塌'],
+  ['w', '挖'],
+  ['x', '昔'],
+  ['y', '压'],
+  ['z', '匝'],
+]
+
+export function toPinyinInitials(str: string): string {
+  let res = ''
+  for (const ch of str) {
+    if (/[\u4e00-\u9fa5]/.test(ch)) {
+      let found = ''
+      for (let i = PINYIN_BOUNDARIES.length - 1; i >= 0; i--) {
+        if (ch.localeCompare(PINYIN_BOUNDARIES[i][1], 'zh-CN') >= 0) {
+          found = PINYIN_BOUNDARIES[i][0]
+          break
+        }
+      }
+      res += found
+    } else if (/[a-zA-Z0-9]/.test(ch)) {
+      res += ch.toLowerCase()
+    }
+  }
+  return res
+}
+
 export function matchesQuery(
   project: Project,
   query: BrowseQuery & { topics: string[] }
@@ -96,8 +141,11 @@ export function matchesQuery(
   const terms = query.text.toLowerCase().split(/\s+/).filter(Boolean)
   if (terms.length > 0) {
     const haystack = searchableText(project)
+    const initials = toPinyinInitials(haystack)
     for (const term of terms) {
-      if (!haystack.includes(term)) return false
+      if (!haystack.includes(term) && !initials.includes(term)) {
+        return false
+      }
     }
   }
 
