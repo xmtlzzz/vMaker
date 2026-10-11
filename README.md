@@ -293,3 +293,9 @@ Token resolution is platform-agnostic: the Cloudflare binding is passed in expli
 | `docs/superpowers/specs/2026-07-05-homepage-hero-design.md` | Homepage hero design |
 | `docs/superpowers/specs/2026-09-10-project-detail-page-design.md` | Project detail page design |
 | `docs/base.png` | Original hand-drawn wireframe |
+
+### 首页完整页面缓存与 CPU 限制
+
+Worker 在 React 服务端渲染之前读取 Cache API 中的首页 HTML，完整成功响应缓存 300 秒。部署版本、GitHub 账号和站点配置变化会隔离缓存；带查询参数、Cookie、Authorization 的请求跳过缓存，错误、私有响应、设置 Cookie 或不支持的 Vary 响应不缓存。GitHub 降级数据页面使用 no-store。浏览器仍每次验证，响应头 `X-vMaker-Cache: HIT/MISS` 可用于排查。HEAD 命中返回相同响应头，但不会把空正文写入 GET 缓存。
+
+Cache API 不跨机房复制，首次访问或过期仍需 SSR，不能保证免费 Workers 的每次请求都低于 10ms CPU。网络/KV 等待不计入 CPU；Cron 探测与手动请求可能来自不同机房，缓存命中和运行实例不同。若持续出现 exceededCpu，应结合线上 CPU 日志继续缩减首次渲染开销，或选择支持更高 CPU 限额的套餐。此缓存最多额外引入 5 分钟页面数据延迟。

@@ -90,11 +90,15 @@ export async function loader({ context, request }: Route.LoaderArgs) {
   )
   const etag = documentEtag(indexSignature(payload))
   const headers = documentHeaders(etag)
+  if (payload.error) headers['Cache-Control'] = 'no-store'
 
   // The body cannot be hashed before it is rendered, so the tag is derived from the
   // data that produces it. A matching validator means the client's copy is still
   // correct, and returning early skips the render entirely.
-  if (etagMatches(request.headers.get('If-None-Match'), etag)) {
+  if (
+    !payload.error &&
+    etagMatches(request.headers.get('If-None-Match'), etag)
+  ) {
     throw notModifiedResponse(etag)
   }
 

@@ -1,3 +1,4 @@
+import { serveDocument } from './app/lib/edge-document-cache'
 import { createRequestHandler } from 'react-router'
 import type { ServerBuild } from 'react-router'
 import * as build from './build/server'
@@ -53,9 +54,14 @@ export default {
       })
     }
 
-    // 3. 把 Cloudflare 的 env / ctx 注入 React Router 的 loadContext
-    const response = await requestHandler(cleanRequest, {
-      cloudflare: { env, ctx },
+    // Cache complete public HTML after request sanitization and before SSR.
+    const response = await serveDocument(cleanRequest, {
+      version: (build as unknown as ServerBuild).assets.version,
+      identity: JSON.stringify([env.GITHUB_LOGIN ?? '', env.SITE_URL ?? '']),
+      cache: (caches as CacheStorage & { default: Cache }).default,
+      waitUntil: (task) => ctx.waitUntil(task),
+      render: (incoming) =>
+        requestHandler(incoming, { cloudflare: { env, ctx } }),
     })
 
     // 4. 补齐生产安全标头与 HSTS

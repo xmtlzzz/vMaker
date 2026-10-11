@@ -110,6 +110,27 @@ function testCopyHasNoHardcodedHandle() {
 testCopyParity()
 testEveryUsedKeyExists()
 testFormatBytes()
+// A timeline with many dates must not repeatedly initialize ICU formatters.
+const OriginalDateTimeFormat = Intl.DateTimeFormat
+let initializations = 0
+Intl.DateTimeFormat = new Proxy(OriginalDateTimeFormat, {
+  construct(target, args) {
+    initializations++
+    return Reflect.construct(target, args)
+  },
+})
+try {
+  for (let index = 0; index < 100; index++) {
+    formatDate('2026-03-01T00:00:00Z', index % 2 ? 'en' : 'zh')
+  }
+  assert.ok(
+    initializations <= 2,
+    'a 100-date timeline initializes at most two locale formatters'
+  )
+} finally {
+  Intl.DateTimeFormat = OriginalDateTimeFormat
+}
+
 testFormatDateIsLocaleAware()
 testFormatDateHandlesMissingValues()
 testFormatCopyFillsPlaceholders()

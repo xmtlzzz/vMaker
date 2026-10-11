@@ -24,6 +24,9 @@ export function formatBytes(bytes: number) {
   return `${Math.round(bytes / 1024 / 102.4) / 10} MB`
 }
 
+// ICU initialization is expensive on the 10ms Workers CPU budget.
+const dateFormatters: Partial<Record<Locale, Intl.DateTimeFormat>> = {}
+
 export function formatDate(value: string | null | undefined, locale: Locale) {
   if (!value) {
     return NO_RECORD[locale]
@@ -34,9 +37,9 @@ export function formatDate(value: string | null | undefined, locale: Locale) {
     return NO_RECORD[locale]
   }
 
-  return new Intl.DateTimeFormat(DATE_LOCALES[locale], {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  }).format(date)
+  const formatter = (dateFormatters[locale] ??= new Intl.DateTimeFormat(
+    DATE_LOCALES[locale],
+    { day: '2-digit', month: 'short', year: 'numeric' }
+  ))
+  return formatter.format(date)
 }
