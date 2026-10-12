@@ -1,4 +1,5 @@
 import { serveDocument } from './app/lib/edge-document-cache'
+import { healthResponse } from './app/lib/health'
 import { createRequestHandler } from 'react-router'
 import type { ServerBuild } from 'react-router'
 import * as build from './build/server'
@@ -34,6 +35,8 @@ export default {
       url.protocol = 'https:'
       return Response.redirect(url.toString(), 301)
     }
+
+    if (url.pathname === '/api/health') return healthResponse(request)
 
     // 2. 边界守卫：Fetch 规范禁止 GET/HEAD 携带 body。
     // PowerShell Invoke-WebRequest、.NET HttpClient 及部分可用性监控默认带有 Content-Length: 0，

@@ -214,6 +214,17 @@ Fetching behaviour — two readers feed the same payload builder:
 
 The detail page reads the same cached payload, so it costs no additional GitHub requests.
 
+### Low-cost availability monitoring
+
+On the Cloudflare Worker, `GET /api/health` returns
+`{"status":"UP","service":"vmaker","check":"liveness"}` with `Cache-Control: no-store`.
+`HEAD` returns the same status without a body; other methods return 405. This route
+bypasses React Router, SSR, GitHub and KV. It checks Worker liveness only; keep a
+separate, less frequent homepage check to verify rendering and application data.
+The local React Router dev server does not run this Worker entry point; test this
+endpoint using `wrangler dev` or the deployed Worker. Full homepage cache misses
+still require SSR and may exceed the Workers Free CPU budget.
+
 Sorting priority: `featured` → `overrides.order` → `pushedAt` / `updatedAt` (newest first).
 
 Derived per project: `codeSize` (sum of language bytes), `languageShares` (percent, drives the composition bar), and a payload-level `summary` with totals, `primaryLanguages` and `latestActivity`.
